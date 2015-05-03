@@ -19,12 +19,16 @@
 
 <script>
 
-    var board = $('canvas').jschessboard();
+    (function() {
+        var board = $('canvas').jschessboard();
 
-    board.start();
-    $('canvas').on('piecemove', function(event, me, x, y) {
-        console.log(me.getCurrentPosition());
-    });
+        board.start();
+
+
+        $('canvas').on('piecemove', function(event, me, x, y) {
+            console.log(me.getCurrentPosition());
+        });
+    }());
 
 </script>
 </body>

@@ -1,5 +1,7 @@
-var jChessPiece = (function (board, options) {
-    this.types = {
+var jChessPiece = (function ($) {
+    var constructor;
+
+    var types = {
         b: {
             type: 'b',
             isLegal: function (offsetX, offsetY) {
@@ -67,10 +69,9 @@ var jChessPiece = (function (board, options) {
         }
     };
 
-    function jChessPiece() {
-        var me = this;
+    constructor = function(board, options) {
         var currentPosition;
-
+        var me = {};
         var settings = $.extend({
             type: 'p',
             color: 'w',
@@ -79,17 +80,35 @@ var jChessPiece = (function (board, options) {
             size: 64
         }, options);
 
-        var image = 'images/wikipedia/' + settings.color + settings.type.toUpperCase() + '.png';
-        var x = settings.startX * settings.size - settings.size / 2;
-        var y = settings.startY * settings.size - settings.size / 2;
+        var size = settings.size;
+        var image = settings.imagesPath + '/wikipedia/' + settings.color + settings.type.toUpperCase() + '.png';
+        var x = me.x = settings.startX * size - size / 2;
+        var y = me.y = settings.startY * size - size / 2;
 
-        this.getFen = function () {
-            return settings.color == 'w' ? settings.type.toUpperCase() : settings.type.toLowerCase();
+        me.roundPixels = function(px, cellSize) {
+            return Math.floor(px / cellSize);
         };
 
-        this.getCurrentPosition = function () {
+        me.coordinateToPosition = function (x, y) {
+            return 8 * y + x;
+        };
+
+        me.positionToCoordinate = function(num) {
+            return [num % 8, Math.floor(num / 8)];
+        };
+
+        me.getType = function(name) {
+            if (types.hasOwnProperty(name)) {
+                return types[name];
+            }
+        };
+
+        me.getCurrentPosition = function() {
             return currentPosition;
         };
+
+        me.fen = settings.color == 'w' ? settings.type.toUpperCase() : settings.type.toLowerCase();
+        currentPosition = me.coordinateToPosition(settings.startX, settings.startY);
 
         var layer = board.canvas.drawImage({
             source: image,
@@ -100,12 +119,12 @@ var jChessPiece = (function (board, options) {
             dragstop: function (layer) {
                 var oldX = layer._startX;
                 var oldY = layer._startY;
-                var oldPositionX = pixelsToPosition(oldX);
-                var oldPositionY = pixelsToPosition(oldY);
-                var newPositionX = pixelsToPosition(layer._eventX);
-                var newPositionY = pixelsToPosition(layer._eventY);
-                var oldPosition = _coordinateToNumber(oldPositionX, oldPositionY);
-                var newPosition = _coordinateToNumber(newPositionX, newPositionY);
+                var oldPositionX = me.roundPixels(oldX, size);
+                var oldPositionY = me.roundPixels(oldY, size);
+                var newPositionX = me.roundPixels(layer._eventX, size);
+                var newPositionY = me.roundPixels(layer._eventY, size);
+                var oldPosition = me.coordinateToPosition(oldPositionX, oldPositionY);
+                var newPosition = me.coordinateToPosition(newPositionX, newPositionY);
                 var newX = Math.ceil(layer.eventX / settings.size) * settings.size - settings.size / 2;
                 var newY = Math.ceil(layer.eventY / settings.size) * settings.size - settings.size / 2;
                 var offsetX = oldX - newX;
@@ -118,10 +137,12 @@ var jChessPiece = (function (board, options) {
                     offsetPositionY = offsetPositionY * -1;
                 }
 
-                if (newPositionX <= 8 && newPositionY <= 8 && settings.isLegal(offsetPositionX, offsetPositionY)) {
+                if (newPositionX <= 8 && newPositionY <= 8 && me.getType(settings.type).isLegal(offsetPositionX, offsetPositionY)) {
                     board.canvas.animateLayer(layer, {
                         x: newX, y: newY
                     });
+
+                    currentPosition = newPosition;
 
                     board.canvas.trigger('piecemove', [me, newX, newY]);
                 } else {
@@ -132,36 +153,133 @@ var jChessPiece = (function (board, options) {
             }
         });
 
-        board.cells[this.getCurrentPosition()] = this;
+        return me;
+    };
 
-        this.getLayer = function () {
-            return layer;
+    return constructor;
+}(jQuery));
+
+var jChessBoard = (function(jChessPiece, $) {
+    var constructor;
+
+    var cells = [];
+    var columns = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+
+    constructor = function(canvas, settings) {
+        var me = {
+            settings: {}
         };
-    }
 
-    return jChessPiece;
-
-})();
-
-var jChessBoard = function(canvas) {
-    this.cells = [];
-
-    this.canvas = canvas;
-
-    this.init = function (size) {
-        var columns = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-
+        me.canvas = canvas;
+        me.settings = settings;
+        var size = settings.cellSize;
         var x = 0, y = 0, c = 0;
+        var row, col, color;
 
-        for (var row = 0; row < 8; row++) {
-            for (var col = 0; col < 8; col++) {
-                var color = ( (col % 2 == 0 && row % 2 == 0) || (col % 2 == 1 && row % 2 == 1) ? 'white' : 'gray');
+        me.getCells = function() {
+            return cells;
+        };
 
+        /**
+         * http://www.thechessdrum.net/PGN_Reference.txt
+         * 16.1: FEN
+         *
+         * @param fenString
+         * @returns {*}
+         */
+        me.fenToPosition = function (fenString) {
+            var rows = fenString.split('/');
+            var row, char, chars, piece, settings;
+            var x, y, i = 0;
+
+            for (y = 0; y < rows.length; y++) {
+                row = rows[y];
+                chars = row.split('');
+
+                for (x = 0; x < 8; x++) { // columns
+                    char = chars[x];
+
+                    if (char == undefined) {
+                        alert('Missing information: check FEN string');
+                    }
+
+                    if (/\d/.test(char)) {
+                        x = x - 1 + parseInt(char);
+                        i += x;
+                    } else {
+                        piece = char.toLowerCase();
+
+                        settings = $.extend({
+                            startX: x + 1,
+                            startY: y + 1,
+                            color: (piece == char) ? 'b' : 'w',
+                            type: piece
+                        }, me.settings);
+
+                        cells[i] = new jChessPiece(me, settings);
+                    }
+
+                    i++;
+                }
+            }
+        };
+
+        me.start = function() {
+            return me.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
+        };
+
+        me.positionToFen = function () {
+            clear();
+            var fenString = '';
+            var i = 0;
+            for (var n = 0; n < 64; n++) {
+                if (n > 0 && n % 8 == 0) {
+                    if (i > 0) {
+                        fenString += i.toString();
+                        i = 0;
+                    }
+                    fenString += '/';
+                }
+                var piece = cells[n];
+                if (piece) {
+                    if (i > 0) {
+                        fenString += i.toString();
+                        i = 0;
+                    }
+                    fenString += piece.fen;
+                } else {
+                    i++;
+                }
+
+
+            }
+
+            return fenString;
+        };
+
+        me.clear = function () {
+            var i, cell;
+            for (i = 0; i < 64; i++) {
+                if (cells.hasOwnProperty(i)) {
+                    cell = cells[i];
+                    if (cell !== null) {
+                        me.canvas.removeLayer(cell.getLayer());
+                        cells[i] = null;
+                    }
+                }
+            }
+        };
+
+        me.clear();
+
+        for (row = 0; row < 8; row++) {
+            for (col = 0; col < 8; col++) {
+                color = ( (col % 2 == 0 && row % 2 == 0) || (col % 2 == 1 && row % 2 == 1) ? 'white' : 'gray');
 
                 x = (col * size + size / 2);
                 y = 512 - (row * size + size / 2);
 
-                this.canvas.drawRect({
+                canvas.drawRect({
                     layer: true,
                     type: 'rectangle',
                     groups: ['board'],
@@ -170,7 +288,7 @@ var jChessBoard = function(canvas) {
                     width: size, height: size
                 });
 
-                this.canvas.drawText({
+                canvas.drawText({
                     layer: true,
                     fillStyle: '#9cf',
                     x: x, y: y,
@@ -179,143 +297,27 @@ var jChessBoard = function(canvas) {
                     text: columns[col] + '' + parseInt(row + 1)
                 });
 
-                this.cells[c++] = null;
+                cells[c++] = null;
             }
         }
 
-        return this;
+        return me;
     };
 
-    this.start = function() {
-        return this.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
-    };
+    return constructor;
+}(jChessPiece, jQuery));
 
-    /**
-     * http://www.thechessdrum.net/PGN_Reference.txt
-     * 16.1: FEN
-     *
-     * @param fenString
-     * @returns {*}
-     */
-    this.fenToPosition = function (fenString) {
-        this.clear();
-
-        var rows = fenString.split('/');
-
-        for (var y = 0; y < rows.length; y++) {
-            var row = rows[y];
-            var chars = row.split('');
-            var i = 0;
-            for (var x = 0; x < 8; x++) { // columns
-                var char = chars[i];
-
-                if (char == undefined) {
-                    alert('Missing information: check FEN string');
-                }
-
-                if (/\d/.test(char)) {
-                    x = x - 1 + parseInt(char);
-                } else {
-                    var piece = char.toLowerCase();
-                    if (!this.types.hasOwnProperty(piece)) {
-                        alert('Wrong piece "' + char + '": check FEN string');
-                    }
-
-                    var settings = $.extend({
-                        startX: x + 1,
-                        startY: y + 1,
-                        color: (piece == char) ? 'b' : 'w'
-                    }, this.types[piece]);
-
-                    this.cells[x] = new jChessPiece(this, settings);
-                }
-
-                i++;
-            }
-        }
-
-        return this;
-    };
-
-    this.positionToFen = function () {
-        var fenString = '';
-        var i = 0;
-        for (var n = 0; n < 64; n++) {
-            if (n > 0 && n % 8 == 0) {
-                if (i > 0) {
-                    fenString += i.toString();
-                    i = 0;
-                }
-                fenString += '/';
-            }
-            var piece = this.cells[n];
-            if (piece) {
-                if (i > 0) {
-                    fenString += i.toString();
-                    i = 0;
-                }
-                fenString += piece.getFen();
-            } else {
-                i++;
-            }
-
-
-        }
-        return fenString;
-    };
-
-    this.clear = function () {
-        for (var i in this.cells) {
-            if (this.cells.hasOwnProperty(i)) {
-                var cell = this.cells[i];
-                if (cell instanceof jChessPiece) {
-                    this.canvas.removeLayer(cell.getLayer());
-                    this.cells[i] = null;
-                }
-            }
-        }
-
-        return this;
-    };
-
-    return this;
-};
-
-/**
- * @param x
- * @param y
- * @returns {*}
- * @private
- */
-function _coordinateToNumber(x, y) {
-    return 8 * y + x;
-}
-
-/**
- * @param num
- * @returns {*[]}
- * @private
- */
-function _numberToCoordinate(num) {
-    return [num % 8, Math.floor(num / 8)];
-}
-
-function _pixelsToPosition(px, size) {
-    return Math.floor(px / size);
-}
 
 (function ($) {
 
     $.fn.jschessboard = function (options) {
         var settings = $.extend({
             cellSize: 64,
-            debug: false
+            debug: false,
+            imagesPath: 'images'
         }, options);
 
-        var board = new jChessBoard(this);
-        board.clear();
-        board.init(settings.cellSize);
-        return board;
+        return new jChessBoard(this, settings);
     };
 
 }(jQuery));
