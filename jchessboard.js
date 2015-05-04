@@ -1,76 +1,7 @@
 var jChessPiece = (function ($) {
     var constructor;
 
-    var types = {
-        b: {
-            type: 'b',
-            isLegal: function (offsetX, offsetY) {
-                return Math.abs(offsetX) == Math.abs(offsetY);
-            }
-        },
-        n: {
-            type: 'n',
-            isLegal: function (offsetX, offsetY) {
-                var movesOffsets = [[-1, -2], [-1, 2], [-2, -1], [-2, 1], [1, -2], [1, 2], [2, -1], [2, 1]];
-
-                for (var i = 0; i < movesOffsets.length; i++) {
-                    var legalMove = movesOffsets[i];
-
-                    if (offsetX == legalMove[0] && offsetY == legalMove[1]) {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-        },
-        k: {
-            type: 'k',
-            isLegal: function (offsetX, offsetY) {
-                offsetX = Math.abs(offsetX);
-                offsetY = Math.abs(offsetY);
-
-                return (offsetX == 1 && offsetY == 1) || (offsetX == 0 && offsetY == 1) || (offsetX == 1 && offsetY == 0);
-            }
-        },
-        p: {
-            type: 'p',
-            isLegal: function (offsetX, offsetY) {
-                var firstDoubleStep = false;
-                if (offsetY == 2 && offsetX == 0 && this.isTouched == undefined) {
-                    firstDoubleStep = true;
-                }
-
-                if (firstDoubleStep || (offsetY == 1 && offsetX == 0)) {
-                    this.isTouched = true;
-                    return true;
-                }
-
-                return false;
-            }
-        },
-        r: {
-            type: 'r',
-            isLegal: function (offsetX, offsetY) {
-                offsetX = Math.abs(offsetX);
-                offsetY = Math.abs(offsetY);
-
-                return (offsetX >= 1 && offsetY == 0) || (offsetX == 0 && offsetY >= 1);
-            }
-        },
-        q: {
-            type: 'q',
-            isLegal: function (offsetX, offsetY) {
-                offsetX = Math.abs(offsetX);
-                offsetY = Math.abs(offsetY);
-
-                return (offsetX >= 1 && offsetY == 0) || (offsetX == 0 && offsetY >= 1) || offsetX == offsetY;
-            }
-        }
-    };
-
     constructor = function(board, options) {
-
         var me = {
             layer: undefined,
             currentPosition: undefined
@@ -82,6 +13,73 @@ var jChessPiece = (function ($) {
             startY: 5,
             size: 64
         }, options);
+        var types = {
+            b: {
+                type: 'b',
+                isLegal: function (offsetX, offsetY) {
+                    return Math.abs(offsetX) == Math.abs(offsetY);
+                }
+            },
+            n: {
+                type: 'n',
+                isLegal: function (offsetX, offsetY) {
+                    var movesOffsets = [[-1, -2], [-1, 2], [-2, -1], [-2, 1], [1, -2], [1, 2], [2, -1], [2, 1]];
+
+                    for (var i = 0; i < movesOffsets.length; i++) {
+                        var legalMove = movesOffsets[i];
+
+                        if (offsetX == legalMove[0] && offsetY == legalMove[1]) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+            },
+            k: {
+                type: 'k',
+                isLegal: function (offsetX, offsetY) {
+                    offsetX = Math.abs(offsetX);
+                    offsetY = Math.abs(offsetY);
+
+                    return (offsetX == 1 && offsetY == 1) || (offsetX == 0 && offsetY == 1) || (offsetX == 1 && offsetY == 0);
+                }
+            },
+            p: {
+                type: 'p',
+                isLegal: function (offsetX, offsetY) {
+                    var firstDoubleStep = false;
+                    if (offsetY == 2 && offsetX == 0 && this.isTouched == undefined) {
+                        firstDoubleStep = true;
+                    }
+
+                    if (firstDoubleStep || (offsetY == 1 && offsetX == 0)) {
+                        this.isTouched = true;
+                        return true;
+                    }
+
+                    return false;
+                }
+            },
+            r: {
+                type: 'r',
+                isLegal: function (offsetX, offsetY) {
+                    offsetX = Math.abs(offsetX);
+                    offsetY = Math.abs(offsetY);
+
+                    return (offsetX >= 1 && offsetY == 0) || (offsetX == 0 && offsetY >= 1);
+                }
+            },
+            q: {
+                type: 'q',
+                isLegal: function (offsetX, offsetY) {
+                    offsetX = Math.abs(offsetX);
+                    offsetY = Math.abs(offsetY);
+
+                    return (offsetX >= 1 && offsetY == 0) || (offsetX == 0 && offsetY >= 1) || offsetX == offsetY;
+                }
+            }
+        };
 
         var size = settings.size;
         var image = settings.imagesPath + '/wikipedia/' + settings.color + settings.type.toUpperCase() + '.png';
@@ -109,7 +107,7 @@ var jChessPiece = (function ($) {
         me.fen = settings.color == 'w' ? settings.type.toUpperCase() : settings.type.toLowerCase();
         me.currentPosition = me.coordinateToPosition(settings.startX, settings.startY);
 
-        me.layer = me.fen + me.coordinateToPosition(me.roundPixels(x, size), me.roundPixels(y, size));
+        me.layer = me.fen + '_' + me.currentPosition;
         board.canvas.drawImage({
             name: me.layer,
             source: image,
@@ -117,6 +115,7 @@ var jChessPiece = (function ($) {
             y: y,
             layer: true,
             draggable: true,
+            bringToFront: true,
             dragstop: function (layer) {
                 var oldX = layer._startX;
                 var oldY = layer._startY;

@@ -10,7 +10,7 @@
     </style>
 </head>
 <body>
-<canvas width="512" height="512">
+<canvas width="512" height="512" style="cursor: default;">
 </canvas>
 
 <script src="//code.jquery.com/jquery-2.1.4.js"></script>
@@ -26,7 +26,7 @@
 
 
         $('canvas').on('piecemove', function(event, me, x, y) {
-            console.log(me.currentPosition);
+            console.log(me.layer, me.currentPosition);
         });
     }());
 
