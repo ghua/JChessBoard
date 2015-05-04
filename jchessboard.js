@@ -192,20 +192,19 @@ var jChessBoard = (function(jChessPiece, $) {
 
             var rows = fenString.split('/');
             var row, char, chars, piece, settings;
-            var x, y, i = 0, c;
+            var x, y, i;
 
+            i = 0;
             for (y = 0; y < rows.length; y++) {
                 row = rows[y];
                 chars = row.split('');
 
-                c = 0;
-                for (x = 0; x < 8; x++) { // columns
-                    char = chars[c];
+                for (x = 0; x < row.length; x++) { // columns
+                    char = chars[x];
 
                     if (char !== undefined) {
                         if (/\d/.test(char)) {
-                            x += parseInt(char) - 1;
-                            i += x;
+                            i += parseInt(char);
                         } else {
                             piece = char.toLowerCase();
 
@@ -217,13 +216,14 @@ var jChessBoard = (function(jChessPiece, $) {
                             }, me.settings);
 
                             me.cells[i] = new jChessPiece(me, settings);
+                            i++;
                         }
-                    }
 
-                    i++;
-                    c++;
+
+                    }
                 }
             }
+
         };
 
         me.start = function() {
