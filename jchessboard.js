@@ -70,9 +70,11 @@ var jChessPiece = (function ($) {
     };
 
     constructor = function(board, options) {
-        var currentPosition;
-        var layer;
-        var me = {};
+
+        var me = {
+            layer: undefined,
+            currentPosition: undefined
+        };
         var settings = $.extend({
             type: 'p',
             color: 'w',
@@ -104,18 +106,12 @@ var jChessPiece = (function ($) {
             }
         };
 
-        me.getCurrentPosition = function() {
-            return currentPosition;
-        };
-
-        me.getLayer = function() {
-            return layer;
-        };
-
         me.fen = settings.color == 'w' ? settings.type.toUpperCase() : settings.type.toLowerCase();
-        currentPosition = me.coordinateToPosition(settings.startX, settings.startY);
+        me.currentPosition = me.coordinateToPosition(settings.startX, settings.startY);
 
-        layer = board.canvas.drawImage({
+        me.layer = me.fen + me.coordinateToPosition(me.roundPixels(x, size), me.roundPixels(y, size));
+        board.canvas.drawImage({
+            name: me.layer,
             source: image,
             x: x,
             y: y,
@@ -147,7 +143,7 @@ var jChessPiece = (function ($) {
                         x: newX, y: newY
                     });
 
-                    currentPosition = newPosition;
+                    me.currentPosition = newPosition;
 
                     board.canvas.trigger('piecemove', [me, newX, newY]);
                 } else {
@@ -262,7 +258,7 @@ var jChessBoard = (function(jChessPiece, $) {
                 if (me.cells.hasOwnProperty(i)) {
                     cell = me.cells[i];
                     if (cell !== undefined) {
-                        me.canvas.removeLayer(cell.getLayer());
+                        me.canvas.removeLayer(cell.layer);
                         delete me.cells[i];
                     }
                 }
