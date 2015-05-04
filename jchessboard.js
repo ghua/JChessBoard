@@ -71,6 +71,7 @@ var jChessPiece = (function ($) {
 
     constructor = function(board, options) {
         var currentPosition;
+        var layer;
         var me = {};
         var settings = $.extend({
             type: 'p',
@@ -107,10 +108,14 @@ var jChessPiece = (function ($) {
             return currentPosition;
         };
 
+        me.getLayer = function() {
+            return layer;
+        };
+
         me.fen = settings.color == 'w' ? settings.type.toUpperCase() : settings.type.toLowerCase();
         currentPosition = me.coordinateToPosition(settings.startX, settings.startY);
 
-        var layer = board.canvas.drawImage({
+        layer = board.canvas.drawImage({
             source: image,
             x: x,
             y: y,
@@ -161,13 +166,12 @@ var jChessPiece = (function ($) {
 
 var jChessBoard = (function(jChessPiece, $) {
     var constructor;
-
-    var cells = [];
     var columns = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
     constructor = function(canvas, settings) {
         var me = {
-            settings: {}
+            settings: {},
+            cells: []
         };
 
         me.canvas = canvas;
@@ -175,10 +179,6 @@ var jChessBoard = (function(jChessPiece, $) {
         var size = settings.cellSize;
         var x = 0, y = 0, c = 0;
         var row, col, color;
-
-        me.getCells = function() {
-            return cells;
-        };
 
         /**
          * http://www.thechessdrum.net/PGN_Reference.txt
@@ -188,38 +188,40 @@ var jChessBoard = (function(jChessPiece, $) {
          * @returns {*}
          */
         me.fenToPosition = function (fenString) {
+            me.clear();
+
             var rows = fenString.split('/');
             var row, char, chars, piece, settings;
-            var x, y, i = 0;
+            var x, y, i = 0, c;
 
             for (y = 0; y < rows.length; y++) {
                 row = rows[y];
                 chars = row.split('');
 
+                c = 0;
                 for (x = 0; x < 8; x++) { // columns
-                    char = chars[x];
+                    char = chars[c];
 
-                    if (char == undefined) {
-                        alert('Missing information: check FEN string');
-                    }
+                    if (char !== undefined) {
+                        if (/\d/.test(char)) {
+                            x += parseInt(char) - 1;
+                            i += x;
+                        } else {
+                            piece = char.toLowerCase();
 
-                    if (/\d/.test(char)) {
-                        x = x - 1 + parseInt(char);
-                        i += x;
-                    } else {
-                        piece = char.toLowerCase();
+                            settings = $.extend({
+                                startX: x + 1,
+                                startY: y + 1,
+                                color: (piece == char) ? 'b' : 'w',
+                                type: piece
+                            }, me.settings);
 
-                        settings = $.extend({
-                            startX: x + 1,
-                            startY: y + 1,
-                            color: (piece == char) ? 'b' : 'w',
-                            type: piece
-                        }, me.settings);
-
-                        cells[i] = new jChessPiece(me, settings);
+                            me.cells[i] = new jChessPiece(me, settings);
+                        }
                     }
 
                     i++;
+                    c++;
                 }
             }
         };
@@ -229,7 +231,6 @@ var jChessBoard = (function(jChessPiece, $) {
         };
 
         me.positionToFen = function () {
-            clear();
             var fenString = '';
             var i = 0;
             for (var n = 0; n < 64; n++) {
@@ -240,7 +241,7 @@ var jChessBoard = (function(jChessPiece, $) {
                     }
                     fenString += '/';
                 }
-                var piece = cells[n];
+                var piece = me.cells[n];
                 if (piece) {
                     if (i > 0) {
                         fenString += i.toString();
@@ -250,8 +251,6 @@ var jChessBoard = (function(jChessPiece, $) {
                 } else {
                     i++;
                 }
-
-
             }
 
             return fenString;
@@ -260,17 +259,22 @@ var jChessBoard = (function(jChessPiece, $) {
         me.clear = function () {
             var i, cell;
             for (i = 0; i < 64; i++) {
-                if (cells.hasOwnProperty(i)) {
-                    cell = cells[i];
-                    if (cell !== null) {
+                if (me.cells.hasOwnProperty(i)) {
+                    cell = me.cells[i];
+                    if (cell !== undefined) {
                         me.canvas.removeLayer(cell.getLayer());
-                        cells[i] = null;
+                        delete me.cells[i];
                     }
                 }
             }
-        };
 
-        me.clear();
+            delete me.cells;
+            me.cells = [];
+
+            for (i = 0; i < 64; i++) {
+                me.cells[i] = undefined;
+            }
+        };
 
         for (row = 0; row < 8; row++) {
             for (col = 0; col < 8; col++) {
@@ -297,9 +301,11 @@ var jChessBoard = (function(jChessPiece, $) {
                     text: columns[col] + '' + parseInt(row + 1)
                 });
 
-                cells[c++] = null;
+                me.cells[c++] = undefined;
             }
         }
+
+        me.clear();
 
         return me;
     };
