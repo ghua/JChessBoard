@@ -6,6 +6,15 @@ var jChessPiece = (function ($) {
             layer: undefined,
             currentPosition: undefined
         };
+
+        me.coordinateToPosition = function (x, y) {
+            return 8 * y + x;
+        };
+
+        me.positionToCoordinate = function(num) {
+            return [num % 8, Math.floor(num / 8)];
+        };
+
         var settings = $.extend({
             type: 'p',
             color: 'w',
@@ -15,13 +24,32 @@ var jChessPiece = (function ($) {
         }, options);
         var types = {
             b: {
-                type: 'b',
                 isLegal: function (offsetX, offsetY) {
                     return Math.abs(offsetX) == Math.abs(offsetY);
+                },
+                getNextLegalPositions: function(currentPosition) {
+                    var XY = me.positionToCoordinate(currentPosition);
+                    var movesOffsets = [[-1,-1],[-1,1],[1,-1],[1,1]];
+                    var positions = [];
+                    var n, o;
+
+                    for (n = 0; n < 8; n++) {
+                        for (o = 0; o < movesOffsets.length; o++) {
+                            var position = me.coordinateToPosition(XY[0] * movesOffsets[o][0], XY[1] * movesOffsets[o][1]);
+
+                            if (position >= 0 && position < 64) {
+                                positions.push(position);
+                            }
+                        }
+
+                        XY[0] += movesOffsets[o][0];
+                        XY[1] += movesOffsets[o][1];
+                    }
+
+                    return positions;
                 }
             },
             n: {
-                type: 'n',
                 isLegal: function (offsetX, offsetY) {
                     var movesOffsets = [[-1, -2], [-1, 2], [-2, -1], [-2, 1], [1, -2], [1, 2], [2, -1], [2, 1]];
 
@@ -37,7 +65,6 @@ var jChessPiece = (function ($) {
                 }
             },
             k: {
-                type: 'k',
                 isLegal: function (offsetX, offsetY) {
                     offsetX = Math.abs(offsetX);
                     offsetY = Math.abs(offsetY);
@@ -46,7 +73,6 @@ var jChessPiece = (function ($) {
                 }
             },
             p: {
-                type: 'p',
                 isLegal: function (offsetX, offsetY) {
                     var firstDoubleStep = false;
                     if (offsetY == 2 && offsetX == 0 && this.isTouched == undefined) {
@@ -62,7 +88,6 @@ var jChessPiece = (function ($) {
                 }
             },
             r: {
-                type: 'r',
                 isLegal: function (offsetX, offsetY) {
                     offsetX = Math.abs(offsetX);
                     offsetY = Math.abs(offsetY);
@@ -71,7 +96,6 @@ var jChessPiece = (function ($) {
                 }
             },
             q: {
-                type: 'q',
                 isLegal: function (offsetX, offsetY) {
                     offsetX = Math.abs(offsetX);
                     offsetY = Math.abs(offsetY);
@@ -88,14 +112,6 @@ var jChessPiece = (function ($) {
 
         me.roundPixels = function(px, cellSize) {
             return Math.floor(px / cellSize);
-        };
-
-        me.coordinateToPosition = function (x, y) {
-            return 8 * y + x;
-        };
-
-        me.positionToCoordinate = function(num) {
-            return [num % 8, Math.floor(num / 8)];
         };
 
         me.getType = function(name) {
