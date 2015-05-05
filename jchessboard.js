@@ -26,27 +26,6 @@ var jChessPiece = (function ($) {
             b: {
                 isLegal: function (offsetX, offsetY) {
                     return Math.abs(offsetX) == Math.abs(offsetY);
-                },
-                getNextLegalPositions: function(currentPosition) {
-                    var XY = me.positionToCoordinate(currentPosition);
-                    var movesOffsets = [[-1,-1],[-1,1],[1,-1],[1,1]];
-                    var positions = [];
-                    var n, o;
-
-                    for (n = 0; n < 8; n++) {
-                        for (o = 0; o < movesOffsets.length; o++) {
-                            var position = me.coordinateToPosition(XY[0] * movesOffsets[o][0], XY[1] * movesOffsets[o][1]);
-
-                            if (position >= 0 && position < 64) {
-                                positions.push(position);
-                            }
-                        }
-
-                        XY[0] += movesOffsets[o][0];
-                        XY[1] += movesOffsets[o][1];
-                    }
-
-                    return positions;
                 }
             },
             n: {
@@ -303,14 +282,16 @@ var jChessBoard = (function(jChessPiece, $) {
                     width: size, height: size
                 });
 
-                canvas.drawText({
-                    layer: true,
-                    fillStyle: '#9cf',
-                    x: x, y: y,
-                    fontSize: 48,
-                    fontFamily: 'Verdana, sans-serif',
-                    text: columns[col] + '' + parseInt(row + 1)
-                });
+                if (me.settings.debug === true) {
+                    canvas.drawText({
+                        layer: true,
+                        fillStyle: '#9cf',
+                        x: x, y: y,
+                        fontSize: 48,
+                        fontFamily: 'Verdana, sans-serif',
+                        text: columns[col] + '' + parseInt(row + 1)
+                    });
+                }
 
                 me.cells[c++] = undefined;
             }

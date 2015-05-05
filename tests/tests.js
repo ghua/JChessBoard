@@ -61,10 +61,6 @@
         assert.notOk(piece.getType('b').isLegal(0, 3));
         assert.notOk(piece.getType('b').isLegal(5, -3));
         assert.notOk(piece.getType('b').isLegal(-2, 0));
-
-        //var positions = piece.getType('b').getNextLegalPositions(32);
-        //
-        //return;
     });
 
     QUnit.test("Knight isValid test", function( assert ) {
