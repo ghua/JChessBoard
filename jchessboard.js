@@ -110,7 +110,7 @@ var JChessPiece = (function ($) {
                     });
 
                     me.currentPosition = newPosition;
-                    me.nextPositions = me.genLegalPositions(newPositionX, newPositionY, me.getOneStepOffset(s.type));
+                    me.nextPositions = me.genLegalPositions(newPositionX, newPositionY, me.getOneStepOffset(s.type), s.type === 'n');
 
                     board.canvas.trigger('piecemove', [me, newX, newY]);
 
