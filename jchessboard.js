@@ -123,7 +123,7 @@ var JChessPiece = (function ($) {
         newXY = this.board.positionToCoordinate(newPosition);
         offsets = [oldXY[0]-newXY[0], oldXY[1]-newXY[1]];
 
-        if (this.settings == 'b') {
+        if (this.settings.color == 'b') {
             offsets[0] = offsets[0] * -1;
             offsets[1] = offsets[1] * -1;
         }
