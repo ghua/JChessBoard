@@ -1,12 +1,12 @@
 var JChessPiece = (function ($) {
 
     var oneStepOffsets = {
-        b: [[1,1], [-1,-1], [-1,1], [1,-1]],
+        b: [[1, 1], [-1, -1], [-1, 1], [1, -1]],
         n: [[-1, -2], [-1, 2], [-2, -1], [-2, 1], [1, -2], [1, 2], [2, -1], [2, 1]],
-        k: [[1,1], [-1,-1], [-1,1], [1,-1]],
-        p: [[1,0],[2,0]],
-        r: [[1,0],[0,1],[-1,0],[0,-1]],
-        q: [[1,0],[0,1],[-1,0],[0,-1],[1,1], [-1,-1], [-1,1], [1,-1]]
+        k: [[1, 1], [-1, -1], [-1, 1], [1, -1]],
+        p: [[1, 0], [2, 0]],
+        r: [[1, 0], [0, 1], [-1, 0], [0, -1]],
+        q: [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, -1], [-1, 1], [1, -1]]
     };
 
     var isLegalOffset = {
@@ -46,10 +46,10 @@ var JChessPiece = (function ($) {
             return (offsetX >= 1 && offsetY == 0) || (offsetX == 0 && offsetY >= 1);
         },
         q: function (offsetX, offsetY) {
-                offsetX = Math.abs(offsetX);
-                offsetY = Math.abs(offsetY);
+            offsetX = Math.abs(offsetX);
+            offsetY = Math.abs(offsetY);
 
-                return (offsetX >= 1 && offsetY == 0) || (offsetX == 0 && offsetY >= 1) || offsetX == offsetY;
+            return (offsetX >= 1 && offsetY == 0) || (offsetX == 0 && offsetY >= 1) || offsetX == offsetY;
         }
     };
 
@@ -68,11 +68,11 @@ var JChessPiece = (function ($) {
         var size = s.size;
         var image = s.imagesPath + '/wikipedia/' + s.color + s.type.toUpperCase() + '.png';
 
-        this.x = s.startX * size - size / 2;
-        this.y = s.startY * size - size / 2;
+        this.x = s.startX * size + size / 2;
+        this.y = s.startY * size + size / 2;
         this.fen = s.color == 'w' ? s.type.toUpperCase() : s.type.toLowerCase();
         this.currentPosition = this.coordinateToPosition(s.startX, s.startY);
-        this.nextPositions = this.genLegalPositions(s.startX, s.startY, me.getOneStepOffset(s.type));
+        this.nextPositions = this.genLegalPositions(s.startX, s.startY, this.getOneStepOffset(s.type), s.type === 'n');
         this.layer = this.fen + '_' + this.currentPosition;
         board.canvas.drawImage({
             name: this.layer,
@@ -103,8 +103,12 @@ var JChessPiece = (function ($) {
                     offsetPositionY = offsetPositionY * -1;
                 }
 
-                var isValid = me.getType(s.type);
-                if (newPositionX <= 8 && newPositionY <= 8 && isValid(offsetPositionX, offsetPositionY, me.isTouched)) {
+                var isValidOffset = me.getType(s.type);
+                if (
+                    newPositionX <= 8 && newPositionY <= 8
+                    && isValidOffset(offsetPositionX, offsetPositionY, me.isTouched)
+                    && me.isClearWay(newPosition, me.nextPositions, board.cells)
+                ) {
                     board.canvas.animateLayer(layer, {
                         x: newX, y: newY
                     });
@@ -151,17 +155,18 @@ var JChessPiece = (function ($) {
     };
 
     JChessPiece.prototype.genLegalPositions = function (currentX, currentY, offsets, single) {
-        var o, s, offset, stepX, stepY, legalPosition;
+        var o, s, offset, stepX, stepY, legalPosition, vector;
         var legalPositions = [];
         for (o = 0; o < offsets.length; o++) {
+            vector = [];
             offset = offsets[o];
             stepX = currentX;
             stepY = currentY;
             s = 0;
             while (s < 2 && stepX >= 0 && stepX < 8 && stepY >= 0 && stepY < 8) {
                 legalPosition = this.coordinateToPosition(stepX, stepY);
-                if (legalPositions.indexOf(legalPosition) === -1) {
-                    legalPositions.push(legalPosition);
+                if (vector.indexOf(legalPosition) === -1) {
+                    vector.push(legalPosition);
                 }
                 stepX = stepX + offset[0];
                 stepY = stepY + offset[1];
@@ -170,9 +175,30 @@ var JChessPiece = (function ($) {
                     s++;
                 }
             }
+
+            legalPositions.push(vector);
         }
 
         return legalPositions;
+    };
+
+    JChessPiece.prototype.isClearWay = function(dstPosition, positions, cells) {
+        var v, vector, end, slice, i, position;
+        for (v = 0; v < positions.length; v++) {
+            vector = positions[v];
+            end = vector.indexOf(dstPosition);
+            if (end > -1) {
+                slice = vector.slice(1, end);
+                for (i = 0; i < slice.length; i++) {
+                    position = slice[i];
+                    if (cells.hasOwnProperty(position)) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
     };
 
     return JChessPiece;
@@ -252,8 +278,8 @@ var JChessBoard = (function (JChessPiece, $) {
                         piece = char.toLowerCase();
 
                         settings = $.extend({
-                            startX: x + 1,
-                            startY: y + 1,
+                            startX: x,
+                            startY: y,
                             color: (piece == char) ? 'b' : 'w',
                             type: piece
                         }, this.settings);
