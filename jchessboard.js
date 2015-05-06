@@ -364,6 +364,10 @@ var JChessBoard = (function (JChessPiece, $) {
             newPosition = this.coordinateToPosition(newX, newY);
         }
 
+        if (this.cells[oldPosition] === undefined || this.cells[newPosition] === undefined) {
+            return false;
+        }
+
         var piece = this.cells[oldPosition];
 
         if (piece.nextStepIsValid(oldPosition, newPosition)) {
@@ -379,6 +383,10 @@ var JChessBoard = (function (JChessPiece, $) {
         var layer = piece.layer;
         var XY = this.positionToCoordinate(newPosition);
         var size = this.settings.cellSize;
+
+        if (this.cells[piece.currentPosition] === undefined || this.cells[newPosition] === undefined) {
+            return false;
+        }
 
         this.canvas.animateLayer(layer, {
             x: this.relativeToAbsolute(XY[0]),
