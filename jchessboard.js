@@ -364,7 +364,7 @@ var JChessBoard = (function (JChessPiece, $) {
             newPosition = this.coordinateToPosition(newX, newY);
         }
 
-        if (this.cells[oldPosition] === undefined || this.cells[newPosition] === undefined) {
+        if (this.cells[oldPosition] === undefined) {
             return false;
         }
 
@@ -384,7 +384,7 @@ var JChessBoard = (function (JChessPiece, $) {
         var XY = this.positionToCoordinate(newPosition);
         var size = this.settings.cellSize;
 
-        if (this.cells[piece.currentPosition] === undefined || this.cells[newPosition] === undefined) {
+        if (this.cells[piece.currentPosition] === undefined) {
             return false;
         }
 
