@@ -93,7 +93,7 @@ var JChessPiece = (function ($) {
                         newPosition = vector[v];
                         XY = board.positionToCoordinate(newPosition);
 
-                        if (newPosition !== me.currentPosition) {
+                        if (newPosition !== me.currentPosition && me.nextStepIsValid(me.currentPosition, newPosition)) {
                             board.canvas.drawEllipse({
                                 strokeStyle: 'green',
                                 strokeWidth: 2,
@@ -184,7 +184,9 @@ var JChessPiece = (function ($) {
         var o, s, offset, stepX, stepY, legalPosition, vector, offsets, single;
         var legalPositions = [];
 
-        single = (this.settings.type === 'n' || this.settings.type === 'p')
+        var oneStepTypes = ['n', 'k', 'p'];
+
+        single = (oneStepTypes.indexOf(this.settings.type) > -1);
 
         offsets = this.getOneStepOffset();
         for (o = 0; o < offsets.length; o++) {
