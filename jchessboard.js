@@ -58,7 +58,6 @@ var JChessPiece = (function ($) {
     };
 
     function JChessPiece(board, options) {
-        this.legalMoves = [];
         this.isTouched = false;
         var me = this;
 
@@ -144,6 +143,26 @@ var JChessPiece = (function ($) {
 
     JChessPiece.prototype.roundPixels = function(px, cellSize) {
         return Math.floor(px / cellSize);
+    };
+
+    JChessPiece.prototype.genLegalPositions = function(currentX, currentY, offsets) {
+        var o, s, offset, stepX, stepY, legalPosition;
+        var legalPositions = [];
+        for(o = 0; o < offsets.length; o++) {
+            offset = offsets[o];
+            stepX = currentX;
+            stepY = currentY;
+            while(stepX >= 0 && stepX < 8 && stepY >= 0 && stepY < 8) {
+                legalPosition = this.coordinateToPosition(stepX, stepY);
+                if (legalPositions.indexOf(legalPosition) === -1) {
+                    legalPositions.push(legalPosition);
+                }
+                stepX = stepX + offset[0];
+                stepY = stepY + offset[1];
+            }
+        }
+
+        return legalPositions;
     };
 
     return JChessPiece;

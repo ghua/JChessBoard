@@ -122,6 +122,13 @@
         assert.notOk(piece.getType('q').isLegal(6, 5));
     });
 
+    QUnit.test("Test genLegalPositions", function( assert ) {
+        var actual = piece.genLegalPositions(4, 4, [[1,1], [-1,-1], [-1,1], [1,-1]]);
+        var expected = [36, 45, 54, 63, 27, 18, 9, 0, 43, 50, 57, 29, 22, 15];
+
+        assert.deepEqual(actual, expected);
+    });
+
 }(QUnit, JChessPiece, JChessBoard));
 
 
