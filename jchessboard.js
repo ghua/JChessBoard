@@ -221,7 +221,7 @@ var JChessPiece = (function ($) {
     };
 
     JChessPiece.prototype.isClearWay = function (dstPosition) {
-        var v, vector, end, slice, i, position, positions, cells;
+        var v, vector, end, slice, i, position, positions, cells, piece;
         positions = this.nextPositions;
         cells = this.board.cells;
 
@@ -232,7 +232,8 @@ var JChessPiece = (function ($) {
                 slice = vector.slice(1, end + 1);
                 for (i = 0; i < slice.length; i++) {
                     position = slice[i];
-                    if (cells[position] !== undefined) {
+                    piece = cells[position];
+                    if (piece !== undefined && piece.settings.color === this.settings.color) {
                         return false;
                     }
                 }
