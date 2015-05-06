@@ -137,7 +137,7 @@ var JChessPiece = (function ($) {
         return this;
     };
 
-    JChessPiece.prototype.setNewPosition = function(newPosition) {
+    JChessPiece.prototype.setNewPosition = function (newPosition) {
         var newXY = this.board.positionToCoordinate(newPosition);
         this.currentPosition = newPosition;
         this.nextPositions = this.genLegalPositions(newXY[0], newXY[1]);
@@ -146,9 +146,19 @@ var JChessPiece = (function ($) {
 
     JChessPiece.prototype.nextStepIsValid = function (oldPosition, newPosition) {
         var oldXY, newXY, offsets;
+
+        if (this.board.nextStepSide !== this.settings.color) {
+            return false;
+        }
+
         oldXY = this.board.positionToCoordinate(oldPosition);
         newXY = this.board.positionToCoordinate(newPosition);
-        offsets = [oldXY[0]-newXY[0], oldXY[1]-newXY[1]];
+
+        if (newXY[0] > 7 || newXY[1] > 7) {
+            return false;
+        }
+
+        offsets = [oldXY[0] - newXY[0], oldXY[1] - newXY[1]];
 
         if (this.settings.color == 'b') {
             offsets[0] = offsets[0] * -1;
@@ -157,7 +167,7 @@ var JChessPiece = (function ($) {
 
         var isValidOffset = this.getType();
 
-        return newXY[0] < 8 && newXY[1] < 8 && isValidOffset(offsets[0], offsets[1], this.isTouched) && this.isClearWay(newPosition)
+        return (isValidOffset(offsets[0], offsets[1], this.isTouched) && this.isClearWay(newPosition));
     };
 
     JChessPiece.prototype.getType = function (name) {
@@ -253,6 +263,7 @@ var JChessBoard = (function (JChessPiece, $) {
         this.canvas = canvas;
         this.settings = settings;
         this.cells = [];
+        this.nextStepSide = 'w';
 
         var size = settings.cellSize;
         var x = 0, y = 0, c = 0;
@@ -436,6 +447,8 @@ var JChessBoard = (function (JChessPiece, $) {
 
         piece.setNewPosition(newPosition);
 
+        this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
+
         this.canvas.trigger('piecemove', [this, piece, XY[0], XY[1]]);
     };
 
@@ -452,7 +465,7 @@ var JChessBoard = (function (JChessPiece, $) {
         return Math.floor(px / size);
     };
 
-    JChessBoard.prototype.absoluteCeil  = function (px) {
+    JChessBoard.prototype.absoluteCeil = function (px) {
         var size = this.settings.cellSize;
         return Math.ceil(px / size) * size - size / 2;
     };
