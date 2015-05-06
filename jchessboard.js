@@ -118,6 +118,9 @@ var JChessPiece = (function ($) {
 
                     board.canvas.trigger('piecemove', [me, newX, newY]);
 
+                    board.cells[oldPosition] = undefined;
+                    board.cells[newPosition] = me;
+
                     me.isTouched = true;
                 } else {
                     board.canvas.animateLayer(layer, {
@@ -191,7 +194,7 @@ var JChessPiece = (function ($) {
                 slice = vector.slice(1, end);
                 for (i = 0; i < slice.length; i++) {
                     position = slice[i];
-                    if (cells.hasOwnProperty(position)) {
+                    if (cells[position] !== undefined) {
                         return false;
                     }
                 }
