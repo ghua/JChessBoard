@@ -55,6 +55,7 @@ var JChessPiece = (function ($) {
 
     function JChessPiece(board, options) {
         this.isTouched = false;
+        this.board = board;
         var me = this;
 
         var s = $.extend({
@@ -71,7 +72,7 @@ var JChessPiece = (function ($) {
         this.x = s.startX * size + size / 2;
         this.y = s.startY * size + size / 2;
         this.fen = s.color == 'w' ? s.type.toUpperCase() : s.type.toLowerCase();
-        this.currentPosition = this.coordinateToPosition(s.startX, s.startY);
+        this.currentPosition = board.coordinateToPosition(s.startX, s.startY);
         this.nextPositions = this.genLegalPositions(s.startX, s.startY, this.getOneStepOffset(s.type), s.type === 'n');
         this.layer = this.fen + '_' + this.currentPosition;
         board.canvas.drawImage({
@@ -85,14 +86,14 @@ var JChessPiece = (function ($) {
             dragstop: function (layer) {
                 var oldX = layer._startX;
                 var oldY = layer._startY;
-                var oldPositionX = me.roundPixels(oldX, size);
-                var oldPositionY = me.roundPixels(oldY, size);
-                var newPositionX = me.roundPixels(layer._eventX, size);
-                var newPositionY = me.roundPixels(layer._eventY, size);
-                var oldPosition = me.coordinateToPosition(oldPositionX, oldPositionY);
-                var newPosition = me.coordinateToPosition(newPositionX, newPositionY);
-                var newX = Math.ceil(layer.eventX / s.size) * s.size - s.size / 2;
-                var newY = Math.ceil(layer.eventY / s.size) * s.size - s.size / 2;
+                var oldPositionX = board.absoluteToRelative(oldX)
+                var oldPositionY = board.absoluteToRelative(oldY);
+                var newPositionX = board.absoluteToRelative(layer._eventX);
+                var newPositionY = board.absoluteToRelative(layer._eventY);
+                var oldPosition = board.coordinateToPosition(oldPositionX, oldPositionY);
+                var newPosition = board.coordinateToPosition(newPositionX, newPositionY);
+                var newX = board.absoluteCeil(layer.eventX);
+                var newY = board.absoluteCeil(layer.eventY);
                 var offsetX = oldX - newX;
                 var offsetY = oldY - newY;
                 var offsetPositionX = Math.ceil(offsetX / s.size);
@@ -133,14 +134,6 @@ var JChessPiece = (function ($) {
         return this;
     }
 
-    JChessPiece.prototype.coordinateToPosition = function (x, y) {
-        return 8 * y + x;
-    };
-
-    JChessPiece.prototype.positionToCoordinate = function (num) {
-        return [num % 8, Math.floor(num / 8)];
-    };
-
     JChessPiece.prototype.getType = function (name) {
         if (isLegalOffset.hasOwnProperty(name)) {
             return isLegalOffset[name];
@@ -153,10 +146,6 @@ var JChessPiece = (function ($) {
         }
     };
 
-    JChessPiece.prototype.roundPixels = function (px, cellSize) {
-        return Math.floor(px / cellSize);
-    };
-
     JChessPiece.prototype.genLegalPositions = function (currentX, currentY, offsets, single) {
         var o, s, offset, stepX, stepY, legalPosition, vector;
         var legalPositions = [];
@@ -167,7 +156,7 @@ var JChessPiece = (function ($) {
             stepY = currentY;
             s = 0;
             while (s < 2 && stepX >= 0 && stepX < 8 && stepY >= 0 && stepY < 8) {
-                legalPosition = this.coordinateToPosition(stepX, stepY);
+                legalPosition = this.board.coordinateToPosition(stepX, stepY);
                 if (vector.indexOf(legalPosition) === -1) {
                     vector.push(legalPosition);
                 }
@@ -185,7 +174,7 @@ var JChessPiece = (function ($) {
         return legalPositions;
     };
 
-    JChessPiece.prototype.isClearWay = function(dstPosition, positions, cells) {
+    JChessPiece.prototype.isClearWay = function (dstPosition, positions, cells) {
         var v, vector, end, slice, i, position;
         for (v = 0; v < positions.length; v++) {
             vector = positions[v];
@@ -337,12 +326,69 @@ var JChessBoard = (function (JChessPiece, $) {
             }
         }
 
+        this.canvas.drawLayers();
+
         delete this.cells;
         this.cells = [];
 
         for (i = 0; i < 64; i++) {
             this.cells[i] = undefined;
         }
+    };
+
+    JChessBoard.prototype.move = function () {
+        var oldX, oldY, newX, newY, oldPosition, newPosition;
+        if (arguments.length == 2) {
+            oldPosition = arguments[0];
+            newPosition = arguments[1];
+        }
+        if (arguments.length == 4) {
+            oldX = arguments[0];
+            oldY = arguments[1];
+            newX = arguments[2];
+            newY = arguments[3];
+
+            oldPosition = this.coordinateToPosition(oldX, oldY);
+            newPosition = this.coordinateToPosition(newX, newY);
+        }
+
+        var piece = this.cells[oldPosition];
+
+        this.movePiece(piece, newPosition);
+    };
+
+    JChessBoard.prototype.movePiece = function (piece, newPosition) {
+        var layer = piece.layer;
+        var XY = this.positionToCoordinate(newPosition);
+        var size = this.settings.cellSize;
+
+        this.canvas.animateLayer(layer, {
+            x: this.relativeToAbsolute(XY[0]),
+            y: this.relativeToAbsolute(XY[1])
+        });
+    };
+
+    JChessBoard.prototype.coordinateToPosition = function (x, y) {
+        return 8 * y + x;
+    };
+
+    JChessBoard.prototype.positionToCoordinate = function (num) {
+        return [num % 8, Math.floor(num / 8)];
+    };
+
+    JChessBoard.prototype.absoluteToRelative = function (px) {
+        var size = this.settings.cellSize;
+        return Math.floor(px / size);
+    };
+
+    JChessBoard.prototype.absoluteCeil  = function (px) {
+        var size = this.settings.cellSize;
+        return Math.ceil(px / size) * size - size / 2;
+    };
+
+    JChessBoard.prototype.relativeToAbsolute = function (position) {
+        var size = this.settings.cellSize;
+        return position * size + size / 2;
     };
 
     return JChessBoard;

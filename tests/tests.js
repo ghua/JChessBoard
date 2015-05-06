@@ -26,21 +26,23 @@
         board.clear();
     });
 
-    var piece = new JChessPiece(board, settings);
-    QUnit.test("test jChessPiece positionToCoordinate", function( assert ) {
-        assert.equal( piece.coordinateToPosition(0,1), 8 );
-        assert.equal( piece.coordinateToPosition(0,2), 16 );
-        assert.equal( piece.coordinateToPosition(7,7), 63 );
-        assert.equal( piece.coordinateToPosition(7,6), 55 );
-        assert.equal( piece.coordinateToPosition(0,7), 56 );
+
+    QUnit.test("test jChessBoard positionToCoordinate", function( assert ) {
+        assert.equal( board.coordinateToPosition(0,1), 8 );
+        assert.equal( board.coordinateToPosition(0,2), 16 );
+        assert.equal( board.coordinateToPosition(7,7), 63 );
+        assert.equal( board.coordinateToPosition(7,6), 55 );
+        assert.equal( board.coordinateToPosition(0,7), 56 );
     });
 
-    QUnit.test("test jChessPiece positionToCoordinate", function( assert ) {
-        assert.deepEqual( piece.positionToCoordinate(8), [0,1] );
-        assert.deepEqual( piece.positionToCoordinate(16), [0,2] );
-        assert.deepEqual( piece.positionToCoordinate(63), [7,7] );
-        assert.deepEqual( piece.positionToCoordinate(55), [7,6] );
+    QUnit.test("test jChessBoard positionToCoordinate", function( assert ) {
+        assert.deepEqual( board.positionToCoordinate(8), [0,1] );
+        assert.deepEqual( board.positionToCoordinate(16), [0,2] );
+        assert.deepEqual( board.positionToCoordinate(63), [7,7] );
+        assert.deepEqual( board.positionToCoordinate(55), [7,6] );
     });
+
+    var piece = new JChessPiece(board, settings);
 
     QUnit.test("Pawn isValid test", function( assert ) {
         assert.ok(piece.getType('p')(0, 2, false));
