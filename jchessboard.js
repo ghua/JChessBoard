@@ -97,19 +97,8 @@ var JChessPiece = (function ($) {
                 var newY = board.absoluteCeil(layer.eventY);
 
                 if (me.nextStepIsValid(oldPosition, newPosition)) {
-                    board.canvas.animateLayer(layer, {
-                        x: newX, y: newY
-                    });
-
-                    me.currentPosition = newPosition;
-                    me.nextPositions = me.genLegalPositions(newPositionX, newPositionY, me.getOneStepOffset(s.type), s.type === 'n');
-
-                    board.cells[oldPosition] = undefined;
-                    board.cells[newPosition] = me;
-
-                    me.isTouched = true;
-
-                    board.canvas.trigger('piecemove', [board, me, newX, newY]);
+                    me.board.movePiece(me, newPosition);
+                    me.setNewPosition(newPosition);
                 } else {
                     board.canvas.animateLayer(layer, {
                         x: oldX, y: oldY
@@ -119,7 +108,14 @@ var JChessPiece = (function ($) {
         });
 
         return this;
-    }
+    };
+
+    JChessPiece.prototype.setNewPosition = function(newPosition) {
+        var newXY = this.board.positionToCoordinate(newPosition);
+        this.currentPosition = newPosition;
+        this.nextPositions = this.genLegalPositions(newXY[0], newXY[1], this.settings.type === 'n');
+        this.isTouched = true;
+    };
 
     JChessPiece.prototype.nextStepIsValid = function (oldPosition, newPosition) {
         var oldXY, newXY, offsets;
@@ -148,14 +144,20 @@ var JChessPiece = (function ($) {
     };
 
     JChessPiece.prototype.getOneStepOffset = function (name) {
+        if (name === undefined) {
+            name = this.settings.type;
+        }
+
         if (oneStepOffsets.hasOwnProperty(name)) {
             return oneStepOffsets[name];
         }
     };
 
-    JChessPiece.prototype.genLegalPositions = function (currentX, currentY, offsets, single) {
-        var o, s, offset, stepX, stepY, legalPosition, vector;
+    JChessPiece.prototype.genLegalPositions = function (currentX, currentY, single) {
+        var o, s, offset, stepX, stepY, legalPosition, vector, offsets;
         var legalPositions = [];
+
+        offsets = this.getOneStepOffset()
         for (o = 0; o < offsets.length; o++) {
             vector = [];
             offset = offsets[o];
@@ -382,6 +384,13 @@ var JChessBoard = (function (JChessPiece, $) {
             x: this.relativeToAbsolute(XY[0]),
             y: this.relativeToAbsolute(XY[1])
         });
+
+        this.cells[piece.currentPosition] = undefined;
+        this.cells[newPosition] = piece;
+
+        piece.setNewPosition(newPosition);
+
+        this.canvas.trigger('piecemove', [this, piece, XY[0], XY[1]]);
     };
 
     JChessBoard.prototype.coordinateToPosition = function (x, y) {
