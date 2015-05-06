@@ -42,84 +42,84 @@
     });
 
     QUnit.test("Pawn isValid test", function( assert ) {
-        assert.ok(piece.getType('p').isLegal(0, 2, false));
-        assert.ok(piece.getType('p').isLegal(0, 1, false));
-        assert.notOk(piece.getType('p').isLegal(0, 2, true)); // second try
-        assert.notOk(piece.getType('p').isLegal(0, 3, true));
-        assert.notOk(piece.getType('p').isLegal(1, 1, false));
-        assert.notOk(piece.getType('p').isLegal(2, 0, false));
-        assert.notOk(piece.getType('p').isLegal(0, -1, false));
+        assert.ok(piece.getType('p')(0, 2, false));
+        assert.ok(piece.getType('p')(0, 1, false));
+        assert.notOk(piece.getType('p')(0, 2, true)); // second try
+        assert.notOk(piece.getType('p')(0, 3, true));
+        assert.notOk(piece.getType('p')(1, 1, false));
+        assert.notOk(piece.getType('p')(2, 0, false));
+        assert.notOk(piece.getType('p')(0, -1, false));
     });
 
     QUnit.test("Bishop isValid test", function( assert ) {
-        assert.ok(piece.getType('b').isLegal(1, 1));
-        assert.ok(piece.getType('b').isLegal(4, 4));
-        assert.ok(piece.getType('b').isLegal(-1, -1));
-        assert.ok(piece.getType('b').isLegal(-5, -5));
-        assert.ok(piece.getType('b').isLegal(-1, 1));
-        assert.notOk(piece.getType('b').isLegal(7, 1));
-        assert.notOk(piece.getType('b').isLegal(0, 3));
-        assert.notOk(piece.getType('b').isLegal(5, -3));
-        assert.notOk(piece.getType('b').isLegal(-2, 0));
+        assert.ok(piece.getType('b')(1, 1));
+        assert.ok(piece.getType('b')(4, 4));
+        assert.ok(piece.getType('b')(-1, -1));
+        assert.ok(piece.getType('b')(-5, -5));
+        assert.ok(piece.getType('b')(-1, 1));
+        assert.notOk(piece.getType('b')(7, 1));
+        assert.notOk(piece.getType('b')(0, 3));
+        assert.notOk(piece.getType('b')(5, -3));
+        assert.notOk(piece.getType('b')(-2, 0));
     });
 
     QUnit.test("Knight isValid test", function( assert ) {
         var movesOffsets = [[-1, -2], [-1, 2], [-2, -1], [-2, 1], [1, -2], [1, 2], [2, -1], [2, 1]];
 
         for(var i in movesOffsets) {
-            assert.ok(piece.getType('n').isLegal(movesOffsets[i][0], movesOffsets[i][1]));
+            assert.ok(piece.getType('n')(movesOffsets[i][0], movesOffsets[i][1]));
         }
 
-        assert.notOk(piece.getType('n').isLegal(7, 1));
-        assert.notOk(piece.getType('n').isLegal(0, 3));
-        assert.notOk(piece.getType('n').isLegal(5, -3));
-        assert.notOk(piece.getType('n').isLegal(-2, 0));
+        assert.notOk(piece.getType('n')(7, 1));
+        assert.notOk(piece.getType('n')(0, 3));
+        assert.notOk(piece.getType('n')(5, -3));
+        assert.notOk(piece.getType('n')(-2, 0));
     });
 
     QUnit.test("King isValid test", function( assert ) {
         var movesOffsets = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, 1]];
 
         for(var i in movesOffsets) {
-            assert.ok(piece.getType('k').isLegal(movesOffsets[i][0], movesOffsets[i][1]));
+            assert.ok(piece.getType('k')(movesOffsets[i][0], movesOffsets[i][1]));
         }
 
-        assert.notOk(piece.getType('k').isLegal(2, 1));
-        assert.notOk(piece.getType('k').isLegal(7, 1));
-        assert.notOk(piece.getType('k').isLegal(0, 3));
-        assert.notOk(piece.getType('k').isLegal(5, -3));
-        assert.notOk(piece.getType('k').isLegal(-2, 0));
+        assert.notOk(piece.getType('k')(2, 1));
+        assert.notOk(piece.getType('k')(7, 1));
+        assert.notOk(piece.getType('k')(0, 3));
+        assert.notOk(piece.getType('k')(5, -3));
+        assert.notOk(piece.getType('k')(-2, 0));
     });
 
     QUnit.test("Rook isValid test", function( assert ) {
-        assert.ok(piece.getType('r').isLegal(1, 0));
-        assert.ok(piece.getType('r').isLegal(0, 1));
-        assert.ok(piece.getType('r').isLegal(5, 0));
-        assert.ok(piece.getType('r').isLegal(0, 5));
-        assert.ok(piece.getType('r').isLegal(-1, 0));
-        assert.ok(piece.getType('r').isLegal(0, -5));
+        assert.ok(piece.getType('r')(1, 0));
+        assert.ok(piece.getType('r')(0, 1));
+        assert.ok(piece.getType('r')(5, 0));
+        assert.ok(piece.getType('r')(0, 5));
+        assert.ok(piece.getType('r')(-1, 0));
+        assert.ok(piece.getType('r')(0, -5));
 
-        assert.notOk(piece.getType('r').isLegal(-1, -1));
-        assert.notOk(piece.getType('r').isLegal(2, -1));
-        assert.notOk(piece.getType('r').isLegal(-5, 5));
+        assert.notOk(piece.getType('r')(-1, -1));
+        assert.notOk(piece.getType('r')(2, -1));
+        assert.notOk(piece.getType('r')(-5, 5));
     });
 
     QUnit.test("Queen isValid test", function( assert ) {
-        assert.ok(piece.getType('q').isLegal(1, 0));
-        assert.ok(piece.getType('q').isLegal(0, 1));
-        assert.ok(piece.getType('q').isLegal(5, 0));
-        assert.ok(piece.getType('q').isLegal(0, 5));
-        assert.ok(piece.getType('q').isLegal(-1, 0));
-        assert.ok(piece.getType('q').isLegal(0, -5));
+        assert.ok(piece.getType('q')(1, 0));
+        assert.ok(piece.getType('q')(0, 1));
+        assert.ok(piece.getType('q')(5, 0));
+        assert.ok(piece.getType('q')(0, 5));
+        assert.ok(piece.getType('q')(-1, 0));
+        assert.ok(piece.getType('q')(0, -5));
 
-        assert.ok(piece.getType('q').isLegal(1, 1));
-        assert.ok(piece.getType('q').isLegal(4, 4));
-        assert.ok(piece.getType('q').isLegal(-1, -1));
-        assert.ok(piece.getType('q').isLegal(-5, -5));
-        assert.ok(piece.getType('q').isLegal(-1, 1));
+        assert.ok(piece.getType('q')(1, 1));
+        assert.ok(piece.getType('q')(4, 4));
+        assert.ok(piece.getType('q')(-1, -1));
+        assert.ok(piece.getType('q')(-5, -5));
+        assert.ok(piece.getType('q')(-1, 1));
 
-        assert.notOk(piece.getType('q').isLegal(-5, 4));
-        assert.notOk(piece.getType('q').isLegal(2, -1));
-        assert.notOk(piece.getType('q').isLegal(6, 5));
+        assert.notOk(piece.getType('q')(-5, 4));
+        assert.notOk(piece.getType('q')(2, -1));
+        assert.notOk(piece.getType('q')(6, 5));
     });
 
     QUnit.test("Test genLegalPositions by Bishop", function( assert ) {
