@@ -116,12 +116,12 @@ var JChessPiece = (function ($) {
                     me.currentPosition = newPosition;
                     me.nextPositions = me.genLegalPositions(newPositionX, newPositionY, me.getOneStepOffset(s.type), s.type === 'n');
 
-                    board.canvas.trigger('piecemove', [me, newX, newY]);
-
                     board.cells[oldPosition] = undefined;
                     board.cells[newPosition] = me;
 
                     me.isTouched = true;
+
+                    board.canvas.trigger('piecemove', [board, me, newX, newY]);
                 } else {
                     board.canvas.animateLayer(layer, {
                         x: oldX, y: oldY
@@ -252,6 +252,8 @@ var JChessBoard = (function (JChessPiece, $) {
 
         this.clear();
 
+        canvas.trigger('boardready', [this]);
+
         return this;
     }
 
@@ -293,6 +295,8 @@ var JChessBoard = (function (JChessPiece, $) {
                 }
             }
         }
+
+        this.canvas.trigger('positionready', [this]);
     };
 
     JChessBoard.prototype.positionToFen = function () {

@@ -7,9 +7,17 @@
         canvas {
             border:1px solid #000000;
         }
+
+        input {
+            width: 512px;
+            margin-bottom: 1em;
+        }
     </style>
 </head>
-<body>
+
+<div>
+    <input type="text" id="fen">
+</div>
 <canvas width="512" height="512" style="cursor: default;">
 </canvas>
 
@@ -19,16 +27,23 @@
 
 <script>
 
-    (function() {
+        $('canvas').on('positionready', function(event, board) {
+            $('#fen').val(board.positionToFen());
+        });
+
+        $('canvas').on('piecemove', function(event, board, piece, x, y) {
+            console.log(piece.layer, piece.nextPositions);
+
+            $('#fen').val(board.positionToFen());
+        });
+
         var board = $('canvas').jschessboard();
 
         board.start();
 
-
-        $('canvas').on('piecemove', function(event, me, x, y) {
-            console.log(me.layer, me.nextPositions);
+        $('#fen').on('input', function () {
+            board.fenToPosition($('#fen').val());
         });
-    }());
 
 </script>
 </body>
