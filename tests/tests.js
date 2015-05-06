@@ -1,4 +1,4 @@
-(function(QUnit, jChessPiece, jChessBoard) {
+(function(QUnit, jChessPiece, JChessBoard) {
     var settings = {imagesPath: '../images/'};
     var board = $('canvas').jschessboard(settings);
 
@@ -42,13 +42,13 @@
     });
 
     QUnit.test("Pawn isValid test", function( assert ) {
-        assert.ok(piece.getType('p').isLegal(0, 2));
-        assert.ok(piece.getType('p').isLegal(0, 1));
-        assert.notOk(piece.getType('p').isLegal(0, 2)); // second try
-        assert.notOk(piece.getType('p').isLegal(0, 3));
-        assert.notOk(piece.getType('p').isLegal(1, 1));
-        assert.notOk(piece.getType('p').isLegal(2, 0));
-        assert.notOk(piece.getType('p').isLegal(0, -1));
+        assert.ok(piece.getType('p').isLegal(0, 2, false));
+        assert.ok(piece.getType('p').isLegal(0, 1, false));
+        assert.notOk(piece.getType('p').isLegal(0, 2, true)); // second try
+        assert.notOk(piece.getType('p').isLegal(0, 3, true));
+        assert.notOk(piece.getType('p').isLegal(1, 1, false));
+        assert.notOk(piece.getType('p').isLegal(2, 0, false));
+        assert.notOk(piece.getType('p').isLegal(0, -1, false));
     });
 
     QUnit.test("Bishop isValid test", function( assert ) {
@@ -122,6 +122,6 @@
         assert.notOk(piece.getType('q').isLegal(6, 5));
     });
 
-}(QUnit, jChessPiece, jChessBoard));
+}(QUnit, jChessPiece, JChessBoard));
 
 

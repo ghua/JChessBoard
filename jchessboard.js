@@ -1,10 +1,69 @@
 var jChessPiece = (function ($) {
     var constructor;
 
-    constructor = function(board, options) {
+    var types = {
+        b: {
+            moveOffsets: [[-1,-1], [-1,1], [1,-1], [1,1]],
+            isLegal: function (offsetX, offsetY) {
+                return Math.abs(offsetX) == Math.abs(offsetY);
+            }
+        },
+        n: {
+            isLegal: function (offsetX, offsetY) {
+                var movesOffsets = [[-1, -2], [-1, 2], [-2, -1], [-2, 1], [1, -2], [1, 2], [2, -1], [2, 1]];
+
+                for (var i = 0; i < movesOffsets.length; i++) {
+                    var legalMove = movesOffsets[i];
+
+                    if (offsetX == legalMove[0] && offsetY == legalMove[1]) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        },
+        k: {
+            isLegal: function (offsetX, offsetY) {
+                offsetX = Math.abs(offsetX);
+                offsetY = Math.abs(offsetY);
+
+                return (offsetX == 1 && offsetY == 1) || (offsetX == 0 && offsetY == 1) || (offsetX == 1 && offsetY == 0);
+            }
+        },
+        p: {
+            isLegal: function (offsetX, offsetY, isTouched) {
+                if (isTouched === false) {
+                    return (offsetY === 1 || offsetY === 2) && offsetX === 0;
+                }
+
+                return offsetY === 1 && offsetX === 0;
+            }
+        },
+        r: {
+            isLegal: function (offsetX, offsetY) {
+                offsetX = Math.abs(offsetX);
+                offsetY = Math.abs(offsetY);
+
+                return (offsetX >= 1 && offsetY == 0) || (offsetX == 0 && offsetY >= 1);
+            }
+        },
+        q: {
+            isLegal: function (offsetX, offsetY) {
+                offsetX = Math.abs(offsetX);
+                offsetY = Math.abs(offsetY);
+
+                return (offsetX >= 1 && offsetY == 0) || (offsetX == 0 && offsetY >= 1) || offsetX == offsetY;
+            }
+        }
+    };
+
+    return function(board, options) {
         var me = {
             layer: undefined,
-            currentPosition: undefined
+            currentPosition: undefined,
+            legalMoves: [],
+            isTouched: false
         };
 
         me.coordinateToPosition = function (x, y) {
@@ -22,65 +81,10 @@ var jChessPiece = (function ($) {
             startY: 5,
             size: 64
         }, options);
-        var types = {
-            b: {
-                isLegal: function (offsetX, offsetY) {
-                    return Math.abs(offsetX) == Math.abs(offsetY);
-                }
-            },
-            n: {
-                isLegal: function (offsetX, offsetY) {
-                    var movesOffsets = [[-1, -2], [-1, 2], [-2, -1], [-2, 1], [1, -2], [1, 2], [2, -1], [2, 1]];
 
-                    for (var i = 0; i < movesOffsets.length; i++) {
-                        var legalMove = movesOffsets[i];
-
-                        if (offsetX == legalMove[0] && offsetY == legalMove[1]) {
-                            return true;
-                        }
-                    }
-
-                    return false;
-                }
-            },
-            k: {
-                isLegal: function (offsetX, offsetY) {
-                    offsetX = Math.abs(offsetX);
-                    offsetY = Math.abs(offsetY);
-
-                    return (offsetX == 1 && offsetY == 1) || (offsetX == 0 && offsetY == 1) || (offsetX == 1 && offsetY == 0);
-                }
-            },
-            p: {
-                isLegal: function (offsetX, offsetY) {
-                    var firstDoubleStep = false;
-                    if (offsetY == 2 && offsetX == 0 && this.isTouched == undefined) {
-                        firstDoubleStep = true;
-                    }
-
-                    if (firstDoubleStep || (offsetY == 1 && offsetX == 0)) {
-                        this.isTouched = true;
-                        return true;
-                    }
-
-                    return false;
-                }
-            },
-            r: {
-                isLegal: function (offsetX, offsetY) {
-                    offsetX = Math.abs(offsetX);
-                    offsetY = Math.abs(offsetY);
-
-                    return (offsetX >= 1 && offsetY == 0) || (offsetX == 0 && offsetY >= 1);
-                }
-            },
-            q: {
-                isLegal: function (offsetX, offsetY) {
-                    offsetX = Math.abs(offsetX);
-                    offsetY = Math.abs(offsetY);
-
-                    return (offsetX >= 1 && offsetY == 0) || (offsetX == 0 && offsetY >= 1) || offsetX == offsetY;
-                }
+        me.getType = function(name) {
+            if (types.hasOwnProperty(name)) {
+                return types[name];
             }
         };
 
@@ -91,12 +95,6 @@ var jChessPiece = (function ($) {
 
         me.roundPixels = function(px, cellSize) {
             return Math.floor(px / cellSize);
-        };
-
-        me.getType = function(name) {
-            if (types.hasOwnProperty(name)) {
-                return types[name];
-            }
         };
 
         me.fen = settings.color == 'w' ? settings.type.toUpperCase() : settings.type.toLowerCase();
@@ -132,7 +130,7 @@ var jChessPiece = (function ($) {
                     offsetPositionY = offsetPositionY * -1;
                 }
 
-                if (newPositionX <= 8 && newPositionY <= 8 && me.getType(settings.type).isLegal(offsetPositionX, offsetPositionY)) {
+                if (newPositionX <= 8 && newPositionY <= 8 && me.getType(settings.type).isLegal(offsetPositionX, offsetPositionY, me.isTouched)) {
                     board.canvas.animateLayer(layer, {
                         x: newX, y: newY
                     });
@@ -140,6 +138,8 @@ var jChessPiece = (function ($) {
                     me.currentPosition = newPosition;
 
                     board.canvas.trigger('piecemove', [me, newX, newY]);
+
+                    me.isTouched = true;
                 } else {
                     board.canvas.animateLayer(layer, {
                         x: oldX, y: oldY
@@ -150,121 +150,19 @@ var jChessPiece = (function ($) {
 
         return me;
     };
-
-    return constructor;
 }(jQuery));
 
-var jChessBoard = (function(jChessPiece, $) {
-    var constructor;
+var JChessBoard = (function(jChessPiece, $) {
     var columns = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
-    constructor = function(canvas, settings) {
-        var me = {
-            settings: {},
-            cells: []
-        };
+    function JChessBoard(canvas, settings) {
+        this.canvas = canvas;
+        this.settings = settings;
+        this.cells = [];
 
-        me.canvas = canvas;
-        me.settings = settings;
         var size = settings.cellSize;
         var x = 0, y = 0, c = 0;
         var row, col, color;
-
-        /**
-         * http://www.thechessdrum.net/PGN_Reference.txt
-         * 16.1: FEN
-         *
-         * @param fenString
-         * @returns {*}
-         */
-        me.fenToPosition = function (fenString) {
-            me.clear();
-
-            var rows = fenString.split('/');
-            var row, char, chars, piece, settings;
-            var x, y, i;
-
-            i = 0;
-            for (y = 0; y < rows.length; y++) {
-                row = rows[y];
-                chars = row.split('');
-
-                for (x = 0; x < row.length; x++) { // columns
-                    char = chars[x];
-
-                    if (char !== undefined) {
-                        if (/\d/.test(char)) {
-                            i += parseInt(char);
-                        } else {
-                            piece = char.toLowerCase();
-
-                            settings = $.extend({
-                                startX: x + 1,
-                                startY: y + 1,
-                                color: (piece == char) ? 'b' : 'w',
-                                type: piece
-                            }, me.settings);
-
-                            me.cells[i] = new jChessPiece(me, settings);
-                            i++;
-                        }
-
-
-                    }
-                }
-            }
-
-        };
-
-        me.start = function() {
-            return me.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
-        };
-
-        me.positionToFen = function () {
-            var fenString = '';
-            var i = 0;
-            for (var n = 0; n < 64; n++) {
-                if (n > 0 && n % 8 == 0) {
-                    if (i > 0) {
-                        fenString += i.toString();
-                        i = 0;
-                    }
-                    fenString += '/';
-                }
-                var piece = me.cells[n];
-                if (piece) {
-                    if (i > 0) {
-                        fenString += i.toString();
-                        i = 0;
-                    }
-                    fenString += piece.fen;
-                } else {
-                    i++;
-                }
-            }
-
-            return fenString;
-        };
-
-        me.clear = function () {
-            var i, cell;
-            for (i = 0; i < 64; i++) {
-                if (me.cells.hasOwnProperty(i)) {
-                    cell = me.cells[i];
-                    if (cell !== undefined) {
-                        me.canvas.removeLayer(cell.layer);
-                        delete me.cells[i];
-                    }
-                }
-            }
-
-            delete me.cells;
-            me.cells = [];
-
-            for (i = 0; i < 64; i++) {
-                me.cells[i] = undefined;
-            }
-        };
 
         for (row = 0; row < 8; row++) {
             for (col = 0; col < 8; col++) {
@@ -282,7 +180,7 @@ var jChessBoard = (function(jChessPiece, $) {
                     width: size, height: size
                 });
 
-                if (me.settings.debug === true) {
+                if (settings.debug === true) {
                     canvas.drawText({
                         layer: true,
                         fillStyle: '#9cf',
@@ -293,16 +191,102 @@ var jChessBoard = (function(jChessPiece, $) {
                     });
                 }
 
-                me.cells[c++] = undefined;
+                this.cells[c++] = undefined;
             }
         }
 
-        me.clear();
+        this.clear();
 
-        return me;
+        return this;
+    }
+
+    JChessBoard.prototype.start = function() {
+        return this.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
     };
 
-    return constructor;
+    JChessBoard.prototype.fenToPosition = function (fenString) {
+        this.clear();
+
+        var rows = fenString.split('/');
+        var row, char, chars, piece, settings;
+        var x, y, i;
+
+        i = 0;
+        for (y = 0; y < rows.length; y++) {
+            row = rows[y];
+            chars = row.split('');
+
+            for (x = 0; x < row.length; x++) { // columns
+                char = chars[x];
+
+                if (char !== undefined) {
+                    if (/\d/.test(char)) {
+                        i += parseInt(char);
+                    } else {
+                        piece = char.toLowerCase();
+
+                        settings = $.extend({
+                            startX: x + 1,
+                            startY: y + 1,
+                            color: (piece == char) ? 'b' : 'w',
+                            type: piece
+                        }, this.settings);
+
+                        this.cells[i] = new jChessPiece(this, settings);
+                        i++;
+                    }
+                }
+            }
+        }
+    };
+
+    JChessBoard.prototype.positionToFen = function () {
+        var fenString = '';
+        var i = 0;
+        for (var n = 0; n < 64; n++) {
+            if (n > 0 && n % 8 == 0) {
+                if (i > 0) {
+                    fenString += i.toString();
+                    i = 0;
+                }
+                fenString += '/';
+            }
+            var piece = this.cells[n];
+            if (piece) {
+                if (i > 0) {
+                    fenString += i.toString();
+                    i = 0;
+                }
+                fenString += piece.fen;
+            } else {
+                i++;
+            }
+        }
+
+        return fenString;
+    };
+
+    JChessBoard.prototype.clear = function () {
+        var i, cell;
+        for (i = 0; i < 64; i++) {
+            if (this.cells.hasOwnProperty(i)) {
+                cell = this.cells[i];
+                if (cell !== undefined) {
+                    this.canvas.removeLayer(cell.layer);
+                    delete this.cells[i];
+                }
+            }
+        }
+
+        delete this.cells;
+        this.cells = [];
+
+        for (i = 0; i < 64; i++) {
+            this.cells[i] = undefined;
+        }
+    };
+
+    return JChessBoard;
 }(jChessPiece, jQuery));
 
 
@@ -315,7 +299,7 @@ var jChessBoard = (function(jChessPiece, $) {
             imagesPath: 'images'
         }, options);
 
-        return new jChessBoard(this, settings);
+        return new JChessBoard(this, settings);
     };
 
 }(jQuery));
