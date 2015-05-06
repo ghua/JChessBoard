@@ -201,6 +201,11 @@ var JChessPiece = (function ($) {
                     vector.push(legalPosition);
                 }
 
+                if (this.settings.color == 'b' && this.settings.type == 'p') {
+                    offset[0] = offset[0] * -1;
+                    offset[1] = offset[1] * -1;
+                }
+
                 stepX = stepX + offset[0];
                 stepY = stepY + offset[1];
 
