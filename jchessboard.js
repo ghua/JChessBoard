@@ -145,20 +145,25 @@ var JChessPiece = (function ($) {
         return Math.floor(px / cellSize);
     };
 
-    JChessPiece.prototype.genLegalPositions = function(currentX, currentY, offsets) {
-        var o, s, offset, stepX, stepY, legalPosition;
+    JChessPiece.prototype.genLegalPositions = function(currentX, currentY, offsets, single) {
+        var o, s, offset, stepX, stepY, legalPosition, isFirstStepDone;
         var legalPositions = [];
         for(o = 0; o < offsets.length; o++) {
             offset = offsets[o];
             stepX = currentX;
             stepY = currentY;
-            while(stepX >= 0 && stepX < 8 && stepY >= 0 && stepY < 8) {
+            s = 0;
+            while(s < 2 && stepX >= 0 && stepX < 8 && stepY >= 0 && stepY < 8) {
                 legalPosition = this.coordinateToPosition(stepX, stepY);
                 if (legalPositions.indexOf(legalPosition) === -1) {
                     legalPositions.push(legalPosition);
                 }
                 stepX = stepX + offset[0];
                 stepY = stepY + offset[1];
+
+                if (single === true) {
+                    s++;
+                }
             }
         }
 

@@ -122,9 +122,16 @@
         assert.notOk(piece.getType('q').isLegal(6, 5));
     });
 
-    QUnit.test("Test genLegalPositions", function( assert ) {
+    QUnit.test("Test genLegalPositions by Bishop", function( assert ) {
         var actual = piece.genLegalPositions(4, 4, [[1,1], [-1,-1], [-1,1], [1,-1]]);
         var expected = [36, 45, 54, 63, 27, 18, 9, 0, 43, 50, 57, 29, 22, 15];
+
+        assert.deepEqual(actual, expected);
+    });
+
+    QUnit.test("Test genLegalPositions by Knight", function( assert ) {
+        var actual = piece.genLegalPositions(4, 4, [[-1, -2], [-1, 2], [-2, -1], [-2, 1], [1, -2], [1, 2], [2, -1], [2, 1]], true);
+        var expected = [36, 19, 51, 26, 42, 21, 53, 30, 46];
 
         assert.deepEqual(actual, expected);
     });
