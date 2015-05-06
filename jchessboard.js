@@ -191,7 +191,7 @@ var JChessPiece = (function ($) {
             vector = positions[v];
             end = vector.indexOf(dstPosition);
             if (end > -1) {
-                slice = vector.slice(1, end);
+                slice = vector.slice(1, end + 1);
                 for (i = 0; i < slice.length; i++) {
                     position = slice[i];
                     if (cells[position] !== undefined) {
