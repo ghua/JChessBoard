@@ -4,7 +4,7 @@ var JChessPiece = (function ($) {
         b: [[1, 1], [-1, -1], [-1, 1], [1, -1]],
         n: [[-1, -2], [-1, 2], [-2, -1], [-2, 1], [1, -2], [1, 2], [2, -1], [2, 1]],
         k: [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, -1], [-1, 1], [1, -1]],
-        p: [[0, -1], [0, -2]],
+        p: [[0, -1], [0, -2], [-1, -1], [1, -1]],
         r: [[1, 0], [0, 1], [-1, 0], [0, -1]],
         q: [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, -1], [-1, 1], [1, -1]]
     };
@@ -32,8 +32,8 @@ var JChessPiece = (function ($) {
 
             return (offsetX == 1 && offsetY == 1) || (offsetX == 0 && offsetY == 1) || (offsetX == 1 && offsetY == 0);
         },
-        p: function (offsetX, offsetY, isTouched) {
-            if (isTouched === false) {
+        p: function (offsetX, offsetY, me) {
+            if (me.isTouched === false) {
                 return (offsetY === 1 || offsetY === 2) && offsetX === 0;
             }
 
@@ -145,7 +145,7 @@ var JChessPiece = (function ($) {
     };
 
     JChessPiece.prototype.nextStepIsValid = function (oldPosition, newPosition) {
-        var oldXY, newXY, offsets;
+        var oldXY, newXY, offsetX, offsetY;
 
         if (this.board.nextStepSide !== this.settings.color) {
             return false;
@@ -158,16 +158,17 @@ var JChessPiece = (function ($) {
             return false;
         }
 
-        offsets = [oldXY[0] - newXY[0], oldXY[1] - newXY[1]];
-
-        if (this.settings.color == 'b') {
-            offsets[0] = offsets[0] * -1;
-            offsets[1] = offsets[1] * -1;
+        if (this.settings.color === 'b') {
+            offsetX = (oldXY[0] - newXY[0]) * -1;
+            offsetY = (oldXY[1] - newXY[1]) * -1;
+        } else {
+            offsetX = oldXY[0] - newXY[0];
+            offsetY = oldXY[1] - newXY[1];
         }
 
         var isValidOffset = this.getType();
 
-        return (isValidOffset(offsets[0], offsets[1], this.isTouched) && this.isClearWay(newPosition));
+        return (isValidOffset(offsetX, offsetY, this) && this.isClearWay(newPosition));
     };
 
     JChessPiece.prototype.getType = function (name) {
@@ -191,7 +192,7 @@ var JChessPiece = (function ($) {
     };
 
     JChessPiece.prototype.genLegalPositions = function (currentX, currentY) {
-        var o, s, offset, stepX, stepY, legalPosition, vector, offsets, single;
+        var o, s, offset, stepX, stepY, legalPosition, vector, offsets, single, offsetX, offsetY;
         var legalPositions = [];
 
         var oneStepTypes = ['n', 'k', 'p'];
@@ -199,9 +200,11 @@ var JChessPiece = (function ($) {
         single = (oneStepTypes.indexOf(this.settings.type) > -1);
 
         offsets = this.getOneStepOffset();
+
         for (o = 0; o < offsets.length; o++) {
             vector = [];
-            offset = offsets[o];
+            offsetX = offsets[o][0];
+            offsetY = offsets[o][1];
             stepX = currentX;
             stepY = currentY;
             s = 0;
@@ -211,13 +214,13 @@ var JChessPiece = (function ($) {
                     vector.push(legalPosition);
                 }
 
-                if (this.settings.color == 'b' && this.settings.type == 'p') {
-                    offset[0] = offset[0] * -1;
-                    offset[1] = offset[1] * -1;
+                if (this.settings.color === 'b' && this.settings.type === 'p') {
+                    stepX = stepX + offsetX * -1;
+                    stepY = stepY + offsetY * -1;
+                } else {
+                    stepX = stepX + offsetX;
+                    stepY = stepY + offsetY;
                 }
-
-                stepX = stepX + offset[0];
-                stepY = stepY + offset[1];
 
                 if (single === true) {
                     s++;
