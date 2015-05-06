@@ -1,5 +1,4 @@
-var jChessPiece = (function ($) {
-    var constructor;
+var JChessPiece = (function ($) {
 
     var types = {
         b: {
@@ -58,23 +57,12 @@ var jChessPiece = (function ($) {
         }
     };
 
-    return function(board, options) {
-        var me = {
-            layer: undefined,
-            currentPosition: undefined,
-            legalMoves: [],
-            isTouched: false
-        };
+    function JChessPiece(board, options) {
+        this.legalMoves = [];
+        this.isTouched = false;
+        var me = this;
 
-        me.coordinateToPosition = function (x, y) {
-            return 8 * y + x;
-        };
-
-        me.positionToCoordinate = function(num) {
-            return [num % 8, Math.floor(num / 8)];
-        };
-
-        var settings = $.extend({
+        var s = $.extend({
             type: 'p',
             color: 'w',
             startX: 5,
@@ -82,30 +70,19 @@ var jChessPiece = (function ($) {
             size: 64
         }, options);
 
-        me.getType = function(name) {
-            if (types.hasOwnProperty(name)) {
-                return types[name];
-            }
-        };
+        var size = s.size;
+        var image = s.imagesPath + '/wikipedia/' + s.color + s.type.toUpperCase() + '.png';
 
-        var size = settings.size;
-        var image = settings.imagesPath + '/wikipedia/' + settings.color + settings.type.toUpperCase() + '.png';
-        var x = me.x = settings.startX * size - size / 2;
-        var y = me.y = settings.startY * size - size / 2;
-
-        me.roundPixels = function(px, cellSize) {
-            return Math.floor(px / cellSize);
-        };
-
-        me.fen = settings.color == 'w' ? settings.type.toUpperCase() : settings.type.toLowerCase();
-        me.currentPosition = me.coordinateToPosition(settings.startX, settings.startY);
-
-        me.layer = me.fen + '_' + me.currentPosition;
+        this.x = s.startX * size - size / 2;
+        this.y = s.startY * size - size / 2;
+        this.fen = s.color == 'w' ? s.type.toUpperCase() : s.type.toLowerCase();
+        this.currentPosition = this.coordinateToPosition(s.startX, s.startY);
+        this.layer = this.fen + '_' + this.currentPosition;
         board.canvas.drawImage({
-            name: me.layer,
+            name: this.layer,
             source: image,
-            x: x,
-            y: y,
+            x: this.x,
+            y: this.y,
             layer: true,
             draggable: true,
             bringToFront: true,
@@ -118,19 +95,19 @@ var jChessPiece = (function ($) {
                 var newPositionY = me.roundPixels(layer._eventY, size);
                 var oldPosition = me.coordinateToPosition(oldPositionX, oldPositionY);
                 var newPosition = me.coordinateToPosition(newPositionX, newPositionY);
-                var newX = Math.ceil(layer.eventX / settings.size) * settings.size - settings.size / 2;
-                var newY = Math.ceil(layer.eventY / settings.size) * settings.size - settings.size / 2;
+                var newX = Math.ceil(layer.eventX / s.size) * s.size - s.size / 2;
+                var newY = Math.ceil(layer.eventY / s.size) * s.size - s.size / 2;
                 var offsetX = oldX - newX;
                 var offsetY = oldY - newY;
-                var offsetPositionX = Math.ceil(offsetX / settings.size);
-                var offsetPositionY = Math.ceil(offsetY / settings.size);
+                var offsetPositionX = Math.ceil(offsetX / s.size);
+                var offsetPositionY = Math.ceil(offsetY / s.size);
 
-                if (settings.color == 'b') {
+                if (s.color == 'b') {
                     offsetPositionX = offsetPositionX * -1;
                     offsetPositionY = offsetPositionY * -1;
                 }
 
-                if (newPositionX <= 8 && newPositionY <= 8 && me.getType(settings.type).isLegal(offsetPositionX, offsetPositionY, me.isTouched)) {
+                if (newPositionX <= 8 && newPositionY <= 8 && me.getType(s.type).isLegal(offsetPositionX, offsetPositionY, me.isTouched)) {
                     board.canvas.animateLayer(layer, {
                         x: newX, y: newY
                     });
@@ -148,11 +125,31 @@ var jChessPiece = (function ($) {
             }
         });
 
-        return me;
+        return this;
+    }
+
+    JChessPiece.prototype.coordinateToPosition = function (x, y) {
+        return 8 * y + x;
     };
+
+    JChessPiece.prototype.positionToCoordinate = function(num) {
+        return [num % 8, Math.floor(num / 8)];
+    };
+
+    JChessPiece.prototype.getType = function(name) {
+        if (types.hasOwnProperty(name)) {
+            return types[name];
+        }
+    };
+
+    JChessPiece.prototype.roundPixels = function(px, cellSize) {
+        return Math.floor(px / cellSize);
+    };
+
+    return JChessPiece;
 }(jQuery));
 
-var JChessBoard = (function(jChessPiece, $) {
+var JChessBoard = (function(JChessPiece, $) {
     var columns = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
     function JChessBoard(canvas, settings) {
@@ -232,7 +229,7 @@ var JChessBoard = (function(jChessPiece, $) {
                             type: piece
                         }, this.settings);
 
-                        this.cells[i] = new jChessPiece(this, settings);
+                        this.cells[i] = new JChessPiece(this, settings);
                         i++;
                     }
                 }
@@ -287,7 +284,7 @@ var JChessBoard = (function(jChessPiece, $) {
     };
 
     return JChessBoard;
-}(jChessPiece, jQuery));
+}(JChessPiece, jQuery));
 
 
 (function ($) {

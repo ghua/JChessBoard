@@ -1,4 +1,4 @@
-(function(QUnit, jChessPiece, JChessBoard) {
+(function(QUnit, JChessPiece, JChessBoard) {
     var settings = {imagesPath: '../images/'};
     var board = $('canvas').jschessboard(settings);
 
@@ -26,7 +26,7 @@
         board.clear();
     });
 
-    var piece = jChessPiece(board, settings);
+    var piece = new JChessPiece(board, settings);
     QUnit.test("test jChessPiece positionToCoordinate", function( assert ) {
         assert.equal( piece.coordinateToPosition(0,1), 8 );
         assert.equal( piece.coordinateToPosition(0,2), 16 );
@@ -122,6 +122,6 @@
         assert.notOk(piece.getType('q').isLegal(6, 5));
     });
 
-}(QUnit, jChessPiece, JChessBoard));
+}(QUnit, JChessPiece, JChessBoard));
 
 
