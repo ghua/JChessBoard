@@ -319,20 +319,20 @@ var JChessBoard = (function (JChessPiece, $) {
         this.clear();
 
         var rows = fenString.split('/');
-        var row, char, chars, piece, settings;
+        var row, char, chars, piece, settings, position;
         var x, y, i;
 
-        i = 0;
         for (y = 0; y < rows.length; y++) {
             row = rows[y];
             chars = row.split('');
+            x = 0;
 
-            for (x = 0; x < row.length; x++) { // columns
-                char = chars[x];
+            for (i = 0; i < row.length; i++) { // columns
+                char = chars[i];
 
                 if (char !== undefined) {
                     if (/\d/.test(char)) {
-                        i += parseInt(char);
+                        x += parseInt(char);
                     } else {
                         piece = char.toLowerCase();
 
@@ -343,8 +343,9 @@ var JChessBoard = (function (JChessPiece, $) {
                             type: piece
                         }, this.settings);
 
-                        this.cells[i] = new JChessPiece(this, settings);
-                        i++;
+                        position = this.coordinateToPosition(x, y);
+                        this.cells[position] = new JChessPiece(this, settings);
+                        x++;
                     }
                 }
             }
