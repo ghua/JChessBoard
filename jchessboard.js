@@ -56,7 +56,6 @@ var JChessPiece = (function ($) {
     function JChessPiece(board, options) {
         this.isTouched = false;
         this.board = board;
-        this.settings = options;
         var me = this;
 
         var s = $.extend({
@@ -66,6 +65,8 @@ var JChessPiece = (function ($) {
             startY: 5,
             size: 64
         }, options);
+
+        this.settings = s;
 
         var size = s.size;
         var image = s.imagesPath + '/wikipedia/' + s.color + s.type.toUpperCase() + '.png';
@@ -246,7 +247,7 @@ var JChessPiece = (function ($) {
                 for (i = 0; i < slice.length; i++) {
                     position = slice[i];
                     piece = cells[position];
-                    if (piece !== undefined && piece.settings.color === this.settings.color) {
+                    if (piece !== undefined && (piece.settings.color === this.settings.color || this.settings.type === 'p')) {
                         return false;
                     }
                 }

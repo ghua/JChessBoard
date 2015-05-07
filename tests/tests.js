@@ -19,6 +19,11 @@
         board.fenToPosition(fenString);
         assert.equal( board.positionToFen(), fenString );
 
+
+        fenString = 'rnbqkbnr/ppppppp1/8/7p/7P/8/PPPPPPP1/RNBQKBNR';
+        board.fenToPosition(fenString);
+        assert.equal( board.positionToFen(), fenString );
+
         fenString = 'rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R';
         board.fenToPosition(fenString);
         assert.equal( board.positionToFen(), fenString );
@@ -45,13 +50,16 @@
     var piece = new JChessPiece(board, settings);
 
     QUnit.test("Pawn isValid test", function( assert ) {
-        assert.ok(piece.getType('p')(0, 2, false));
-        assert.ok(piece.getType('p')(0, 1, false));
-        assert.notOk(piece.getType('p')(0, 2, true)); // second try
-        assert.notOk(piece.getType('p')(0, 3, true));
-        assert.notOk(piece.getType('p')(1, 1, false));
-        assert.notOk(piece.getType('p')(2, 0, false));
-        assert.notOk(piece.getType('p')(0, -1, false));
+        piece.isTouched = false;
+        assert.ok(piece.getType('p')(0, 2, piece));
+        assert.ok(piece.getType('p')(0, 1, piece));
+        assert.notOk(piece.getType('p')(1, 1, piece));
+        assert.notOk(piece.getType('p')(2, 0, piece));
+        assert.notOk(piece.getType('p')(0, -1, piece));
+        piece.isTouched = true;
+        assert.notOk(piece.getType('p')(0, 2, piece)); // second try
+        assert.notOk(piece.getType('p')(0, 3, piece));
+
     });
 
     QUnit.test("Bishop isValid test", function( assert ) {
@@ -126,14 +134,18 @@
     });
 
     QUnit.test("Test genLegalPositions by Bishop", function( assert ) {
-        var actual = piece.genLegalPositions(4, 4, [[1,1], [-1,-1], [-1,1], [1,-1]]);
+        settings.type = 'b';
+        piece = new JChessPiece(board, settings);
+        var actual = piece.genLegalPositions(4, 4);
         var expected = [[36, 45, 54, 63], [36, 27, 18, 9, 0], [36, 43, 50, 57], [36, 29, 22, 15]];
 
         assert.deepEqual(actual, expected);
     });
 
     QUnit.test("Test genLegalPositions by Knight", function( assert ) {
-        var actual = piece.genLegalPositions(4, 4, [[-1, -2], [-1, 2], [-2, -1], [-2, 1], [1, -2], [1, 2], [2, -1], [2, 1]], true);
+        settings.type = 'n';
+        piece = new JChessPiece(board, settings);
+        var actual = piece.genLegalPositions(4, 4);
         var expected = [[36, 19], [36, 51], [36, 26], [36, 42], [36, 21], [36, 53], [36, 30], [36, 46]];
 
         assert.deepEqual(actual, expected);
