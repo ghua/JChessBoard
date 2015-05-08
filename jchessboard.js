@@ -177,6 +177,7 @@ var JChessPiece = (function ($) {
             s = 0;
             while (s < 2 && stepX >= 0 && stepX < 8 && stepY >= 0 && stepY < 8) {
                 legalPosition = this.board.coordinateToPosition(stepX, stepY);
+
                 if (vector.indexOf(legalPosition) === -1) {
                     vector.push(legalPosition);
                 }
@@ -213,14 +214,14 @@ var JChessPiece = (function ($) {
                 for (i = 0; i < slice.length; i++) {
                     position = slice[i];
                     piece = cells[position];
-                    if (piece === undefined || piece.color !== this.color) {
-                        return true;
+                    if (piece !== undefined && piece.color === this.color) {
+                        return false;
                     }
                 }
             }
         }
 
-        return false;
+        return true;
     };
 
     return JChessPiece;
