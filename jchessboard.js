@@ -223,14 +223,16 @@ var JChessPiece = (function ($) {
                 for (i = 0; i < slice.length; i++) {
                     position = slice[i];
                     piece = cells[position];
-                    if (piece !== undefined && piece.color === this.color) {
-                        return false;
+                    if (piece === undefined || piece.color !== this.color) {
+                        return true;
+                    } else {
+                        break;
                     }
                 }
             }
         }
 
-        return true;
+        return false;
     };
 
     return JChessPiece;
