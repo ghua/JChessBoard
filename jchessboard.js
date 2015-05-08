@@ -100,6 +100,11 @@ var JChessPiece = (function ($) {
         return this;
     };
 
+    JChessPiece.prototype.destroy = function () {
+        this.board.canvas.removeLayer(this.layer);
+        this.board[this.currentPosition] = undefined;
+    };
+
     JChessPiece.prototype.setCurrentPosition = function (position) {
         var newXY = this.board.positionToCoordinate(position);
         this.currentPosition = position;
@@ -140,7 +145,7 @@ var JChessPiece = (function ($) {
                 return false;
             }
 
-            if (this.board.cells[newPosition] !== undefined) {
+            if (offsets[0] === 0 && this.board.cells[newPosition] !== undefined) {
                 return false;
             }
 
@@ -415,6 +420,11 @@ var JChessBoard = (function (JChessPiece, $) {
         });
 
         this.cells[piece.currentPosition] = undefined;
+
+        if (this.cells[newPosition] !== undefined) {
+            this.cells[newPosition].destroy();
+        }
+
         this.cells[newPosition] = piece;
 
         piece.setCurrentPosition(newPosition);
