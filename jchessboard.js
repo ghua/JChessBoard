@@ -360,8 +360,7 @@ var JChessBoard = (function (JChessPiece, $) {
             if (this.cells.hasOwnProperty(i)) {
                 cell = this.cells[i];
                 if (cell !== undefined) {
-                    this.canvas.removeLayer(cell.layer);
-                    delete this.cells[i];
+                    cell.destroy();
                 }
             }
         }

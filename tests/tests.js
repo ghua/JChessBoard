@@ -71,7 +71,7 @@
 
 
     QUnit.test("Pawn isValid test", function( assert ) {
-        var piece = new JChessPiece(board, { fen: 'P', position: 51 });
+        var piece = new JChessPiece(board, { fen: 'P', position: 51, imagesPath: '../images/' });
         piece.isTouched = false;
         assert.ok(piece.isValidStep(35));
         assert.ok(piece.isValidStep(51, 35));
@@ -87,7 +87,7 @@
     });
 
     QUnit.test("Bishop isValid test", function( assert ) {
-        var piece = new JChessPiece(board, { fen: 'B', position: 51 });
+        var piece = new JChessPiece(board, { fen: 'B', position: 51, imagesPath: '../images/' });
         assert.ok(piece.isValidStep(51, 60));
         assert.ok(piece.isValidStep(51, 42));
         assert.ok(piece.isValidStep(51, 33));
@@ -104,7 +104,7 @@
     });
 
     QUnit.test("Knight isValid test", function( assert ) {
-        var piece = new JChessPiece(board, { fen: 'N', position: 36 });
+        var piece = new JChessPiece(board, { fen: 'N', position: 36, imagesPath: '../images/' });
         assert.ok(piece.isValidStep(21));
         assert.ok(piece.isValidStep(30));
         assert.ok(piece.isValidStep(46));
@@ -121,7 +121,7 @@
     });
 
     QUnit.test("King isValid test", function( assert ) {
-        var piece = new JChessPiece(board, { fen: 'K', position: 36 });
+        var piece = new JChessPiece(board, { fen: 'K', position: 36, imagesPath: '../images/' });
         assert.ok(piece.isValidStep(44));
         assert.ok(piece.isValidStep(43));
         assert.ok(piece.isValidStep(35));
@@ -138,7 +138,7 @@
     });
 
     QUnit.test("Rook isValid test", function( assert ) {
-        var piece = new JChessPiece(board, { fen: 'R', position: 36 });
+        var piece = new JChessPiece(board, { fen: 'R', position: 36, imagesPath: '../images/' });
         assert.ok(piece.isValidStep(44));
         assert.ok(piece.isValidStep(52));
         assert.ok(piece.isValidStep(60));
@@ -160,7 +160,7 @@
     });
 
     QUnit.test("Queen isValid test", function( assert ) {
-        var piece = new JChessPiece(board, { fen: 'Q', position: 36 });
+        var piece = new JChessPiece(board, { fen: 'Q', position: 36, imagesPath: '../images/' });
         assert.ok(piece.isValidStep(44));
         assert.ok(piece.isValidStep(52));
         assert.ok(piece.isValidStep(60));
@@ -187,7 +187,7 @@
 
     QUnit.test("Test genLegalPositions by Bishop", function( assert ) {
         settings.type = 'b';
-        piece = new JChessPiece(board, { fen: 'B', position: 36 });
+        piece = new JChessPiece(board, { fen: 'B', position: 36, imagesPath: '../images/' });
         var actual = piece.genLegalPositions(4, 4);
         var expected = [[36, 45, 54, 63], [36, 27, 18, 9, 0], [36, 43, 50, 57], [36, 29, 22, 15]];
 
@@ -197,7 +197,7 @@
 
     QUnit.test("Test genLegalPositions by Knight", function( assert ) {
         var piece;
-        piece = new JChessPiece(board, { fen: 'N', position: 36 });
+        piece = new JChessPiece(board, { fen: 'N', position: 36, imagesPath: '../images/' });
         var actual = piece.genLegalPositions(4, 4);
         var expected = [[36, 19], [36, 51], [36, 26], [36, 42], [36, 21], [36, 53], [36, 30], [36, 46]];
 
@@ -206,6 +206,31 @@
     });
 
     board.clear();
+    delete board;
+
+    QUnit.test("Test Pawn back step", function( assert ) {
+        board = $('canvas').jschessboard(settings);
+        board.start();
+        assert.ok(board.move(51, 35));
+        assert.notOk(board.move(35, 43));
+        board.clear();
+    });
+
+    QUnit.test("Test Pawn second double step", function( assert ) {
+        board = $('canvas').jschessboard(settings);
+        board.start();
+        assert.ok(board.move(51, 35));
+        assert.ok(board.move(14, 22));
+        assert.notOk(board.move(35, 19));
+        board.clear();
+    });
+
+    QUnit.test("Test Bishop illegal jump", function( assert ) {
+        board = $('canvas').jschessboard(settings);
+        board.start();
+        assert.notOk(board.move(61, 43));
+        board.clear();
+    });
 
 }(QUnit, JChessPiece, JChessBoard));
 
