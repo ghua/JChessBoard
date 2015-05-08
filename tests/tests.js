@@ -47,6 +47,17 @@
         assert.deepEqual( board.positionToCoordinate(55), [7,6] );
     });
 
+    QUnit.test("test jChessBoard newPositionByPositionAndOffset", function( assert ) {
+        assert.deepEqual( board.newPositionByPositionAndOffset(36, 1, 1),  45);
+        assert.deepEqual( board.newPositionByPositionAndOffset(36, -1, -1),  27);
+        assert.deepEqual( board.newPositionByPositionAndOffset(36, 1, -1),  29);
+        assert.deepEqual( board.newPositionByPositionAndOffset(36, -1, 1),  43);
+        assert.deepEqual( board.newPositionByPositionAndOffset(36, 3, 0),  39);
+        assert.deepEqual( board.newPositionByPositionAndOffset(36, -3, 0),  33);
+        assert.deepEqual( board.newPositionByPositionAndOffset(36, 0, 3),  60);
+        assert.deepEqual( board.newPositionByPositionAndOffset(36, 0, -3),  12);
+    });
+
     var piece = new JChessPiece(board, settings);
 
     QUnit.test("Pawn isValid test", function( assert ) {
