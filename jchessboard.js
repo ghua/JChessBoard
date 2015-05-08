@@ -115,7 +115,7 @@ var JChessPiece = (function ($) {
             dragstop: function (layer) {
                 var oldX = layer._startX;
                 var oldY = layer._startY;
-                var oldPositionX = board.absoluteToRelative(oldX)
+                var oldPositionX = board.absoluteToRelative(oldX);
                 var oldPositionY = board.absoluteToRelative(oldY);
                 var newPositionX = board.absoluteToRelative(layer._eventX);
                 var newPositionY = board.absoluteToRelative(layer._eventY);
@@ -193,7 +193,7 @@ var JChessPiece = (function ($) {
     };
 
     JChessPiece.prototype.genLegalPositions = function (currentX, currentY) {
-        var o, s, offset, stepX, stepY, legalPosition, vector, offsets, single, offsetX, offsetY;
+        var o, s, stepX, stepY, legalPosition, vector, offsets, single, offsetX, offsetY;
         var legalPositions = [];
 
         var oneStepTypes = ['n', 'k', 'p'];
@@ -461,6 +461,19 @@ var JChessBoard = (function (JChessPiece, $) {
         return 8 * y + x;
     };
 
+    /**
+     * 00,01,02,03,04,05,06,07
+     * 08,09,10,11,12,13,14,15
+     * 16,17,18,19,20,21,22,23
+     * 24,25,26,27,28,29,30,31
+     * 32,33,34,35,36,37,38,39
+     * 40,41,42,43,44,45,46,47
+     * 48,49,50,51,52,53,54,55
+     * 56,57,58,59,60,61,62,63
+     *
+     * @param num
+     * @returns {*[]}
+     */
     JChessBoard.prototype.positionToCoordinate = function (num) {
         return [num % 8, Math.floor(num / 8)];
     };
@@ -468,6 +481,14 @@ var JChessBoard = (function (JChessPiece, $) {
     JChessBoard.prototype.absoluteToRelative = function (px) {
         var size = this.settings.cellSize;
         return Math.floor(px / size);
+    };
+
+    JChessBoard.prototype.newPositionByPositionAndOffset = function (positon, offsetX, offsetY) {
+        var XY;
+        XY = this.positionToCoordinate(positon);
+        XY[0] = XY[0] + offsetX;
+        XY[1] = XY[1] + offsetY;
+        return this.coordinateToPosition(XY[0], XY[1]);
     };
 
     JChessBoard.prototype.absoluteCeil = function (px) {
