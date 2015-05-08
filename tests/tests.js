@@ -1,5 +1,5 @@
 (function(QUnit, JChessPiece, JChessBoard) {
-    var settings = {imagesPath: '../images/'};
+    var settings = {imagesPath: '../images/' };
     var board = $('canvas').jschessboard(settings);
 
     QUnit.test("test jChessBoard cells", function( assert ) {
@@ -58,109 +58,154 @@
         assert.deepEqual( board.newPositionByPositionAndOffset(36, 0, -3),  12);
     });
 
-    var piece = new JChessPiece(board, settings);
+    QUnit.test("test jChessBoard offsetsByPositions", function( assert ) {
+        assert.deepEqual( board.offsetsByPositions(36, 37),  [1, 0]);
+        assert.deepEqual( board.offsetsByPositions(36, 44),  [0, 1]);
+        assert.deepEqual( board.offsetsByPositions(36, 28),  [0, -1]);
+        assert.deepEqual( board.offsetsByPositions(36, 35),  [-1, 0]);
+        assert.deepEqual( board.offsetsByPositions(36, 29),  [1, -1]);
+        assert.deepEqual( board.offsetsByPositions(36, 27),  [-1, -1]);
+        assert.deepEqual( board.offsetsByPositions(36, 45),  [1, 1]);
+    });
+
+
 
     QUnit.test("Pawn isValid test", function( assert ) {
+        var piece = new JChessPiece(board, { fen: 'P', position: 51 });
         piece.isTouched = false;
-        assert.ok(piece.getType('p')(0, 2, piece));
-        assert.ok(piece.getType('p')(0, 1, piece));
-        assert.notOk(piece.getType('p')(1, 1, piece));
-        assert.notOk(piece.getType('p')(2, 0, piece));
-        assert.notOk(piece.getType('p')(0, -1, piece));
+        assert.ok(piece.isValidStep(35));
+        assert.ok(piece.isValidStep(51, 35));
+        assert.ok(piece.isValidStep(43));
+        assert.ok(piece.isValidStep(51, 43));
+        assert.notOk(piece.isValidStep(51, 60));
+        assert.notOk(piece.isValidStep(51, 53));
+        assert.notOk(piece.isValidStep(43, 51));
         piece.isTouched = true;
-        assert.notOk(piece.getType('p')(0, 2, piece)); // second try
-        assert.notOk(piece.getType('p')(0, 3, piece));
-
+        assert.notOk(piece.isValidStep(51, 35)); // second try
+        assert.notOk(piece.isValidStep(51, 27));
+        board.clear();
     });
 
     QUnit.test("Bishop isValid test", function( assert ) {
-        assert.ok(piece.getType('b')(1, 1));
-        assert.ok(piece.getType('b')(4, 4));
-        assert.ok(piece.getType('b')(-1, -1));
-        assert.ok(piece.getType('b')(-5, -5));
-        assert.ok(piece.getType('b')(-1, 1));
-        assert.notOk(piece.getType('b')(7, 1));
-        assert.notOk(piece.getType('b')(0, 3));
-        assert.notOk(piece.getType('b')(5, -3));
-        assert.notOk(piece.getType('b')(-2, 0));
+        var piece = new JChessPiece(board, { fen: 'B', position: 51 });
+        assert.ok(piece.isValidStep(51, 60));
+        assert.ok(piece.isValidStep(51, 42));
+        assert.ok(piece.isValidStep(51, 33));
+        assert.ok(piece.isValidStep(51, 24));
+        assert.ok(piece.isValidStep(51, 44));
+        assert.ok(piece.isValidStep(51, 37));
+        assert.ok(piece.isValidStep(51, 30));
+        assert.ok(piece.isValidStep(51, 23));
+        assert.notOk(piece.isValidStep(51, 3));
+        assert.notOk(piece.isValidStep(51, 52));
+        assert.notOk(piece.isValidStep(51, 59));
+        assert.notOk(piece.isValidStep(51, 50));
+        board.clear();
     });
 
     QUnit.test("Knight isValid test", function( assert ) {
-        var movesOffsets = [[-1, -2], [-1, 2], [-2, -1], [-2, 1], [1, -2], [1, 2], [2, -1], [2, 1]];
-
-        for(var i in movesOffsets) {
-            assert.ok(piece.getType('n')(movesOffsets[i][0], movesOffsets[i][1]));
-        }
-
-        assert.notOk(piece.getType('n')(7, 1));
-        assert.notOk(piece.getType('n')(0, 3));
-        assert.notOk(piece.getType('n')(5, -3));
-        assert.notOk(piece.getType('n')(-2, 0));
+        var piece = new JChessPiece(board, { fen: 'N', position: 36 });
+        assert.ok(piece.isValidStep(21));
+        assert.ok(piece.isValidStep(30));
+        assert.ok(piece.isValidStep(46));
+        assert.ok(piece.isValidStep(53));
+        assert.ok(piece.isValidStep(51));
+        assert.ok(piece.isValidStep(42));
+        assert.ok(piece.isValidStep(26));
+        assert.ok(piece.isValidStep(19));
+        assert.notOk(piece.isValidStep(37));
+        assert.notOk(piece.isValidStep(28));
+        assert.notOk(piece.isValidStep(20));
+        assert.notOk(piece.isValidStep(63));
+        board.clear();
     });
 
     QUnit.test("King isValid test", function( assert ) {
-        var movesOffsets = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, 1]];
-
-        for(var i in movesOffsets) {
-            assert.ok(piece.getType('k')(movesOffsets[i][0], movesOffsets[i][1]));
-        }
-
-        assert.notOk(piece.getType('k')(2, 1));
-        assert.notOk(piece.getType('k')(7, 1));
-        assert.notOk(piece.getType('k')(0, 3));
-        assert.notOk(piece.getType('k')(5, -3));
-        assert.notOk(piece.getType('k')(-2, 0));
+        var piece = new JChessPiece(board, { fen: 'K', position: 36 });
+        assert.ok(piece.isValidStep(44));
+        assert.ok(piece.isValidStep(43));
+        assert.ok(piece.isValidStep(35));
+        assert.ok(piece.isValidStep(27));
+        assert.ok(piece.isValidStep(28));
+        assert.ok(piece.isValidStep(29));
+        assert.ok(piece.isValidStep(37));
+        assert.ok(piece.isValidStep(45));
+        assert.notOk(piece.isValidStep(20));
+        assert.notOk(piece.isValidStep(12));
+        assert.notOk(piece.isValidStep(52));
+        assert.notOk(piece.isValidStep(46));
+        board.clear();
     });
 
     QUnit.test("Rook isValid test", function( assert ) {
-        assert.ok(piece.getType('r')(1, 0));
-        assert.ok(piece.getType('r')(0, 1));
-        assert.ok(piece.getType('r')(5, 0));
-        assert.ok(piece.getType('r')(0, 5));
-        assert.ok(piece.getType('r')(-1, 0));
-        assert.ok(piece.getType('r')(0, -5));
-
-        assert.notOk(piece.getType('r')(-1, -1));
-        assert.notOk(piece.getType('r')(2, -1));
-        assert.notOk(piece.getType('r')(-5, 5));
+        var piece = new JChessPiece(board, { fen: 'R', position: 36 });
+        assert.ok(piece.isValidStep(44));
+        assert.ok(piece.isValidStep(52));
+        assert.ok(piece.isValidStep(60));
+        assert.ok(piece.isValidStep(28));
+        assert.ok(piece.isValidStep(20));
+        assert.ok(piece.isValidStep(12));
+        assert.ok(piece.isValidStep(4));
+        assert.ok(piece.isValidStep(35));
+        assert.ok(piece.isValidStep(33));
+        assert.ok(piece.isValidStep(32));
+        assert.ok(piece.isValidStep(37));
+        assert.ok(piece.isValidStep(38));
+        assert.ok(piece.isValidStep(39));
+        assert.notOk(piece.isValidStep(27));
+        assert.notOk(piece.isValidStep(45));
+        assert.notOk(piece.isValidStep(22));
+        assert.notOk(piece.isValidStep(50));
+        board.clear();
     });
 
     QUnit.test("Queen isValid test", function( assert ) {
-        assert.ok(piece.getType('q')(1, 0));
-        assert.ok(piece.getType('q')(0, 1));
-        assert.ok(piece.getType('q')(5, 0));
-        assert.ok(piece.getType('q')(0, 5));
-        assert.ok(piece.getType('q')(-1, 0));
-        assert.ok(piece.getType('q')(0, -5));
-
-        assert.ok(piece.getType('q')(1, 1));
-        assert.ok(piece.getType('q')(4, 4));
-        assert.ok(piece.getType('q')(-1, -1));
-        assert.ok(piece.getType('q')(-5, -5));
-        assert.ok(piece.getType('q')(-1, 1));
-
-        assert.notOk(piece.getType('q')(-5, 4));
-        assert.notOk(piece.getType('q')(2, -1));
-        assert.notOk(piece.getType('q')(6, 5));
+        var piece = new JChessPiece(board, { fen: 'Q', position: 36 });
+        assert.ok(piece.isValidStep(44));
+        assert.ok(piece.isValidStep(52));
+        assert.ok(piece.isValidStep(60));
+        assert.ok(piece.isValidStep(28));
+        assert.ok(piece.isValidStep(20));
+        assert.ok(piece.isValidStep(12));
+        assert.ok(piece.isValidStep(4));
+        assert.ok(piece.isValidStep(35));
+        assert.ok(piece.isValidStep(33));
+        assert.ok(piece.isValidStep(32));
+        assert.ok(piece.isValidStep(37));
+        assert.ok(piece.isValidStep(38));
+        assert.ok(piece.isValidStep(39));
+        assert.ok(piece.isValidStep(60));
+        assert.ok(piece.isValidStep(33));
+        assert.ok(piece.isValidStep(44));
+        assert.ok(piece.isValidStep(37));
+        assert.notOk(piece.isValidStep(42));
+        assert.notOk(piece.isValidStep(24));
+        assert.notOk(piece.isValidStep(30));
+        assert.notOk(piece.isValidStep(23));
+        board.clear();
     });
 
     QUnit.test("Test genLegalPositions by Bishop", function( assert ) {
         settings.type = 'b';
-        piece = new JChessPiece(board, settings);
+        piece = new JChessPiece(board, { fen: 'B', position: 36 });
         var actual = piece.genLegalPositions(4, 4);
         var expected = [[36, 45, 54, 63], [36, 27, 18, 9, 0], [36, 43, 50, 57], [36, 29, 22, 15]];
 
         assert.deepEqual(actual, expected);
+        board.clear();
     });
 
     QUnit.test("Test genLegalPositions by Knight", function( assert ) {
-        settings.type = 'n';
-        piece = new JChessPiece(board, settings);
+        var piece;
+        piece = new JChessPiece(board, { fen: 'N', position: 36 });
         var actual = piece.genLegalPositions(4, 4);
         var expected = [[36, 19], [36, 51], [36, 26], [36, 42], [36, 21], [36, 53], [36, 30], [36, 46]];
 
         assert.deepEqual(actual, expected);
+        board.clear();
     });
+
+    board.clear();
 
 }(QUnit, JChessPiece, JChessBoard));
 
