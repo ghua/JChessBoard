@@ -135,7 +135,7 @@ var JChessPiece = (function ($) {
             return false;
         }
 
-        if ((oldPosition > 0 && oldPosition < 63 && newPosition > 0 && newPosition < 63) === false) {
+        if ((oldPosition >= 0 && oldPosition <= 63 && newPosition >= 0 && newPosition <= 63) === false) {
             return false;
         }
 
