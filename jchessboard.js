@@ -86,7 +86,7 @@ var JChessPiece = (function ($) {
 
                 if (me.isValidStep(oldPosition, newPosition)) {
                     me.board.movePiece(me, newPosition);
-                    me.setNewPosition(newPosition);
+                    me.setCurrentPosition(newPosition);
                 } else {
                     board.canvas.animateLayer(layer, {
                         x: oldX, y: oldY
@@ -100,9 +100,9 @@ var JChessPiece = (function ($) {
         return this;
     };
 
-    JChessPiece.prototype.setNewPosition = function (newPosition) {
-        var newXY = this.board.positionToCoordinate(newPosition);
-        this.currentPosition = newPosition;
+    JChessPiece.prototype.setCurrentPosition = function (position) {
+        var newXY = this.board.positionToCoordinate(position);
+        this.currentPosition = position;
         this.nextPositions = this.genLegalPositions(newXY[0], newXY[1]);
         this.X = newXY[0];
         this.Y = newXY[1];
@@ -137,6 +137,10 @@ var JChessPiece = (function ($) {
         if (this.fen.toLowerCase() === 'p') {
             offsets = this.board.offsetsByPositions(oldPosition, newPosition);
             if (offsets[0] !== 0 && (this.board.cells[newPosition] === undefined || this.board.cells[newPosition].color === this.color)) {
+                return false;
+            }
+
+            if (this.board.cells[newPosition] !== undefined) {
                 return false;
             }
 
@@ -413,7 +417,7 @@ var JChessBoard = (function (JChessPiece, $) {
         this.cells[piece.currentPosition] = undefined;
         this.cells[newPosition] = piece;
 
-        piece.setNewPosition(newPosition);
+        piece.setCurrentPosition(newPosition);
 
         this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
 
