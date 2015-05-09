@@ -272,8 +272,8 @@
 
     QUnit.test("Test king can't step on check field", function(assert) {
         var board = $('canvas').jschessboard(settings);
-        board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 w');
-        assert.notOk(board.move(34, 6));
+        board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 b');
+        assert.notOk(board.move(4, 3));
         board.clear();
     });
 
