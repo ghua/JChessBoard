@@ -16,7 +16,7 @@
 </head>
 
 <div>
-    <input type="text" id="fen" maxlength="64">
+    <input type="text" id="fen">
 </div>
 <canvas width="512" height="512" style="cursor: default;">
 </canvas>
@@ -28,7 +28,10 @@
 <script>
 
         $('canvas').on('positionready', function(event, board) {
-            $('#fen').val(board.positionToFen());
+            setTimeout(function() {
+                $('#fen').val(board.positionToFen());
+            });
+
         });
 
         $('canvas').on('piecemove', function(event, board, piece, x, y) {
@@ -41,11 +44,8 @@
 
         board.start();
 
-        $('#fen').on('keyup', function () {
-            setTimeout(function() {
-                board.fenToPosition($('#fen').val(), 500);
-            });
-
+        $('#fen').keyup(function () {
+                board.fenToPosition($('#fen').val());
         });
 
 </script>

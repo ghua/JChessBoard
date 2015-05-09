@@ -367,6 +367,9 @@ var JChessBoard = (function (JChessPiece, $) {
                 i++;
             }
         }
+        if (i > 0) {
+            fenString += i;
+        }
 
         return fenString + ' ' + this.nextStepSide;
     };
