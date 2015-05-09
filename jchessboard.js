@@ -112,7 +112,7 @@ var JChessPiece = (function ($) {
     };
 
     JChessPiece.prototype._additionalPositionCheck = function () {
-        var offsets, oldPosition, newPosition, crossing;
+        var oldPosition, newPosition, crossing;
 
         if (arguments.length === 1) {
             oldPosition = this.currentPosition;
@@ -132,26 +132,40 @@ var JChessPiece = (function ($) {
             return false;
         }
 
-        if (this.fen.toLowerCase() === 'p') {
-            offsets = this.board.offsetsByPositions(oldPosition, newPosition);
-            if (offsets[0] !== 0 && (this.board.cells[newPosition] === undefined || this.board.cells[newPosition].color === this.color)) {
-                return false;
-            }
-
-            if (offsets[0] === 0 && this.board.cells[newPosition] !== undefined) {
-                return false;
-            }
-
-            if (Math.abs(offsets[1]) > 1 && this.isTouched === true) {
-                return false;
-            }
+        if (this.fen.toLowerCase() === 'p' && this._additionalPiecePositionCheck(oldPosition, newPosition) !== true) {
+            return false;
         }
 
-        if (this.fen.toLowerCase() === 'k') {
-            crossing = this.board.crossing[newPosition];
-            if (crossing.indexOf(this) > -1 && crossing.length > 1) {
-                return false;
-            }
+        if (this.fen.toLowerCase() === 'k' && this._additionalKingPositionCheck(newPosition) !== true) {
+            return false;
+        }
+
+        return true;
+    };
+
+    JChessPiece.prototype._additionalPiecePositionCheck = function(oldPosition, newPosition) {
+        var offsets;
+        offsets = this.board.offsetsByPositions(oldPosition, newPosition);
+        if (offsets[0] !== 0 && (this.board.cells[newPosition] === undefined || this.board.cells[newPosition].color === this.color)) {
+            return false;
+        }
+
+        if (offsets[0] === 0 && this.board.cells[newPosition] !== undefined) {
+            return false;
+        }
+
+        if (Math.abs(offsets[1]) > 1 && this.isTouched === true) {
+            return false;
+        }
+
+        return true;
+    };
+
+    JChessPiece.prototype._additionalKingPositionCheck = function(newPosition) {
+        var crossing;
+        crossing = this.board.crossing[newPosition];
+        if (crossing.indexOf(this) > -1 && crossing.length > 1) {
+            return false;
         }
 
         return true;
