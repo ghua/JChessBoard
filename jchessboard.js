@@ -55,19 +55,17 @@ var JChessPiece = (function ($) {
                         newPosition = vector[v];
                         XY = board.positionToCoordinate(newPosition);
 
-                        if (me.isValidStep(me.currentPosition, newPosition)) {
-                            board.canvas.drawEllipse({
-                                strokeStyle: 'green',
-                                strokeWidth: 2,
-                                fillStyle: 'yellow',
-                                layer: true,
-                                groups: ['help'],
-                                x: board.relativeToAbsolute(XY[0]),
-                                y: board.relativeToAbsolute(XY[1]),
-                                width: size,
-                                height: size
-                            });
-                        }
+                        board.canvas.drawEllipse({
+                            strokeStyle: 'green',
+                            strokeWidth: 2,
+                            fillStyle: 'yellow',
+                            layer: true,
+                            groups: ['help'],
+                            x: board.relativeToAbsolute(XY[0]),
+                            y: board.relativeToAbsolute(XY[1]),
+                            width: size,
+                            height: size
+                        });
                     }
                 }
 
@@ -83,8 +81,8 @@ var JChessPiece = (function ($) {
                 var oldPosition = board.coordinateToPosition(oldPositionX, oldPositionY);
                 var newPosition = board.coordinateToPosition(newPositionX, newPositionY);
 
-                if (me.isValidStep(oldPosition, newPosition)) {
-                    me.board.movePiece(me, newPosition);
+                if (me.isPossiblePosition(newPosition)) {
+                    me.board._move(me, newPosition);
                     me.setCurrentPosition(newPosition);
                 } else {
                     board.canvas.animateLayer(layer, {
@@ -113,7 +111,7 @@ var JChessPiece = (function ($) {
         this.isTouched = true;
     };
 
-    JChessPiece.prototype.isValidStep = function () {
+    JChessPiece.prototype.additionalPositionCheck = function () {
         var offsets, oldPosition, newPosition;
 
         if (arguments.length === 1) {
@@ -153,7 +151,7 @@ var JChessPiece = (function ($) {
             }
         }
 
-        return this._isValidStep(newPosition);
+        return true;
     };
 
     JChessPiece.prototype.getOneStepOffset = function (name) {
@@ -191,7 +189,7 @@ var JChessPiece = (function ($) {
 
                 if (this.currentPosition !== possiblePosition) {
                     if (this.board.cells[possiblePosition] === undefined || this.board.cells[possiblePosition].color !== this.color) {
-                        if (vector.indexOf(possiblePosition) === -1) {
+                        if (vector.indexOf(possiblePosition) === -1 && this.additionalPositionCheck(possiblePosition)) {
                             vector.push(possiblePosition);
                         }
 
@@ -224,7 +222,7 @@ var JChessPiece = (function ($) {
         return possiblePositions;
     };
 
-    JChessPiece.prototype._isValidStep = function (newPosition) {
+    JChessPiece.prototype.isPossiblePosition = function (newPosition) {
         var v, vector, positions, cells;
         positions = this.possiblePositions;
 
@@ -417,8 +415,9 @@ var JChessBoard = (function (JChessPiece, $) {
 
         var piece = this.cells[oldPosition];
 
-        if (piece.isValidStep(oldPosition, newPosition)) {
-            this.movePiece(piece, newPosition);
+        piece.genPossiblePositions();
+        if (piece.isPossiblePosition(newPosition)) {
+            this._move(piece, newPosition);
 
             return true;
         }
@@ -426,10 +425,9 @@ var JChessBoard = (function (JChessPiece, $) {
         return false;
     };
 
-    JChessBoard.prototype.movePiece = function (piece, newPosition) {
+    JChessBoard.prototype._move = function (piece, newPosition) {
         var layer = piece.layer;
         var XY = this.positionToCoordinate(newPosition);
-        var size = this.settings.cellSize;
 
         if (this.cells[piece.currentPosition] === undefined) {
             return false;
