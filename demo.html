@@ -41,8 +41,11 @@
 
         board.start();
 
-        $('#fen').on('input', function () {
-            board.fenToPosition($('#fen').val());
+        $('#fen').on('keyup', function () {
+            setTimeout(function() {
+                board.fenToPosition($('#fen').val(), 500);
+            });
+
         });
 
 </script>

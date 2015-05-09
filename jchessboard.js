@@ -293,23 +293,22 @@ var JChessBoard = (function (JChessPiece, $) {
     }
 
     JChessBoard.prototype.start = function () {
-        return this.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
+        return this.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w');
     };
 
     JChessBoard.prototype.fenToPosition = function (fenString) {
         this.clear();
 
-        var rows = fenString.split('/');
-        var row, char, chars, piece, settings, position;
+        var rows = fenString.match(/([\d\w]+)+/gi);
+        var row, char, chars, settings, position;
         var y, i;
 
         position = 0;
-        for (y = 0; y < rows.length; y++) {
+        for (y = 0; y < rows.length && position < 64; y++) {
             row = rows[y];
             chars = row.split('');
 
-
-            for (i = 0; i < row.length; i++) { // columns
+            for (i = 0; i < row.length && position < 64; i++) { // columns
                 char = chars[i];
 
                 if (char !== undefined) {
@@ -326,6 +325,10 @@ var JChessBoard = (function (JChessPiece, $) {
                     }
                 }
             }
+        }
+
+        if (8 in rows && /(w|b)/.test(rows[8])) {
+            this.nextStepSide = rows[8];
         }
 
         this._initPieces();
@@ -365,7 +368,7 @@ var JChessBoard = (function (JChessPiece, $) {
             }
         }
 
-        return fenString;
+        return fenString + ' ' + this.nextStepSide;
     };
 
     JChessBoard.prototype.clear = function () {
