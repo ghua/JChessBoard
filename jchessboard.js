@@ -365,12 +365,18 @@ var JChessBoard = (function (JChessPiece, $) {
         this.genCrossing();
     };
 
+    JChessBoard.prototype._initCrossing = function () {
+        var i;
+        for (i = 0; i < 64; i++) {
+            this.crossing[i] = [];
+        }
+    };
+
     JChessBoard.prototype.genCrossing = function () {
         var i, cell, positions, v, vector, p, position;
-        this.crossing = [];
+        this._initCrossing();
         for (i = 0; i < this.cells.length; i++) {
             cell = this.cells[i];
-            this.crossing[i] = [];
             if (cell !== undefined) {
                 positions = cell.possiblePositions;
                 for (v = 0; v < positions.length; v++) {

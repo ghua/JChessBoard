@@ -273,6 +273,11 @@
     QUnit.test("Test king can't step on check field", function(assert) {
         var board = $('canvas').jschessboard(settings);
         board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 b');
+        assert.ok(board.crossing[3].length === 2);
+        assert.ok(board.crossing[11].length === 2);
+        assert.ok(board.crossing[12].length === 1);
+        assert.ok(board.crossing[13].length === 1);
+        assert.ok(board.crossing[5].length === 1);
         assert.notOk(board.move(4, 3));
         board.clear();
     });
@@ -280,7 +285,23 @@
     QUnit.test("Test king can't step on check field after other step", function(assert) {
         var board = $('canvas').jschessboard(settings);
         board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 b');
+
+        assert.ok(board.crossing[3].length === 2);
+        assert.ok(board.crossing[11].length === 2);
+        assert.ok(board.crossing[12].length === 1);
+        assert.ok(board.crossing[13].length === 1);
+        assert.ok(board.crossing[5].length === 1);
+
         assert.ok(board.move(4, 5));
+
+        assert.ok(board.crossing[3].length === 1);
+        assert.ok(board.crossing[1].length === 1);
+        assert.ok(board.crossing[4].length === 1);
+        assert.ok(board.crossing[12].length === 1);
+        assert.ok(board.crossing[13].length === 1);
+        assert.ok(board.crossing[14].length === 1);
+        assert.ok(board.crossing[6].length === 1);
+
         assert.ok(board.move(59, 38));
         assert.notOk(board.move(5, 6));
         assert.ok(board.move(5, 4));
