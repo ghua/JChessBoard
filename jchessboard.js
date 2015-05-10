@@ -143,7 +143,7 @@ var JChessPiece = (function ($) {
         return true;
     };
 
-    JChessPiece.prototype._additionalPiecePositionCheck = function(oldPosition, newPosition) {
+    JChessPiece.prototype._additionalPiecePositionCheck = function (oldPosition, newPosition) {
         var offsets;
         offsets = this.board.offsetsByPositions(oldPosition, newPosition);
         if (offsets[0] !== 0 && (this.board.cells[newPosition] === undefined || this.board.cells[newPosition].color === this.color)) {
@@ -161,7 +161,7 @@ var JChessPiece = (function ($) {
         return true;
     };
 
-    JChessPiece.prototype._additionalKingPositionCheck = function(newPosition) {
+    JChessPiece.prototype._additionalKingPositionCheck = function (newPosition) {
         var crossing;
         crossing = this.board.crossing[newPosition];
         if (crossing.indexOf(this) > -1 && crossing.length > 1) {
@@ -355,11 +355,22 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype._initPieces = function () {
-        var i, cell, positions, v, vector, p, position;
+        var i, cell;
         for (i = 0; i < this.cells.length; i++) {
             cell = this.cells[i];
             if (cell !== undefined) {
                 cell.genPossiblePositions();
+            }
+        }
+
+        this.genCrossing();
+    };
+
+    JChessBoard.prototype.genCrossing = function () {
+        var i, cell, positions, v, vector, p, position;
+        for (i = 0; i < this.cells.length; i++) {
+            cell = this.cells[i];
+            if (cell !== undefined) {
                 positions = cell.possiblePositions;
                 for (v = 0; v < positions.length; v++) {
                     vector = positions[v];
@@ -445,10 +456,11 @@ var JChessBoard = (function (JChessPiece, $) {
 
         var piece = this.cells[oldPosition];
 
-        if(this._checkStepSide(piece)) {
+        if (this._checkStepSide(piece)) {
             piece.genPossiblePositions();
             if (piece.isPossiblePosition(newPosition)) {
                 this._move(piece, newPosition);
+                this.genCrossing();
 
                 return true;
             }
