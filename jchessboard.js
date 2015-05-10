@@ -241,8 +241,8 @@ var JChessPiece = (function ($) {
 
     JChessPiece.prototype.isPossiblePosition = function (newPosition) {
         var v, vector, positions, cells;
-        positions = this.possiblePositions;
 
+        positions = this.possiblePositions;
         for (v = 0; v < positions.length; v++) {
             vector = positions[v];
             if (vector.indexOf(newPosition) > -1) {
@@ -298,7 +298,6 @@ var JChessBoard = (function (JChessPiece, $) {
                 }
 
                 this.cells[c] = undefined;
-                this.crossing[c] = [];
                 c++;
             }
         }
@@ -368,15 +367,21 @@ var JChessBoard = (function (JChessPiece, $) {
 
     JChessBoard.prototype.genCrossing = function () {
         var i, cell, positions, v, vector, p, position;
+        this.crossing = [];
         for (i = 0; i < this.cells.length; i++) {
             cell = this.cells[i];
+            this.crossing[i] = [];
             if (cell !== undefined) {
                 positions = cell.possiblePositions;
                 for (v = 0; v < positions.length; v++) {
                     vector = positions[v];
                     for (p = 0; p < vector.length; p++) {
                         position = vector[p];
-                        this.crossing[position].push(cell);
+                        if (this.crossing[position] === undefined) {
+                            this.crossing[position] = [cell];
+                        } else {
+                            this.crossing[position].push(cell);
+                        }
                     }
                 }
             }
@@ -460,7 +465,6 @@ var JChessBoard = (function (JChessPiece, $) {
             piece.genPossiblePositions();
             if (piece.isPossiblePosition(newPosition)) {
                 this._move(piece, newPosition);
-                this.genCrossing();
 
                 return true;
             }
@@ -491,6 +495,7 @@ var JChessBoard = (function (JChessPiece, $) {
         this.cells[newPosition] = piece;
 
         piece.setCurrentPosition(newPosition);
+        this.genCrossing();
 
         this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
 

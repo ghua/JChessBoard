@@ -283,6 +283,7 @@
         assert.ok(board.move(4, 5));
         assert.ok(board.move(59, 38));
         assert.notOk(board.move(5, 6));
+        assert.ok(board.move(5, 4));
         board.clear();
     });
 
