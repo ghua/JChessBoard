@@ -306,6 +306,9 @@
         assert.ok(board.move(5, 4));
         assert.ok(board.move(38, 35));
         assert.notOk(board.move(4, 11));
+        assert.ok(board.move(4, 12));
+        assert.ok(board.move(35, 36));
+        assert.notOk(board.move(12, 4));
         board.clear();
     });
 

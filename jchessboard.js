@@ -135,7 +135,7 @@ var JChessPiece = (function ($) {
             return false;
         }
 
-        if (this.fen.toLowerCase() === 'k' && this._additionalKingPositionCheck(newPosition) !== true) {
+        if (this.fen.toLowerCase() === 'k' && this._additionalKingPositionCheck(oldPosition, newPosition) !== true) {
             return false;
         }
 
@@ -160,12 +160,26 @@ var JChessPiece = (function ($) {
         return true;
     };
 
-    JChessPiece.prototype._additionalKingPositionCheck = function (newPosition) {
-        var crossing;
+    JChessPiece.prototype._additionalKingPositionCheck = function (oldPosition, newPosition, opposite) {
+        var crossing, offsets, index;
         crossing = this.board.crossing[newPosition];
-        if (crossing.indexOf(this) > -1 && crossing.length > 1) {
+        index = crossing.indexOf(this);
+        if (index > -1 && crossing.length > 1) {
             return false;
         }
+
+        //if (opposite === undefined) {
+        //    offsets = this.board.offsetsByPositions(oldPosition, newPosition);
+        //    newPosition = this.board.newPositionByPositionAndOffset(oldPosition, offsets[0] * -1, offsets[1] * -1);
+        //
+        //    console.log();
+        //
+        //    //crossing = this.board.crossing[newPosition];
+        //    //index = crossing.indexOf(this);
+        //    //if (index > -1 && crossing.length > 1) {
+        //    //    return false;
+        //    //}
+        //}
 
         return true;
     };
