@@ -83,7 +83,6 @@ var JChessPiece = (function ($) {
 
                 if (me.board._checkStepSide(me) && me.isPossiblePosition(newPosition)) {
                     me.board._move(me, newPosition);
-                    me.setCurrentPosition(newPosition);
                 } else {
                     board.canvas.animateLayer(layer, {
                         x: oldX, y: oldY
