@@ -111,7 +111,7 @@ var JChessPiece = (function ($) {
                         for (v = 0; v < vector.length; v++) {
                             newPosition = vector[v];
 
-                            if (me.isPossiblePosition(newPosition)) {
+                            if (me.possiblePositions[n].get(newPosition) === false) {
                                 XY = board.positionToCoordinate(newPosition);
 
                                 board.canvas.drawEllipse({
