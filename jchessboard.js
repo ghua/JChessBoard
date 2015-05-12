@@ -222,14 +222,11 @@ var JChessPiece = (function ($) {
     JChessPiece.prototype._additionalKingPositionCheck = function (oldPosition, newPosition) {
         var crossing, offsets, index, c;
         crossing = this.board.crossing[newPosition];
-        index = crossing.indexOf(this);
-        crossing.slice(index, 1);
         for (c = 0; c < crossing.length; c++) {
             if (crossing[c].color !== this.color) {
                 return false;
             }
         }
-
 
         return true;
     };
@@ -246,6 +243,7 @@ var JChessPiece = (function ($) {
 
     JChessPiece.prototype.genPossiblePositions = function () {
         var o, s, stepX, stepY, possiblePosition, vector, offsets, single, offsetX, offsetY, shadow, XY;
+
         var possiblePositions = [];
 
         var oneStepTypes = ['n', 'k', 'p'];
@@ -297,8 +295,8 @@ var JChessPiece = (function ($) {
             possiblePositions.push(vector);
         }
 
-        this.possiblePositions = possiblePositions;
 
+        this.possiblePositions = possiblePositions;
         return possiblePositions;
     };
 

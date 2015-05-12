@@ -207,6 +207,7 @@
         piece = new JChessPiece(board, {fen: 'B', position: 36, imagesPath: '../images/'});
         var actual = piece.genPossiblePositions();
         var expected = [[45, 54, 63], [27, 18, 9, 0], [43, 50, 57], [29, 22, 15]];
+        assert.ok(expected.length === 4);
         for (var e = 0; e < expected.length; e++) {
             assert.deepEqual(actual[e].keys, expected[e]);
         }
@@ -219,6 +220,7 @@
         piece = new JChessPiece(board, {fen: 'N', position: 36, imagesPath: '../images/'});
         var actual = piece.genPossiblePositions();
         var expected = [[19], [51], [26], [42], [21], [53], [30], [46]];
+        assert.ok(expected.length === 8);
         for (var e = 0; e < expected.length; e++) {
             assert.deepEqual(actual[e].keys, expected[e]);
         }
@@ -326,6 +328,31 @@
 
         board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 w');
         assert.ok(board.move(60, 53));
+        board.clear();
+    });
+
+    QUnit.test("Two kings fight first step", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition('8/8/8/4k3/8/4K3/8/8 w');
+
+        assert.notOk(board.move(44, 35));
+        assert.notOk(board.move(44, 36));
+        assert.notOk(board.move(44, 37));
+        assert.ok(board.move(44, 45));
+
+        board.clear();
+    });
+
+    QUnit.test("Two kings fight second step", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition('8/8/8/4k3/8/4K3/8/8 w');
+        assert.ok(board.move(44, 45));
+        assert.notOk(board.move(28, 37));
+        board.clear();
+
+        board.fenToPosition('8/8/8/4k3/8/4K3/8/8 w');
+        assert.ok(board.move(44, 45));
+        assert.notOk(board.move(28, 36));
         board.clear();
     });
 
