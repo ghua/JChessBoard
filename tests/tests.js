@@ -314,6 +314,21 @@
         board.clear();
     });
 
+    QUnit.test("Test king ignore self color shadow", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 w');
+        assert.ok(board.move(60, 51));
+        board.clear();
+
+        board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 w');
+        assert.ok(board.move(60, 52));
+        board.clear();
+
+        board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 w');
+        assert.ok(board.move(60, 53));
+        board.clear();
+    });
+
 }(QUnit, JChessPiece, JChessBoard));
 
 

@@ -220,12 +220,16 @@ var JChessPiece = (function ($) {
     };
 
     JChessPiece.prototype._additionalKingPositionCheck = function (oldPosition, newPosition) {
-        var crossing, offsets, index;
+        var crossing, offsets, index, c;
         crossing = this.board.crossing[newPosition];
         index = crossing.indexOf(this);
-        if (index > -1 && crossing.length > 1) {
-            return false;
+        crossing.slice(index, 1);
+        for (c = 0; c < crossing.length; c++) {
+            if (crossing[c].color !== this.color) {
+                return false;
+            }
         }
+
 
         return true;
     };
