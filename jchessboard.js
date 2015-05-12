@@ -1,3 +1,59 @@
+var JChessMap = (function () {
+
+    function JChessMap() {
+        this.clear();
+    }
+
+    JChessMap.prototype.clear = function () {
+        this.keys = [];
+        this.entries = {};
+
+        return this;
+    };
+
+    JChessMap.prototype.get = function (key) {
+        if (this.has(key)) {
+            return this.entries[key];
+        }
+    };
+
+    JChessMap.prototype.has = function (key) {
+        return this.entries.hasOwnProperty(key);
+    };
+
+    JChessMap.prototype.set = function (key, value) {
+        this.keys.push(key);
+        this.entries[key] = value;
+
+        return this;
+    };
+
+    JChessMap.prototype.values = function () {
+        var values = [];
+        var i;
+
+        for (i = 0; i < this.keys.length; i++) {
+            values.push(this.entries[this.keys[i]]);
+        }
+
+        return values;
+    };
+
+    JChessMap.prototype.delete = function (key) {
+        var i;
+
+        i = this.keys.indexOf(key);
+        if (i > -1) {
+            this.keys.splice(i, 1);
+            delete this.entries[key];
+        }
+
+        return this;
+    };
+
+    return JChessMap;
+}());
+
 var JChessPiece = (function ($) {
 
     var oneStepOffsets = {
@@ -51,22 +107,25 @@ var JChessPiece = (function ($) {
 
                     size = me.settings.cellSize / 2;
                     for (n = 0; n < me.possiblePositions.length; n++) {
-                        vector = me.possiblePositions[n];
+                        vector = me.possiblePositions[n].keys;
                         for (v = 0; v < vector.length; v++) {
                             newPosition = vector[v];
-                            XY = board.positionToCoordinate(newPosition);
 
-                            board.canvas.drawEllipse({
-                                strokeStyle: 'green',
-                                strokeWidth: 2,
-                                fillStyle: 'yellow',
-                                layer: true,
-                                groups: ['help'],
-                                x: board.relativeToAbsolute(XY[0]),
-                                y: board.relativeToAbsolute(XY[1]),
-                                width: size,
-                                height: size
-                            });
+                            if (me.isPossiblePosition(newPosition)) {
+                                XY = board.positionToCoordinate(newPosition);
+
+                                board.canvas.drawEllipse({
+                                    strokeStyle: 'green',
+                                    strokeWidth: 2,
+                                    fillStyle: 'yellow',
+                                    layer: true,
+                                    groups: ['help'],
+                                    x: board.relativeToAbsolute(XY[0]),
+                                    y: board.relativeToAbsolute(XY[1]),
+                                    width: size,
+                                    height: size
+                                });
+                            }
                         }
                     }
                 }
@@ -94,7 +153,7 @@ var JChessPiece = (function ($) {
         });
 
         return this;
-    };
+    }
 
     JChessPiece.prototype.destroy = function () {
         this.board.canvas.removeLayer(this.layer);
@@ -160,26 +219,13 @@ var JChessPiece = (function ($) {
         return true;
     };
 
-    JChessPiece.prototype._additionalKingPositionCheck = function (oldPosition, newPosition, opposite) {
+    JChessPiece.prototype._additionalKingPositionCheck = function (oldPosition, newPosition) {
         var crossing, offsets, index;
         crossing = this.board.crossing[newPosition];
         index = crossing.indexOf(this);
         if (index > -1 && crossing.length > 1) {
             return false;
         }
-
-        //if (opposite === undefined) {
-        //    offsets = this.board.offsetsByPositions(oldPosition, newPosition);
-        //    newPosition = this.board.newPositionByPositionAndOffset(oldPosition, offsets[0] * -1, offsets[1] * -1);
-        //
-        //    console.log();
-        //
-        //    //crossing = this.board.crossing[newPosition];
-        //    //index = crossing.indexOf(this);
-        //    //if (index > -1 && crossing.length > 1) {
-        //    //    return false;
-        //    //}
-        //}
 
         return true;
     };
@@ -195,7 +241,7 @@ var JChessPiece = (function ($) {
     };
 
     JChessPiece.prototype.genPossiblePositions = function () {
-        var o, s, stepX, stepY, possiblePosition, vector, offsets, single, offsetX, offsetY, isFound, XY;
+        var o, s, stepX, stepY, possiblePosition, vector, offsets, single, offsetX, offsetY, shadow, XY;
         var possiblePositions = [];
 
         var oneStepTypes = ['n', 'k', 'p'];
@@ -207,27 +253,27 @@ var JChessPiece = (function ($) {
         XY = this.board.positionToCoordinate(this.currentPosition);
 
         for (o = 0; o < offsets.length; o++) {
-            isFound = false;
-            vector = [];
+            shadow = false;
+            vector = new JChessMap();
             offsetX = offsets[o][0];
             offsetY = offsets[o][1];
             stepX = XY[0];
             stepY = XY[1];
             s = 0;
-            while (s < 1 && stepX >= 0 && stepX < 8 && stepY >= 0 && stepY < 8 && isFound !== true) {
+            while (s < 1 && stepX >= 0 && stepX < 8 && stepY >= 0 && stepY < 8) {
                 possiblePosition = this.board.coordinateToPosition(stepX, stepY);
 
                 if (this.currentPosition !== possiblePosition) {
                     if (this.board.cells[possiblePosition] === undefined || this.board.cells[possiblePosition].color !== this.color) {
-                        if (vector.indexOf(possiblePosition) === -1 && this._additionalPositionCheck(possiblePosition)) {
-                            vector.push(possiblePosition);
+                        if (this._additionalPositionCheck(possiblePosition)) {
+                            vector.set(possiblePosition, shadow);
                         }
 
-                        if (this.board.cells[possiblePosition] !== undefined && this.board.cells[possiblePosition].color !== this.color) {
-                            isFound = true;
+                        if (this.board.cells[possiblePosition] !== undefined) {
+                            shadow = true;
                         }
                     } else {
-                        isFound = true;
+                        shadow = true;
                     }
 
                     if (single === true) {
@@ -258,7 +304,7 @@ var JChessPiece = (function ($) {
         positions = this.possiblePositions;
         for (v = 0; v < positions.length; v++) {
             vector = positions[v];
-            if (vector.indexOf(newPosition) > -1) {
+            if (vector.has(newPosition) && vector.get(newPosition) === false) {
                 return true;
             }
         }
@@ -393,7 +439,7 @@ var JChessBoard = (function (JChessPiece, $) {
             if (cell !== undefined) {
                 positions = cell.possiblePositions;
                 for (v = 0; v < positions.length; v++) {
-                    vector = positions[v];
+                    vector = positions[v].keys;
                     for (p = 0; p < vector.length; p++) {
                         position = vector[p];
                         if (this.crossing[position] === undefined) {

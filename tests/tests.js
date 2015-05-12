@@ -207,8 +207,9 @@
         piece = new JChessPiece(board, {fen: 'B', position: 36, imagesPath: '../images/'});
         var actual = piece.genPossiblePositions();
         var expected = [[45, 54, 63], [27, 18, 9, 0], [43, 50, 57], [29, 22, 15]];
-
-        assert.deepEqual(actual, expected);
+        for (var e = 0; e < expected.length; e++) {
+            assert.deepEqual(actual[e].keys, expected[e]);
+        }
         board.clear();
     });
 
@@ -218,8 +219,9 @@
         piece = new JChessPiece(board, {fen: 'N', position: 36, imagesPath: '../images/'});
         var actual = piece.genPossiblePositions();
         var expected = [[19], [51], [26], [42], [21], [53], [30], [46]];
-
-        assert.deepEqual(actual, expected);
+        for (var e = 0; e < expected.length; e++) {
+            assert.deepEqual(actual[e].keys, expected[e]);
+        }
         board.clear();
     });
 
