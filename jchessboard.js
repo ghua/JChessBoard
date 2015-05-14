@@ -54,6 +54,45 @@ var JChessVector = (function () {
     return JChessVector;
 }());
 
+var JChessPossiblePositions = (function() {
+
+    function JChessPossiblePositions() {
+        this.vectors = [];
+    }
+
+    JChessPossiblePositions.prototype.push = function(vector) {
+        this.vectors.push(vector);
+
+        return this;
+    };
+
+    JChessPossiblePositions.prototype.all = function() {
+        var v, vector;
+        var values = [];
+
+        for(v = 0; v < this.vectors.length; v++) {
+            vector = this.vectors[v];
+            values = values.concat(vector.keys);
+        }
+
+        return values;
+    };
+
+    JChessPossiblePositions.prototype.intersect = function(otherPositions) {
+        var myPositions;
+
+        myPositions = this.all();
+        otherPositions = otherPositions.all();
+
+        return myPositions.filter(function(value, index, self) {
+            return otherPositions.indexOf(value) > -1;
+        });
+    };
+
+    return JChessPossiblePositions;
+
+}());
+
 var JChessPiece = (function ($) {
 
     var oneStepOffsets = {
@@ -250,22 +289,19 @@ var JChessPiece = (function ($) {
         }
     };
 
-    JChessPiece.prototype.genPossiblePositions = function () {
-        var o, s, stepX, stepY, possiblePosition, vector, offsets, single, offsetX, offsetY, shadow, XY;
+    JChessPiece.prototype._genSourceVectors = function() {
+        var possiblePositions, possiblePosition, oneStepTypes,
+            offsets, XY, vector, offsetX, offsetY, stepX, stepY, single, s, o;
 
-        var possiblePositions = [];
-
-        var oneStepTypes = ['n', 'k', 'p'];
-
-        single = (oneStepTypes.indexOf(this.fen.toLocaleLowerCase()) > -1);
+        possiblePositions = [];
+        oneStepTypes = ['n', 'k', 'p'];
 
         offsets = this.getOneStepOffset();
-
         XY = this.board.positionToCoordinate(this.currentPosition);
+        single = (oneStepTypes.indexOf(this.fen.toLocaleLowerCase()) > -1);
 
         for (o = 0; o < offsets.length; o++) {
-            shadow = false;
-            vector = new JChessVector();
+            vector = [];
             offsetX = offsets[o][0];
             offsetY = offsets[o][1];
             stepX = XY[0];
@@ -275,17 +311,7 @@ var JChessPiece = (function ($) {
                 possiblePosition = this.board.coordinateToPosition(stepX, stepY);
 
                 if (this.currentPosition !== possiblePosition) {
-                    if (!this.board.has(possiblePosition) || this.board.get(possiblePosition).color !== this.color) {
-                        if (this._additionalPositionCheck(possiblePosition)) {
-                            vector.set(possiblePosition, shadow);
-                        }
-
-                        if (this.board.has(possiblePosition)) {
-                            shadow = true;
-                        }
-                    } else {
-                        shadow = true;
-                    }
+                    vector.push(possiblePosition);
 
                     if (single === true) {
                         s++;
@@ -298,6 +324,41 @@ var JChessPiece = (function ($) {
                 } else {
                     stepX = stepX + offsetX;
                     stepY = stepY + offsetY;
+                }
+            }
+
+            possiblePositions.push(vector);
+        }
+
+        return possiblePositions;
+    };
+
+    JChessPiece.prototype.genPossiblePositions = function () {
+        var shadow, vector, o, i, possiblePosition;
+        var possiblePositions = [];
+        var source, sourceVector;
+
+        source = this._genSourceVectors();
+
+        for (o = 0; o < source.length; o++) {
+            shadow = false;
+            sourceVector = source[o];
+            vector = new JChessVector();
+
+            for (i = 0; i < sourceVector.length; i++) {
+                possiblePosition = sourceVector[i];
+                if (this.currentPosition !== possiblePosition) {
+                    if (!this.board.has(possiblePosition) || this.board.get(possiblePosition).color !== this.color) {
+                        if (this._additionalPositionCheck(possiblePosition)) {
+                            vector.set(possiblePosition, shadow);
+                        }
+
+                        if (this.board.has(possiblePosition)) {
+                            shadow = true;
+                        }
+                    } else {
+                        shadow = true;
+                    }
                 }
             }
 
@@ -335,6 +396,7 @@ var JChessBoard = (function (JChessPiece, $) {
         this.cells = [];
         this.crossing = [];
         this.nextStepSide = 'w';
+        this.kings = {};
 
         var size = settings.cellSize;
         var x = 0, y = 0, c = 0;
@@ -574,6 +636,10 @@ var JChessBoard = (function (JChessPiece, $) {
         this.canvas.trigger('piecemove', [this, piece, XY[0], XY[1]]);
     };
 
+    JChessBoard.prototype._kingDeleteCrossingPositions = function() {
+
+    };
+
     JChessBoard.prototype.coordinateToPosition = function (x, y) {
         return 8 * y + x;
     };
@@ -653,7 +719,13 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype.set = function(num, piece) {
+        var type;
         this.cells[num] = piece;
+
+        type = piece.fen.toLocaleLowerCase();
+        if (type === 'k') {
+            this.kings[piece.color] = piece;
+        }
 
         return this;
     };

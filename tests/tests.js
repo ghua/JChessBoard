@@ -274,7 +274,7 @@
         board.clear();
     });
 
-    QUnit.test("Test king can't step on check field", function(assert) {
+    QUnit.test("Test king can't step on check field", function (assert) {
         var board = $('canvas').jschessboard(settings);
         board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 b');
         assert.ok(board.crossing[3].length === 2);
@@ -286,7 +286,7 @@
         board.clear();
     });
 
-    QUnit.test("Test king can't step on check field after other step", function(assert) {
+    QUnit.test("Test king can't step on check field after other step", function (assert) {
         var board = $('canvas').jschessboard(settings);
         board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 b');
 
@@ -316,7 +316,7 @@
         board.clear();
     });
 
-    QUnit.test("Test king ignore self color shadow", function(assert) {
+    QUnit.test("Test king ignore self color shadow", function (assert) {
         var board = $('canvas').jschessboard(settings);
         board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 w');
         assert.ok(board.move(60, 51));
@@ -331,7 +331,7 @@
         board.clear();
     });
 
-    QUnit.test("Two kings fight first step", function(assert) {
+    QUnit.test("Two kings fight first step", function (assert) {
         var board = $('canvas').jschessboard(settings);
         board.fenToPosition('8/8/8/4k3/8/4K3/8/8 w');
 
@@ -343,7 +343,7 @@
         board.clear();
     });
 
-    QUnit.test("Two kings fight second step", function(assert) {
+    QUnit.test("Two kings fight second step", function (assert) {
         var board = $('canvas').jschessboard(settings);
         board.fenToPosition('8/8/8/4k3/8/4K3/8/8 w');
         assert.ok(board.move(44, 45));
@@ -354,6 +354,64 @@
         assert.ok(board.move(44, 45));
         assert.notOk(board.move(28, 36));
         board.clear();
+    });
+
+    QUnit.test("Test JChessPossiblePositions all", function (assert) {
+        var positions = new JChessPossiblePositions();
+        var vector;
+
+        vector = new JChessVector();
+        vector.set(1, true);
+        vector.set(2, true);
+        positions.push(vector);
+
+        vector = new JChessVector();
+        vector.set(3, true);
+        vector.set(4, true);
+        positions.push(vector);
+
+        vector = new JChessVector();
+        vector.set(5, true);
+        vector.set(6, true);
+        positions.push(vector);
+
+        vector = new JChessVector();
+        vector.set(7, true);
+        vector.set(8, true);
+        positions.push(vector);
+
+        var all = positions.all();
+        assert.deepEqual(all, [1,2,3,4,5,6,7,8]);
+    });
+
+    QUnit.test("Test JChessPossiblePositions uniq", function (assert) {
+        var positions = new JChessPossiblePositions();
+        var vector;
+
+        vector = new JChessVector();
+        vector.set(1, true);
+        vector.set(2, true);
+        positions.push(vector);
+
+        vector = new JChessVector();
+        vector.set(3, true);
+        vector.set(4, true);
+        positions.push(vector);
+
+        vector = new JChessVector();
+        vector.set(5, true);
+        vector.set(6, true);
+        positions.push(vector);
+
+        var secondPositions = new JChessPossiblePositions();
+        vector = new JChessVector();
+        vector.set(1, true);
+        vector.set(5, true);
+        vector.set(9, true);
+        secondPositions.push(vector);
+
+        var intersect = positions.intersect(secondPositions);
+        assert.deepEqual(intersect, [1,5]);
     });
 
 }(QUnit, JChessPiece, JChessBoard));
