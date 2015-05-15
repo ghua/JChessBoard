@@ -428,7 +428,12 @@
         board.clear();
     });
 
-    //rnbq1bnr/ppp1kppp/3P4/1N2p3/8/8/PPPP1PPP/R1BQKBNR b
+    QUnit.test("Test hitting the protected position", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition('8/8/8/6n1/3Kp3/8/8/8 w');
+        assert.notOk(board.move(35, 36));
+        board.clear();
+    });
 
 }(QUnit, JChessPiece, JChessBoard));
 
