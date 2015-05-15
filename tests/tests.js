@@ -421,7 +421,14 @@
         assert.ok(board.move(44, 36));
         assert.notOk(board.move(44, 37));
         board.clear();
+
+        board.fenToPosition('8/8/8/8/3Kp3/8/8/8 w');
+        assert.notOk(board.move(35, 43));
+        assert.ok(board.move(35, 27));
+        board.clear();
     });
+
+    //rnbq1bnr/ppp1kppp/3P4/1N2p3/8/8/PPPP1PPP/R1BQKBNR b
 
 }(QUnit, JChessPiece, JChessBoard));
 
