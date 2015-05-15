@@ -350,9 +350,9 @@
         assert.notOk(board.move(28, 37));
         board.clear();
 
-        //board.fenToPosition('8/8/8/4k3/8/4K3/8/8 w');
-        //assert.ok(board.move(44, 45));
-        //assert.notOk(board.move(28, 36));
+        board.fenToPosition('8/8/8/4k3/8/4K3/8/8 w');
+        assert.ok(board.move(44, 45));
+        assert.notOk(board.move(28, 36));
         board.clear();
     });
 
