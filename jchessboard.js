@@ -266,12 +266,14 @@ var JChessPiece = (function ($) {
     };
 
     JChessPiece.prototype._additionalKingPositionCheck = function (oldPosition, newPosition) {
-        var crossing, crossingPiece, c;
+        var crossing, crossingPiece, c, offsets;
+
+        offsets = this.board.offsetsByPositions(oldPosition, newPosition);
 
         crossing = this.board.crossing[newPosition];
         for (c = 0; c < crossing.length; c++) {
             crossingPiece = crossing[c];
-            if (crossingPiece.color !== this.color) {
+            if (crossingPiece.color !== this.color && (Math.abs(offsets[1]) === 1 && offsets[0] === 0 && crossingPiece.fen.toLocaleLowerCase() === 'p') === false) {
                 return false;
             }
         }

@@ -381,7 +381,7 @@
         positions.push(vector);
 
         var all = positions.all();
-        assert.deepEqual(all, [1,2,3,4,5,6,7,8]);
+        assert.deepEqual(all, [1, 2, 3, 4, 5, 6, 7, 8]);
     });
 
     QUnit.test("Test JChessPossiblePositions uniq", function (assert) {
@@ -411,7 +411,16 @@
         secondPositions.push(vector);
 
         var intersect = positions.intersect(secondPositions);
-        assert.deepEqual(intersect, [1,5]);
+        assert.deepEqual(intersect, [1, 5]);
+    });
+
+    QUnit.test("Test king false checked by pawn", function (assert) {
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition('8/8/8/4p3/8/4K3/8/8 w');
+        assert.notOk(board.move(44, 35));
+        assert.ok(board.move(44, 36));
+        assert.notOk(board.move(44, 37));
+        board.clear();
     });
 
 }(QUnit, JChessPiece, JChessBoard));
