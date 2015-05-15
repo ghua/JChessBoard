@@ -353,6 +353,10 @@ var JChessPiece = (function ($) {
                         shadow = true;
                     }
 
+                    if (this.board.has(possiblePosition) && this.board.get(possiblePosition).color === this.color) {
+                        shadow = true;
+                    }
+
                     vector.set(possiblePosition, shadow);
 
                     if (this.board.has(possiblePosition)) {
