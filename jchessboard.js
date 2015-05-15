@@ -266,13 +266,14 @@ var JChessPiece = (function ($) {
     };
 
     JChessPiece.prototype._additionalKingPositionCheck = function (oldPosition, newPosition) {
-        var crossing, crossingPiece, c, offsets;
+        var crossing, crossingPiece, c, offsets, isShadow;
 
         crossing = this.board.crossing[newPosition];
         for (c = 0; c < crossing.length; c++) {
-            crossingPiece = crossing[c];
+            crossingPiece = crossing[c].piece;
+            isShadow = crossing[c].shadow;
             offsets = this.board.offsetsByPositions(crossingPiece.currentPosition, newPosition);
-            if (crossingPiece.color !== this.color && (Math.abs(offsets[1]) > 0 && offsets[0] === 0 && crossingPiece.fen.toLocaleLowerCase() === 'p') === false) {
+            if (crossingPiece.color !== this.color && (Math.abs(offsets[1]) > 0 && offsets[0] === 0 && crossingPiece.fen.toLowerCase() === 'p') === false) {
                 return false;
             }
         }
@@ -282,7 +283,7 @@ var JChessPiece = (function ($) {
 
     JChessPiece.prototype.getOneStepOffset = function (name) {
         if (name === undefined) {
-            name = this.fen.toLocaleLowerCase();
+            name = this.fen.toLowerCase();
         }
 
         if (oneStepOffsets.hasOwnProperty(name)) {
@@ -299,7 +300,7 @@ var JChessPiece = (function ($) {
 
         offsets = this.getOneStepOffset();
         XY = this.board.positionToCoordinate(this.currentPosition);
-        single = (oneStepTypes.indexOf(this.fen.toLocaleLowerCase()) > -1);
+        single = (oneStepTypes.indexOf(this.fen.toLowerCase()) > -1);
 
         for (o = 0; o < offsets.length; o++) {
             vector = [];
@@ -319,7 +320,7 @@ var JChessPiece = (function ($) {
                     }
                 }
 
-                if (this.color === 'b' && this.fen.toLocaleLowerCase() === 'p') {
+                if (this.color === 'b' && this.fen.toLowerCase() === 'p') {
                     stepX = stepX + offsetX * -1;
                     stepY = stepY + offsetY * -1;
                 } else {
@@ -395,7 +396,7 @@ var JChessBoard = (function (JChessPiece, $) {
         this.canvas = canvas;
         this.settings = settings;
         this.cells = [];
-        this.crossing = [];
+        this.crossing = {};
         this.nextStepSide = 'w';
         this.kings = {};
 
@@ -503,7 +504,7 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype.genCrossing = function () {
-        var i, piece, positions, v, vector, p, position;
+        var i, piece, positions, v, vector, p, position, value;
 
         this._initCrossing();
 
@@ -515,10 +516,11 @@ var JChessBoard = (function (JChessPiece, $) {
                     vector = positions[v].keys;
                     for (p = 0; p < vector.length; p++) {
                         position = vector[p];
+                        value = { 'piece': piece, 'shadow': positions[v].get(position) };
                         if (this.crossing[position] === undefined) {
-                            this.crossing[position] = [piece];
+                            this.crossing[position] = [value];
                         } else {
-                            this.crossing[position].push(piece);
+                            this.crossing[position].push(value);
                         }
                     }
                 }
@@ -731,7 +733,7 @@ var JChessBoard = (function (JChessPiece, $) {
         var type;
         this.cells[num] = piece;
 
-        type = piece.fen.toLocaleLowerCase();
+        type = piece.fen.toLowerCase();
         if (type === 'k') {
             this.kings[piece.color] = piece;
         }

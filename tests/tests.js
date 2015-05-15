@@ -426,6 +426,10 @@
         assert.notOk(board.move(35, 43));
         assert.ok(board.move(35, 27));
         board.clear();
+
+        board.fenToPosition('rnbq1bnr/ppp1kppp/3P4/1N6/4p3/8/PPPP1PPP/R1BQKBNR b');
+        assert.ok(board.move(12, 11));
+        board.clear();
     });
 
     QUnit.test("Test hitting the protected position", function(assert) {
