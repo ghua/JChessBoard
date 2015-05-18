@@ -283,6 +283,12 @@ var JChessPiece = (function ($) {
                     continue;
                 }
 
+                if (['n', 'p', 'k'].indexOf(crossingPiece.fen.toLowerCase()) === -1 &&
+                    crossingPiece.isPossiblePosition(newPosition) === false &&
+                    crossingPiece.isPossiblePosition(oldPosition) === false) {
+                    continue;
+                }
+
                 return false;
             }
         }
