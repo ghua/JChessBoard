@@ -27,17 +27,14 @@
 
 <script>
 
-        $('canvas').on('positionready', function(event, board) {
-            setTimeout(function() {
-                $('#fen').val(board.positionToFen());
-            });
-
-        });
-
         $('canvas').on('piecemove', function(event, board, piece, x, y) {
             console.log(piece.layer, piece.nextPositions);
 
             $('#fen').val(board.positionToFen());
+        });
+
+        $('canvas').on('checkmate', function() {
+            alert('Checkmate');
         });
 
         var board = $('canvas').jschessboard({debug: true});
@@ -49,6 +46,7 @@
             board.fenToPosition(fen.replace('%20', ''));
         }
 
+        $('#fen').val(board.positionToFen());
 
         $('#fen').keyup(function () {
                 board.fenToPosition($('#fen').val());

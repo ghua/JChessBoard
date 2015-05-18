@@ -459,6 +459,22 @@
         board.clear();
     });
 
+    QUnit.test("Test checkmate", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition('8/8/8/8/4k2K/8/8/7r b');
+
+        assert.ok(board.move(36, 37));
+        assert.notOk(board.move(39, 31));
+        assert.notOk(board.move(36, 30));
+        assert.notOk(board.move(36, 38));
+        assert.notOk(board.move(36, 46));
+        assert.notOk(board.move(36, 47));
+
+        assert.ok(board.nextStepSide === undefined);
+
+        board.clear();
+    });
+
 }(QUnit, JChessPiece, JChessBoard));
 
 

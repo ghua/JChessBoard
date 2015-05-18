@@ -502,8 +502,6 @@ var JChessBoard = (function (JChessPiece, $) {
         }
 
         this._initPieces();
-
-        this.canvas.trigger('positionready', [this]);
     };
 
     JChessBoard.prototype._initPieces = function () {
@@ -595,21 +593,8 @@ var JChessBoard = (function (JChessPiece, $) {
         }
     };
 
-    JChessBoard.prototype.move = function () {
-        var oldX, oldY, newX, newY, oldPosition, newPosition, checkFen, checkColor;
-        if (arguments.length == 2) {
-            oldPosition = arguments[0];
-            newPosition = arguments[1];
-        }
-        if (arguments.length == 4) {
-            oldX = arguments[0];
-            oldY = arguments[1];
-            newX = arguments[2];
-            newY = arguments[3];
-
-            oldPosition = this.coordinateToPosition(oldX, oldY);
-            newPosition = this.coordinateToPosition(newX, newY);
-        }
+    JChessBoard.prototype.move = function (oldPosition, newPosition, isFake) {
+        var checkFen, checkColor;
 
         if (!this.has(oldPosition)) {
             return false;
@@ -621,16 +606,22 @@ var JChessBoard = (function (JChessPiece, $) {
             if (piece.isPossiblePosition(newPosition)) {
                 checkColor = this.nextStepSide;
                 if (this.isCheck(checkColor) === true) {
+                    this.canvas.trigger('check', [this, piece]);
                     checkFen = this.positionToFen();
                 }
 
-                this._move(piece, newPosition);
+                this._move(piece, newPosition, isFake);
 
                 if (this.isCheck(checkColor) === true && checkFen !== undefined) {
                     this._move(piece, oldPosition);
                     this.nextStepSide = checkColor;
 
                     return false;
+                }
+
+                if (this.isCheck(this.nextStepSide) && this.isCheckmate(this.nextStepSide)) {
+                    this.nextStepSide = undefined;
+                    this.canvas.trigger('checkmate', [this]);
                 }
 
                 return true;
@@ -640,7 +631,7 @@ var JChessBoard = (function (JChessPiece, $) {
         return false;
     };
 
-    JChessBoard.prototype._move = function (piece, newPosition) {
+    JChessBoard.prototype._move = function (piece, newPosition, isFake) {
         var layer = piece.layer;
         var XY = this.positionToCoordinate(newPosition);
 
@@ -648,10 +639,12 @@ var JChessBoard = (function (JChessPiece, $) {
             return false;
         }
 
-        this.canvas.animateLayer(layer, {
-            x: this.relativeToAbsolute(XY[0]),
-            y: this.relativeToAbsolute(XY[1])
-        });
+        if (isFake !== true) {
+            this.canvas.animateLayer(layer, {
+                x: this.relativeToAbsolute(XY[0]),
+                y: this.relativeToAbsolute(XY[1])
+            });
+        }
 
         this.delete(piece.currentPosition, true);
 
@@ -669,7 +662,9 @@ var JChessBoard = (function (JChessPiece, $) {
 
         this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
 
-        this.canvas.trigger('piecemove', [this, piece, XY[0], XY[1]]);
+        if (isFake !== true) {
+            this.canvas.trigger('piecemove', [this, piece, XY[0], XY[1]]);
+        }
     };
 
     JChessBoard.prototype.coordinateToPosition = function (x, y) {
@@ -774,9 +769,6 @@ var JChessBoard = (function (JChessPiece, $) {
 
     JChessBoard.prototype.isCheck = function (color) {
         var king, currentPosition, crossing, n, piece;
-        if (color === undefined) {
-            color = this.nextStepSide;
-        }
         king = this.kings[color];
         if (king === undefined) {
             return false;
@@ -787,12 +779,39 @@ var JChessBoard = (function (JChessPiece, $) {
 
         for (n = 0; n < crossing.length; n++) {
             piece = crossing[n].piece;
-            if (piece.color !== color && ['p'].indexOf(piece.type) === -1 && piece.isPossiblePosition(currentPosition)) {
+            if (piece.color !== color && piece.isPossiblePosition(currentPosition)) {
                 return true;
             }
         }
 
         return false;
+    };
+
+    JChessBoard.prototype.isCheckmate = function (color) {
+        var n, p, positions, position, piece;
+        var currentFen = this.positionToFen();
+        var king = this.kings[color];
+        if (king === undefined) {
+            return false;
+        }
+        var pieces = this.allPieces().filter(function(piece) {
+            return piece.color === color;
+        });
+
+        for (n = 0; n < pieces.length; n++) {
+            piece = pieces[n];
+            positions = piece.possiblePositions.all();
+            for (p = 0; p < positions.length; p++) {
+                position = positions[p];
+                this.move(piece.currentPosition, position, true);
+                if (this.isCheck(color) === false) {
+                    this.fenToPosition(currentFen);
+                    return false;
+                }
+            }
+        }
+
+        return true;
     };
 
     return JChessBoard;
