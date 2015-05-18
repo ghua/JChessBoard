@@ -40,7 +40,7 @@
             $('#fen').val(board.positionToFen());
         });
 
-        var board = $('canvas').jschessboard();
+        var board = $('canvas').jschessboard({debug: true});
 
         var fen = getUrlParameter('fen');
         if (fen === undefined) {
