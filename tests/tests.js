@@ -443,6 +443,13 @@
         board.clear();
     });
 
+    QUnit.test("Test check", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition('8/8/8/6n1/3Kq3/8/R7/8 w');
+        assert.notOk(board.move(48, 0));
+        board.clear();
+    });
+
 }(QUnit, JChessPiece, JChessBoard));
 
 
