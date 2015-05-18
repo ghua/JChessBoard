@@ -450,6 +450,15 @@
         board.clear();
     });
 
+    QUnit.test("Test move after check and position reset", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        var fen = '8/8/8/6n1/3Kq3/8/R7/8 w';
+        board.fenToPosition(fen);
+        assert.notOk(board.move(48, 0));
+        assert.ok(board.positionToFen() === fen);
+        board.clear();
+    });
+
 }(QUnit, JChessPiece, JChessBoard));
 
 
