@@ -112,7 +112,7 @@ var JChessPiece = (function ($) {
         b: [[1, 1], [-1, -1], [-1, 1], [1, -1]],
         n: [[-1, -2], [-1, 2], [-2, -1], [-2, 1], [1, -2], [1, 2], [2, -1], [2, 1]],
         k: [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, -1], [-1, 1], [1, -1]],
-        p: [[0, -1], [0, -2], [-1, -1], [1, -1]],
+        p: [[0, -1], [-1, -1], [1, -1]],
         r: [[1, 0], [0, 1], [-1, 0], [0, -1]],
         q: [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, -1], [-1, 1], [1, -1]]
     };
@@ -301,6 +301,16 @@ var JChessPiece = (function ($) {
         }
 
         if (oneStepOffsets.hasOwnProperty(name)) {
+            if (this.isTouched === false) {
+                if (this.type === 'p') {
+                    oneStepOffsets[name] = oneStepOffsets[name].concat([[0, -2]]);
+                }
+
+                if (this.type === 'k' && this.currentPosition === (this.color === 'w' ? 60 : 4)) {
+
+                }
+            }
+
             return oneStepOffsets[name];
         }
     };

@@ -475,6 +475,18 @@
         board.clear();
     });
 
+    QUnit.test("Test castling", function(assert) {
+        var fen = 'rnbqkb1r/ppppp2p/8/5np1/5Pp1/7N/PPPPP1BP/RNBQK2R w';
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition(fen);
+
+        assert.ok(board.move(60, 62));
+        assert.ok(board.get(61).type === 'r');
+        assert.ok(board.get(62).type === 'k');
+
+        board.clear();
+    });
+
 }(QUnit, JChessPiece, JChessBoard));
 
 
