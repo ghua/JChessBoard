@@ -108,16 +108,15 @@ var JChessPossiblePositions = (function () {
 
 var JChessPiece = (function ($) {
 
-    var oneStepOffsets = {
-        b: [[1, 1], [-1, -1], [-1, 1], [1, -1]],
-        n: [[-1, -2], [-1, 2], [-2, -1], [-2, 1], [1, -2], [1, 2], [2, -1], [2, 1]],
-        k: [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, -1], [-1, 1], [1, -1]],
-        p: [[0, -1], [-1, -1], [1, -1]],
-        r: [[1, 0], [0, 1], [-1, 0], [0, -1]],
-        q: [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, -1], [-1, 1], [1, -1]]
-    };
-
     function JChessPiece(board, options) {
+        this.stepOffsets = {
+            b: [[1, 1], [-1, -1], [-1, 1], [1, -1]],
+            n: [[-1, -2], [-1, 2], [-2, -1], [-2, 1], [1, -2], [1, 2], [2, -1], [2, 1]],
+            k: [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, -1], [-1, 1], [1, -1]],
+            p: [[0, -1], [-1, -1], [1, -1]],
+            r: [[1, 0], [0, 1], [-1, 0], [0, -1]],
+            q: [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, -1], [-1, 1], [1, -1]]
+        };
         this.isTouched = false;
         this.board = board;
         var me = this;
@@ -301,30 +300,30 @@ var JChessPiece = (function ($) {
         return true;
     };
 
-    JChessPiece.prototype.getOneStepOffset = function (name) {
+    JChessPiece.prototype.getOffsets = function (name) {
         if (name === undefined) {
             name = this.type;
         }
 
-        if (oneStepOffsets.hasOwnProperty(name)) {
+        if (this.stepOffsets.hasOwnProperty(name)) {
             if (this.isTouched === false) {
                 if (name === 'p') {
-                    oneStepOffsets[name] = oneStepOffsets[name].concat([[0, -2]]);
+                    this.stepOffsets[name] = this.stepOffsets[name].concat([[0, -2]]);
                 }
 
                 if (name === 'k') {
-                    var n = 0, Xoffsets = [-2, 2], castlingPosition, Xoffset;
+                    var n, Xoffsets = [-2, 2], castlingPosition, Xoffset;
                     for (n = 0; n < Xoffsets.length; n++) {
                         Xoffset = Xoffsets[n];
                         castlingPosition = this.currentPosition + Xoffset;
                         if (this.board._isCastlingSideAvailable(this.currentPosition, castlingPosition)) {
-                            oneStepOffsets[name] = oneStepOffsets[name].concat([[Xoffset, 0]]);
+                            this.stepOffsets[name] = this.stepOffsets[name].concat([[Xoffset, 0]]);
                         }
                     }
                 }
             }
 
-            return oneStepOffsets[name];
+            return this.stepOffsets[name];
         }
     };
 
@@ -335,7 +334,7 @@ var JChessPiece = (function ($) {
         possiblePositions = [];
         oneStepTypes = ['n', 'k', 'p'];
 
-        offsets = this.getOneStepOffset();
+        offsets = this.getOffsets();
         XY = this.board.positionToCoordinate(this.currentPosition);
         single = (oneStepTypes.indexOf(this.type) > -1);
 
@@ -497,6 +496,11 @@ var JChessBoard = (function (JChessPiece, $) {
         var row, char, chars, settings, position;
         var y, i;
 
+
+        if (9 in rows && (/^K?Q?k?q?$/.test(rows[9]) | rows[9] === '-')) {
+            this.castlings = rows[9];
+        }
+
         position = 0;
         for (y = 0; y < rows.length && position < 64; y++) {
             row = rows[y];
@@ -512,7 +516,7 @@ var JChessBoard = (function (JChessPiece, $) {
                         settings = $.extend({
                             position: position,
                             fen: char,
-                            castling: this._isCastlingSideAllowed(char)
+                            castling: this.castlings.indexOf(char === 'R' ? 'Q' : char === 'r' ? 'q' : char) > -1
                         }, this.settings);
 
                         this.set(position, new JChessPiece(this, settings));
@@ -524,10 +528,6 @@ var JChessBoard = (function (JChessPiece, $) {
 
         if (8 in rows && /(w|b)/.test(rows[8])) {
             this.nextStepSide = rows[8];
-        }
-
-        if (9 in rows && (/^K?Q?k?q?$/.test(rows[9]) | rows[9] === '-')) {
-            this.castlings = rows[9];
         }
 
         this._initPieces();
@@ -607,16 +607,12 @@ var JChessBoard = (function (JChessPiece, $) {
                 }).join('');
     };
 
-    JChessBoard.prototype._isCastlingSideAllowed = function (sideChar) {
-        return this.castlings.indexOf(sideChar) > -1;
-    };
-
     JChessBoard.prototype._isCastlingSideAvailable = function(oldPosition, newPosition) {
         var king, rook, offset;
 
         king = this.get(oldPosition);
         if (king !== undefined) {
-            offset = (newPosition < oldPosition ? 1 : -2);
+            offset = (newPosition > oldPosition ? 1 : -2);
             rook = this.get(newPosition + offset);
             if (rook !== undefined) {
                 return this._checkCastlingRules(king, rook);
@@ -728,8 +724,10 @@ var JChessBoard = (function (JChessPiece, $) {
     JChessBoard.prototype._move = function (piece, newPosition, isFake) {
         var layer = piece.layer;
         var XY = this.positionToCoordinate(newPosition);
+        var oldPosition = piece.currentPosition;
+        var offsets, rook, side;
 
-        if (!this.get(piece.currentPosition)) {
+        if (!this.get(oldPosition)) {
             return false;
         }
 
@@ -740,7 +738,7 @@ var JChessBoard = (function (JChessPiece, $) {
             });
         }
 
-        this.delete(piece.currentPosition, true);
+        this.delete(oldPosition, true);
 
         if (this.has(newPosition)) {
             this.get(newPosition).destroy();
@@ -758,6 +756,14 @@ var JChessBoard = (function (JChessPiece, $) {
 
         if (isFake !== true) {
             this.canvas.trigger('piecemove', [this, piece, XY[0], XY[1]]);
+            offsets = this.offsetsByPositions(oldPosition, newPosition);
+            if (piece.type === 'k' && Math.abs(offsets[0]) > 1) {
+                side = offsets[0] > 1 ? 'k' : 'q';
+                rook = this.get(side === 'k' ? newPosition + 1 : newPosition - 2);
+                this._move(rook, side === 'k' ? newPosition -1 : newPosition + 1);
+                this.canvas.trigger('castling', [this, piece, rook]);
+                this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
+            }
         }
     };
 

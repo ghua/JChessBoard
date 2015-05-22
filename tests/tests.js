@@ -475,14 +475,26 @@
         board.clear();
     });
 
-    QUnit.test("Test castling", function(assert) {
-        var fen = 'rnbqkb1r/ppppp2p/8/5np1/5Pp1/7N/PPPPP1BP/RNBQK2R w';
+    QUnit.test("Test basic king side castling", function(assert) {
+        var fen = 'rnbqkb1r/ppppp2p/8/5np1/5Pp1/7N/PPPPP1BP/RNBQK2R w KQkq';
         var board = $('canvas').jschessboard(settings);
         board.fenToPosition(fen);
 
         assert.ok(board.move(60, 62));
         assert.ok(board.get(61).type === 'r');
         assert.ok(board.get(62).type === 'k');
+
+        board.clear();
+    });
+
+    QUnit.test("Test basic queen side castling", function(assert) {
+        var fen = 'rnbqkb1r/ppp5/5n2/3ppppp/1PPP4/B2Q4/P2NPPPP/R3KBNR w KQkq';
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition(fen);
+
+        assert.ok(board.move(60, 58));
+        assert.ok(board.get(59).type === 'r');
+        assert.ok(board.get(58).type === 'k');
 
         board.clear();
     });
