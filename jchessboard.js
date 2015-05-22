@@ -125,13 +125,15 @@ var JChessPiece = (function ($) {
         var s = $.extend({
             position: 0,
             fen: 'P',
-            size: 64
+            size: 64,
+            castling: false
         }, options);
 
         this.settings = s;
         this.color = s.fen.toUpperCase() === s.fen ? 'w' : 'b';
         this.currentPosition = s.position;
         this.fen = s.fen;
+        this.castling = s.castling;
         this.type = this.fen.toLowerCase();
 
         var image = s.imagesPath + '/wikipedia/' + this.color + this.fen.toUpperCase() + '.png';
@@ -204,6 +206,10 @@ var JChessPiece = (function ($) {
 
         return this;
     }
+
+    JChessPiece.prototype.isCastlingAvailable = function () {
+        return ['k', 'r'].indexOf(this.type) > -1 && this.castling === true && this.isTouched === false;
+    };
 
     JChessPiece.prototype.destroy = function () {
         this.board.canvas.removeLayer(this.layer);
@@ -302,12 +308,19 @@ var JChessPiece = (function ($) {
 
         if (oneStepOffsets.hasOwnProperty(name)) {
             if (this.isTouched === false) {
-                if (this.type === 'p') {
+                if (name === 'p') {
                     oneStepOffsets[name] = oneStepOffsets[name].concat([[0, -2]]);
                 }
 
-                if (this.type === 'k' && this.currentPosition === (this.color === 'w' ? 60 : 4)) {
-
+                if (name === 'k') {
+                    var n = 0, Xoffsets = [-2, 2], castlingPosition, Xoffset;
+                    for (n = 0; n < Xoffsets.length; n++) {
+                        Xoffset = Xoffsets[n];
+                        castlingPosition = this.currentPosition + Xoffset;
+                        if (this.board._isCastlingSideAvailable(this.currentPosition, castlingPosition)) {
+                            oneStepOffsets[name] = oneStepOffsets[name].concat([[Xoffset, 0]]);
+                        }
+                    }
                 }
             }
 
@@ -428,6 +441,7 @@ var JChessBoard = (function (JChessPiece, $) {
         this.nextStepSide = 'w';
         this.kings = {};
         this.check = false;
+        this.castlings = '-';
 
         var size = settings.cellSize;
         var x = 0, y = 0, c = 0;
@@ -473,13 +487,13 @@ var JChessBoard = (function (JChessPiece, $) {
     }
 
     JChessBoard.prototype.start = function () {
-        return this.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w');
+        return this.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq');
     };
 
     JChessBoard.prototype.fenToPosition = function (fenString) {
         this.clear();
 
-        var rows = fenString.match(/([\d\w]+)+/gi);
+        var rows = fenString.match(/([\d\w\-]+)+/gi);
         var row, char, chars, settings, position;
         var y, i;
 
@@ -488,7 +502,7 @@ var JChessBoard = (function (JChessPiece, $) {
             row = rows[y];
             chars = row.split('');
 
-            for (i = 0; i < row.length && position < 64; i++) { // columns
+            for (i = 0; i < row.length && position < 64; i++) {
                 char = chars[i];
 
                 if (char !== undefined) {
@@ -497,7 +511,8 @@ var JChessBoard = (function (JChessPiece, $) {
                     } else {
                         settings = $.extend({
                             position: position,
-                            fen: char
+                            fen: char,
+                            castling: this._isCastlingSideAllowed(char)
                         }, this.settings);
 
                         this.set(position, new JChessPiece(this, settings));
@@ -509,6 +524,10 @@ var JChessBoard = (function (JChessPiece, $) {
 
         if (8 in rows && /(w|b)/.test(rows[8])) {
             this.nextStepSide = rows[8];
+        }
+
+        if (9 in rows && (/^K?Q?k?q?$/.test(rows[9]) | rows[9] === '-')) {
+            this.castlings = rows[9];
         }
 
         this._initPieces();
@@ -581,7 +600,72 @@ var JChessBoard = (function (JChessPiece, $) {
             fenString += i;
         }
 
-        return fenString + ' ' + this.nextStepSide;
+        return fenString + ' ' + this.nextStepSide + ' ' + this.castlings.split('')
+                .sort(function (a, b) {
+                    var p = ['K', 'Q', 'k', 'q'];
+                    return p.indexOf(a) > p.indexOf(b);
+                }).join('');
+    };
+
+    JChessBoard.prototype._isCastlingSideAllowed = function (sideChar) {
+        return this.castlings.indexOf(sideChar) > -1;
+    };
+
+    JChessBoard.prototype._isCastlingSideAvailable = function(oldPosition, newPosition) {
+        var king, rook, offset;
+
+        king = this.get(oldPosition);
+        if (king !== undefined) {
+            offset = (newPosition < oldPosition ? 1 : -2);
+            rook = this.get(newPosition + offset);
+            if (rook !== undefined) {
+                return this._checkCastlingRules(king, rook);
+            }
+        }
+
+        return false;
+    };
+
+    JChessBoard.prototype._checkCastlingRules = function(king, rook) {
+        if (!king.isCastlingAvailable() || !rook.isCastlingAvailable()) {
+            return false;
+        }
+
+        var from = king.currentPosition;
+        var to = rook.currentPosition;
+        var sequence = this._makeRangeBetween(from, to);
+        var i, position, crossing, c;
+
+        for(i = 0; i < sequence.length; i++) {
+            position = sequence[i];
+            if (this.get(position) === rook) {
+                continue;
+            }
+
+            if (this.get(position) !== undefined && this.get(position) !== king) {
+                return false;
+            }
+
+            crossing = this.crossing[position];
+            for (c = 0; c < crossing.length; c++) {
+                if (crossing[c].piece.color !== king.color && crossing[c].shadow === false) {
+                    return false
+                }
+            }
+        }
+
+        return true;
+    };
+
+    JChessBoard.prototype._makeRangeBetween = function(from, to) {
+        var iterator = from < to ? +1 : -1;
+        var sequence = [from];
+        while (from !== to) {
+            from = from + iterator;
+            sequence.push(from);
+        }
+
+        return sequence;
     };
 
     JChessBoard.prototype.clear = function () {
@@ -804,7 +888,7 @@ var JChessBoard = (function (JChessPiece, $) {
         if (king === undefined) {
             return false;
         }
-        var pieces = this.allPieces().filter(function(piece) {
+        var pieces = this.allPieces().filter(function (piece) {
             return piece.color === color;
         });
 

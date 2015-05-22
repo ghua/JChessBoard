@@ -12,20 +12,20 @@
 
     QUnit.test("test jChessBoard: fenToPosition & positionToFen", function (assert) {
         var board = $('canvas').jschessboard(settings);
-        var fenString = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w';
+        var fenString = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w -';
         board.fenToPosition(fenString);
         assert.equal(board.positionToFen(), fenString);
 
-        fenString = 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b';
+        fenString = 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b -';
         board.fenToPosition(fenString);
         assert.equal(board.positionToFen(), fenString);
 
 
-        fenString = 'rnbqkbnr/ppppppp1/8/7p/7P/8/PPPPPPP1/RNBQKBNR w';
+        fenString = 'rnbqkbnr/ppppppp1/8/7p/7P/8/PPPPPPP1/RNBQKBNR w KQ';
         board.fenToPosition(fenString);
         assert.equal(board.positionToFen(), fenString);
 
-        fenString = 'rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b';
+        fenString = 'rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq';
         board.fenToPosition(fenString);
         assert.equal(board.positionToFen(), fenString);
         board.clear();
@@ -452,7 +452,7 @@
 
     QUnit.test("Test move after check and position reset", function(assert) {
         var board = $('canvas').jschessboard(settings);
-        var fen = '8/8/8/6n1/3Kq3/8/R7/8 w';
+        var fen = '8/8/8/6n1/3Kq3/8/R7/8 w -';
         board.fenToPosition(fen);
         assert.notOk(board.move(48, 0));
         assert.ok(board.positionToFen() === fen);
@@ -485,6 +485,22 @@
         assert.ok(board.get(62).type === 'k');
 
         board.clear();
+    });
+
+    QUnit.test("Test _makeRangeBetween", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        var i;
+        var range = board._makeRangeBetween(0, 3);
+        assert.ok(range.length === 4);
+        for(i = 0; i < range.length; i++) {
+            assert.ok(range[i] === i);
+        }
+
+        range = board._makeRangeBetween(3, 0);
+        assert.ok(range.length === 4);
+        for(i = 0; i < range.length; i++) {
+            assert.ok(range[i] === range.length-i-1);
+        }
     });
 
 }(QUnit, JChessPiece, JChessBoard));
