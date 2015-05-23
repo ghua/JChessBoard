@@ -306,9 +306,10 @@ var JChessPiece = (function ($) {
         }
 
         if (this.stepOffsets.hasOwnProperty(name)) {
+            var offsets = this.stepOffsets[name];
             if (this.isTouched === false) {
                 if (name === 'p') {
-                    this.stepOffsets[name] = this.stepOffsets[name].concat([[0, -2]]);
+                    offsets = offsets.concat([[0, -2]]);
                 }
 
                 if (name === 'k') {
@@ -316,14 +317,14 @@ var JChessPiece = (function ($) {
                     for (n = 0; n < Xoffsets.length; n++) {
                         Xoffset = Xoffsets[n];
                         castlingPosition = this.currentPosition + Xoffset;
-                        if (this.board._isCastlingSideAvailable(this.currentPosition, castlingPosition)) {
-                            this.stepOffsets[name] = this.stepOffsets[name].concat([[Xoffset, 0]]);
+                        if (this.board._isCastlingSideAvailable(this.currentPosition, castlingPosition) !== false) {
+                            offsets = offsets.concat([[Xoffset, 0]]);
                         }
                     }
                 }
             }
 
-            return this.stepOffsets[name];
+            return offsets;
         }
     };
 
@@ -608,14 +609,16 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype._isCastlingSideAvailable = function(oldPosition, newPosition) {
-        var king, rook, offset;
+        var king, rook, offset, offsets;
+
+        offsets = this.offsetsByPositions(oldPosition, newPosition);
 
         king = this.get(oldPosition);
-        if (king !== undefined) {
+        if (king !== undefined && Math.abs(offsets[0]) === 2) {
             offset = (newPosition > oldPosition ? 1 : -2);
             rook = this.get(newPosition + offset);
-            if (rook !== undefined) {
-                return this._checkCastlingRules(king, rook);
+            if (rook !== undefined && this._checkCastlingRules(king, rook) === true) {
+                return rook;
             }
         }
 
@@ -725,7 +728,7 @@ var JChessBoard = (function (JChessPiece, $) {
         var layer = piece.layer;
         var XY = this.positionToCoordinate(newPosition);
         var oldPosition = piece.currentPosition;
-        var offsets, rook, side;
+        var rook, side;
 
         if (!this.get(oldPosition)) {
             return false;
@@ -736,6 +739,16 @@ var JChessBoard = (function (JChessPiece, $) {
                 x: this.relativeToAbsolute(XY[0]),
                 y: this.relativeToAbsolute(XY[1])
             });
+
+            rook = this._isCastlingSideAvailable(oldPosition, newPosition);
+
+            if (piece.type === 'k') {
+                this.castlings = this.castlings.replace(piece.color === 'w' ? /(K|Q)/g : /k|q/g, '');
+            }
+            if (piece.type === 'r') {
+                side = this._getSideByRook(rook) === 'k' ? 'q' : 'k';
+                this.castlings = this.castlings.replace(piece.color === 'w' ? side.toUpperCase() : side, '');
+            }
         }
 
         this.delete(oldPosition, true);
@@ -755,16 +768,18 @@ var JChessBoard = (function (JChessPiece, $) {
         this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
 
         if (isFake !== true) {
-            this.canvas.trigger('piecemove', [this, piece, XY[0], XY[1]]);
-            offsets = this.offsetsByPositions(oldPosition, newPosition);
-            if (piece.type === 'k' && Math.abs(offsets[0]) > 1) {
-                side = offsets[0] > 1 ? 'k' : 'q';
-                rook = this.get(side === 'k' ? newPosition + 1 : newPosition - 2);
+            if (rook !== false) {
+                side = this._getSideByRook(rook);
                 this._move(rook, side === 'k' ? newPosition -1 : newPosition + 1);
                 this.canvas.trigger('castling', [this, piece, rook]);
                 this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
             }
+            this.canvas.trigger('piecemove', [this, piece, XY[0], XY[1]]);
         }
+    };
+
+    JChessBoard.prototype._getSideByRook = function(rook) {
+        return [0, 56].indexOf(rook.currentPosition) > -1 ? 'q' : 'k';
     };
 
     JChessBoard.prototype.coordinateToPosition = function (x, y) {

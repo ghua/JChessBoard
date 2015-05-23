@@ -483,6 +483,7 @@
         assert.ok(board.move(60, 62));
         assert.ok(board.get(61).type === 'r');
         assert.ok(board.get(62).type === 'k');
+        assert.ok('rnbqkb1r/ppppp2p/8/5np1/5Pp1/7N/PPPPP1BP/RNBQ1RK1 w kq', board.positionToFen());
 
         board.clear();
     });
@@ -495,6 +496,7 @@
         assert.ok(board.move(60, 58));
         assert.ok(board.get(59).type === 'r');
         assert.ok(board.get(58).type === 'k');
+        assert.equal('rnbqkb1r/ppp5/5n2/3ppppp/1PPP4/B2Q4/P2NPPPP/2KR1BNR b kq', board.positionToFen());
 
         board.clear();
     });
@@ -513,6 +515,56 @@
         for(i = 0; i < range.length; i++) {
             assert.ok(range[i] === range.length-i-1);
         }
+    });
+
+    QUnit.test("Test basic queen side castling fail - rook already is touched", function(assert) {
+        var fen = 'rnbqkb1r/ppp5/5n2/3ppppp/1PPP4/B2Q4/P2NPPPP/R3KBNR w KQkq';
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition(fen);
+
+        assert.ok(board.move(56, 57));
+        assert.ok(board.move(31, 39));
+        assert.ok(board.move(57, 56));
+        assert.ok(board.move(30, 38));
+        assert.notOk(board.move(60, 58));
+        assert.equal('rnbqkb1r/ppp5/5n2/3ppp2/1PPP2pp/B2Q4/P2NPPPP/R3KBNR w Kkq', board.positionToFen());
+
+        board.clear();
+    });
+
+    QUnit.test("Test basic queen side castling fail - king already is touched", function(assert) {
+        var fen = 'rnbqkb1r/ppp5/5n2/3ppppp/1PPP4/B2Q4/P2NPPPP/R3KBNR w KQkq';
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition(fen);
+
+        assert.ok(board.move(60, 59));
+        assert.ok(board.move(31, 39));
+        assert.ok(board.move(59, 60));
+        assert.ok(board.move(30, 38));
+        assert.notOk(board.move(60, 58));
+        assert.equal('rnbqkb1r/ppp5/5n2/3ppp2/1PPP2pp/B2Q4/P2NPPPP/R3KBNR w kq', board.positionToFen());
+
+        board.clear();
+    });
+
+    QUnit.test("Test basic queen side castling fail - king way is in attack", function(assert) {
+        var fen = 'rnbqk2r/ppp5/5n2/8/8/b7/7R/R3KBN1 w KQkq';
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition(fen);
+
+        assert.notOk(board.move(60, 58));
+
+        board.clear();
+    });
+
+    QUnit.test("Test basic queen side castling fail - king is in check", function(assert) {
+        var fen = 'rnbqk2r/ppp5/5n2/8/1b6/8/7R/R3KBN1 w KQkq';
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition(fen);
+
+        assert.notOk(board.move(60, 58));
+
+        board.clear();
     });
 
 }(QUnit, JChessPiece, JChessBoard));
