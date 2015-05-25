@@ -746,7 +746,7 @@ var JChessBoard = (function (JChessPiece, $) {
                 this.castlings = this.castlings.replace(piece.color === 'w' ? /(K|Q)/g : /k|q/g, '');
             }
             if (piece.type === 'r') {
-                side = this._getSideByRook(rook) === 'k' ? 'q' : 'k';
+                side = this._getSideByRook(piece);
                 this.castlings = this.castlings.replace(piece.color === 'w' ? side.toUpperCase() : side, '');
             }
         }

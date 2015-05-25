@@ -527,7 +527,7 @@
         assert.ok(board.move(57, 56));
         assert.ok(board.move(30, 38));
         assert.notOk(board.move(60, 58));
-        assert.equal('rnbqkb1r/ppp5/5n2/3ppp2/1PPP2pp/B2Q4/P2NPPPP/R3KBNR w Kkq', board.positionToFen());
+        assert.equal('rnbqkb1r/ppp5/5n2/3ppp2/1PPP2pp/B2Q4/P2NPPPP/R3KBNR w kq', board.positionToFen());
 
         board.clear();
     });
@@ -564,6 +564,39 @@
 
         assert.notOk(board.move(60, 58));
 
+        board.clear();
+    });
+
+    QUnit.test("Test changing fen by castling", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition('r3k2r/8/8/8/8/8/8/R3K2R w KQkq');
+        assert.ok(board.move(63, 55));
+        assert.ok(board.positionToFen().match(/Qkq$/));
+        board.clear();
+
+        board.fenToPosition('r3k2r/8/8/8/8/8/8/R3K2R w KQkq');
+        assert.ok(board.move(56, 48));
+        assert.ok(board.positionToFen().match(/Kkq$/));
+        board.clear();
+
+        board.fenToPosition('r3k2r/8/8/8/8/8/8/R3K2R b KQkq');
+        assert.ok(board.move(0, 8));
+        assert.ok(board.positionToFen().match(/KQk$/));
+        board.clear();
+
+        board.fenToPosition('r3k2r/8/8/8/8/8/8/R3K2R b KQkq');
+        assert.ok(board.move(7, 15));
+        assert.ok(board.positionToFen().match(/KQq$/));
+        board.clear();
+
+        board.fenToPosition('r3k2r/8/8/8/8/8/8/R3K2R w KQkq');
+        assert.ok(board.move(60, 52));
+        assert.ok(board.positionToFen().match(/kq$/));
+        board.clear();
+
+        board.fenToPosition('r3k2r/8/8/8/8/8/8/R3K2R b KQkq');
+        assert.ok(board.move(4, 12));
+        assert.ok(board.positionToFen().match(/KQ$/));
         board.clear();
     });
 
