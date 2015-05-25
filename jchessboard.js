@@ -126,7 +126,7 @@ var JChessPiece = (function ($) {
             fen: 'P',
             size: 64,
             castling: false
-        }, options);
+        }, options, this.board.settings);
 
         this.settings = s;
         this.color = s.fen.toUpperCase() === s.fen ? 'w' : 'b';
@@ -538,13 +538,11 @@ var JChessBoard = (function (JChessPiece, $) {
                     if (/\d/.test(char)) {
                         position += parseInt(char);
                     } else {
-                        settings = $.extend({
+                        this.set(position, new JChessPiece(this, {
                             position: position,
                             fen: char,
                             castling: this.castlings.indexOf(char === 'R' ? 'Q' : char === 'r' ? 'q' : char) > -1
-                        }, this.settings);
-
-                        this.set(position, new JChessPiece(this, settings));
+                        }));
                         position++;
                     }
                 }
@@ -784,10 +782,6 @@ var JChessBoard = (function (JChessPiece, $) {
         this.set(newPosition, piece);
 
         piece.setCurrentPosition(newPosition);
-        this.each(function (piece) {
-            piece.genPossiblePositions();
-        });
-        this.genCrossing();
 
         this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
 
@@ -799,7 +793,16 @@ var JChessBoard = (function (JChessPiece, $) {
                 this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
             }
             this.canvas.trigger('piecemove', [this, piece, XY[0], XY[1]]);
+
+            if (piece.type === 'p' && [0, 7].indexOf(XY[1]) > -1) {
+                this.canvas.trigger('promotion', [this, piece]);
+            }
         }
+
+        this.each(function (piece) {
+            piece.genPossiblePositions();
+        });
+        this.genCrossing();
     };
 
     JChessBoard.prototype._getSideByRook = function (rook) {
