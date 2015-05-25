@@ -343,6 +343,12 @@ var JChessPiece = (function ($) {
             vector = [];
             offsetX = offsets[o][0];
             offsetY = offsets[o][1];
+
+            if (this.board.side !== 'w') {
+                offsetX *= -1;
+                offsetY *= -1;
+            }
+
             stepX = XY[0];
             stepY = XY[1];
             s = 0;
@@ -357,7 +363,7 @@ var JChessPiece = (function ($) {
                     }
                 }
 
-                if (this.color === 'b' && this.type === 'p') {
+                if ((this.color === 'b' && this.type === 'p')) {
                     stepX = stepX + offsetX * -1;
                     stepY = stepY + offsetY * -1;
                 } else {
