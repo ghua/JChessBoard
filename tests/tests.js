@@ -32,8 +32,9 @@
     });
 
 
-    QUnit.test("test jChessBoard positionToCoordinate", function (assert) {
+    QUnit.test("test jChessBoard coordinateToPosition - wite side", function (assert) {
         var board = $('canvas').jschessboard(settings);
+        assert.equal(board.coordinateToPosition(0, 0), 0);
         assert.equal(board.coordinateToPosition(0, 1), 8);
         assert.equal(board.coordinateToPosition(0, 2), 16);
         assert.equal(board.coordinateToPosition(7, 7), 63);
@@ -41,12 +42,32 @@
         assert.equal(board.coordinateToPosition(0, 7), 56);
     });
 
-    QUnit.test("test jChessBoard positionToCoordinate", function (assert) {
+    QUnit.test("test jChessBoard coordinateToPosition - black side", function (assert) {
+        var settings = $.extend({'side': 'b'}, settings);
+        var board = $('canvas').jschessboard(settings);
+        assert.equal(board.coordinateToPosition(0, 0), 56);
+        assert.equal(board.coordinateToPosition(0, 1), 48);
+        assert.equal(board.coordinateToPosition(0, 2), 40);
+        assert.equal(board.coordinateToPosition(7, 7), 7);
+        assert.equal(board.coordinateToPosition(7, 6), 15);
+        assert.equal(board.coordinateToPosition(0, 7), 0);
+    });
+
+    QUnit.test("test jChessBoard positionToCoordinate - wite side", function (assert) {
         var board = $('canvas').jschessboard(settings);
         assert.deepEqual(board.positionToCoordinate(8), [0, 1]);
         assert.deepEqual(board.positionToCoordinate(16), [0, 2]);
         assert.deepEqual(board.positionToCoordinate(63), [7, 7]);
         assert.deepEqual(board.positionToCoordinate(55), [7, 6]);
+    });
+
+    QUnit.test("test jChessBoard positionToCoordinate - black side", function (assert) {
+        var settings = $.extend({'side': 'b'}, settings);
+        var board = $('canvas').jschessboard(settings);
+        assert.deepEqual(board.positionToCoordinate(8), [0, 6]);
+        assert.deepEqual(board.positionToCoordinate(16), [0, 5]);
+        assert.deepEqual(board.positionToCoordinate(63), [7, 0]);
+        assert.deepEqual(board.positionToCoordinate(55), [7, 1]);
     });
 
     QUnit.test("test jChessBoard newPositionByPositionAndOffset", function (assert) {

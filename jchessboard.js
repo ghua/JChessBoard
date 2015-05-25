@@ -431,9 +431,15 @@ var JChessPiece = (function ($) {
 }(jQuery));
 
 var JChessBoard = (function (JChessPiece, $) {
-    var columns = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
-    function JChessBoard(canvas, settings) {
+    function JChessBoard(canvas, options) {
+        var settings = $.extend({
+            cellSize: 64,
+            debug: false,
+            imagesPath: 'images',
+            side: 'w'
+        }, options);
+
         this.canvas = canvas;
         this.settings = settings;
         this.cells = [];
@@ -442,6 +448,7 @@ var JChessBoard = (function (JChessPiece, $) {
         this.kings = {};
         this.check = false;
         this.castlings = '-';
+        this.side = settings.side;
 
         var size = settings.cellSize;
         var x = 0, y = 0, c = 0;
@@ -453,6 +460,10 @@ var JChessBoard = (function (JChessPiece, $) {
 
                 x = (col * size + size / 2);
                 y = (row * size + size / 2);
+
+                if (this.side !== 'w') {
+                    y = size * 8 - y;
+                }
 
                 canvas.drawRect({
                     layer: true,
@@ -783,7 +794,11 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype.coordinateToPosition = function (x, y) {
-        return 8 * y + x;
+        if (this.side === 'w') {
+            return 8 * y + x;
+        }
+
+        return (8 * (7 - y) + x);
     };
 
     /**
@@ -800,7 +815,14 @@ var JChessBoard = (function (JChessPiece, $) {
      * @returns {*[]}
      */
     JChessBoard.prototype.positionToCoordinate = function (num) {
-        return [num % 8, Math.floor(num / 8)];
+        var x = num % 8;
+        var y = Math.floor(num / 8);
+
+        if (this.side !== 'w') {
+            y = 7 - y;
+        }
+
+        return [x, y];
     };
 
     JChessBoard.prototype.absoluteToRelative = function (px) {
@@ -936,13 +958,7 @@ var JChessBoard = (function (JChessPiece, $) {
 (function ($) {
 
     $.fn.jschessboard = function (options) {
-        var settings = $.extend({
-            cellSize: 64,
-            debug: false,
-            imagesPath: 'images'
-        }, options);
-
-        return new JChessBoard(this, settings);
+        return new JChessBoard(this, options);
     };
 
 }(jQuery));
