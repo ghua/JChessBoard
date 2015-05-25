@@ -266,8 +266,15 @@ var JChessPiece = (function ($) {
             return false;
         }
 
-        if (Math.abs(offsets[1]) > 1 && this.isTouched === true) {
-            return false;
+        if (Math.abs(offsets[1]) === 2 && offsets[0] === 0) {
+            if (this.isTouched === true) {
+                return false;
+            }
+
+            // TODO: it's hot fix
+            if (this.board.has(this.board.newPositionByPositionAndOffset(oldPosition, 0, offsets[1] + (this.color === 'w' ? 1 : -1))) === true) {
+                return false
+            }
         }
 
         return true;
@@ -625,7 +632,7 @@ var JChessBoard = (function (JChessPiece, $) {
                 }).join('');
     };
 
-    JChessBoard.prototype._isCastlingSideAvailable = function(oldPosition, newPosition) {
+    JChessBoard.prototype._isCastlingSideAvailable = function (oldPosition, newPosition) {
         var king, rook, offset, offsets;
 
         offsets = this.offsetsByPositions(oldPosition, newPosition);
@@ -642,7 +649,7 @@ var JChessBoard = (function (JChessPiece, $) {
         return false;
     };
 
-    JChessBoard.prototype._checkCastlingRules = function(king, rook) {
+    JChessBoard.prototype._checkCastlingRules = function (king, rook) {
         if (!king.isCastlingAvailable() || !rook.isCastlingAvailable()) {
             return false;
         }
@@ -652,7 +659,7 @@ var JChessBoard = (function (JChessPiece, $) {
         var sequence = this._makeRangeBetween(from, to);
         var i, position, crossing, c;
 
-        for(i = 0; i < sequence.length; i++) {
+        for (i = 0; i < sequence.length; i++) {
             position = sequence[i];
             if (this.get(position) === rook) {
                 continue;
@@ -673,7 +680,7 @@ var JChessBoard = (function (JChessPiece, $) {
         return true;
     };
 
-    JChessBoard.prototype._makeRangeBetween = function(from, to) {
+    JChessBoard.prototype._makeRangeBetween = function (from, to) {
         var iterator = from < to ? +1 : -1;
         var sequence = [from];
         while (from !== to) {
@@ -787,7 +794,7 @@ var JChessBoard = (function (JChessPiece, $) {
         if (isFake !== true) {
             if (rook !== false) {
                 side = this._getSideByRook(rook);
-                this._move(rook, side === 'k' ? newPosition -1 : newPosition + 1);
+                this._move(rook, side === 'k' ? newPosition - 1 : newPosition + 1);
                 this.canvas.trigger('castling', [this, piece, rook]);
                 this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
             }
@@ -795,7 +802,7 @@ var JChessBoard = (function (JChessPiece, $) {
         }
     };
 
-    JChessBoard.prototype._getSideByRook = function(rook) {
+    JChessBoard.prototype._getSideByRook = function (rook) {
         return [0, 56].indexOf(rook.currentPosition) > -1 ? 'q' : 'k';
     };
 

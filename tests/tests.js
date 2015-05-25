@@ -621,6 +621,13 @@
         board.clear();
     });
 
+    QUnit.test("Test piece wrong jump", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition('rnbqkbnr/ppppp1pp/5p2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq');
+        assert.notOk(board.move(53, 37));
+        board.clear();
+    });
+
 }(QUnit, JChessPiece, JChessBoard));
 
 
