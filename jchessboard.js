@@ -156,6 +156,11 @@ var JChessPiece = (function ($) {
             bringToFront: true,
             dragstart: function (layer) {
                 var n, v, XY, size, newPosition, vector;
+
+                if (me.settings.validation !== true || me.settings.help !== true) {
+                    return;
+                }
+
                 if (me.board._checkStepSide(me)) {
                     me.genPossiblePositions();
                     size = me.settings.cellSize / 2;
@@ -167,7 +172,7 @@ var JChessPiece = (function ($) {
                             if (me.possiblePositions.vectors[n].get(newPosition) === false) {
                                 XY = board.positionToCoordinate(newPosition);
 
-                                board.canvas.drawEllipse({
+                                board.canvas.drawEllipse($.extend({
                                     strokeStyle: 'green',
                                     strokeWidth: 2,
                                     fillStyle: 'yellow',
@@ -177,7 +182,7 @@ var JChessPiece = (function ($) {
                                     y: board.relativeToAbsolute(XY[1]),
                                     width: size,
                                     height: size
-                                });
+                                }, me.settings.helpStyle));
                             }
                         }
                     }
@@ -390,6 +395,10 @@ var JChessPiece = (function ($) {
         var possiblePositions = new JChessPossiblePositions();
         var source, sourceVector;
 
+        if (this.board.settings.validation !== true) {
+            return;
+        }
+
         source = this._genSourceVectors();
 
         for (o = 0; o < source.length; o++) {
@@ -448,9 +457,14 @@ var JChessBoard = (function (JChessPiece, $) {
     function JChessBoard(canvas, options) {
         var settings = $.extend({
             cellSize: 64,
-            debug: false,
+            numbers: false,
             imagesPath: 'images',
-            side: 'w'
+            side: 'w',
+            helpStyle: {},
+            validation: true,
+            help: true,
+            lightColor: 'white',
+            darkColor: 'gray'
         }, options);
 
         this.canvas = canvas;
@@ -469,7 +483,7 @@ var JChessBoard = (function (JChessPiece, $) {
 
         for (row = 0; row < 8; row++) {
             for (col = 0; col < 8; col++) {
-                color = ( (col % 2 == 0 && row % 2 == 0) || (col % 2 == 1 && row % 2 == 1) ? 'white' : 'gray');
+                color = ( (col % 2 == 0 && row % 2 == 0) || (col % 2 == 1 && row % 2 == 1) ? settings.lightColor : settings.darkColor);
 
                 x = (col * size + size / 2);
                 y = (row * size + size / 2);
@@ -487,7 +501,7 @@ var JChessBoard = (function (JChessPiece, $) {
                     width: size, height: size
                 });
 
-                if (settings.debug === true) {
+                if (settings.numbers === true) {
                     canvas.drawText({
                         layer: true,
                         fillStyle: '#9cf',
@@ -574,6 +588,10 @@ var JChessBoard = (function (JChessPiece, $) {
 
     JChessBoard.prototype.genCrossing = function () {
         var i, piece, positions, v, vector, p, position, value;
+
+        if (this.settings.validation !== true) {
+            return false;
+        }
 
         this._initCrossing();
 
@@ -716,9 +734,9 @@ var JChessBoard = (function (JChessPiece, $) {
         }
 
         var piece = this.get(oldPosition);
-        if (this._checkStepSide(piece)) {
+        if (this.settings.validation !== true || this._checkStepSide(piece)) {
             piece.genPossiblePositions();
-            if (piece.isPossiblePosition(newPosition)) {
+            if (this.settings.validation !== true || piece.isPossiblePosition(newPosition) === true) {
                 checkColor = this.nextStepSide;
                 if (this.isCheck(checkColor) === true) {
                     this.canvas.trigger('check', [this, piece]);

@@ -5,7 +5,7 @@
     <title></title>
     <style>
         canvas {
-            border:1px solid #000000;
+            border: 1px solid #000000;
         }
 
         input {
@@ -27,59 +27,56 @@
 
 <script>
 
-        $('canvas').on('piecemove', function(event, board, piece, x, y) {
-            console.log(piece.layer, piece.nextPositions);
-
-            $('#fen').val(board.positionToFen());
-        });
-
-        $('canvas').on('checkmate', function() {
-            alert('Checkmate');
-        });
-
-        var board = $('canvas').jschessboard({debug: true});
-
-        var fen = getUrlParameter('fen');
-        if (fen === undefined) {
-            board.start();
-        } else {
-            board.fenToPosition(fen.replace('%20', ''));
-        }
-
-        $('canvas').on('promotion', function(event, board, piece) {
-            // r3k2r/2P5/8/8/8/8/8/R3K2R w KQkq
-            var position = piece.currentPosition;
-            board.delete(position);
-            board.set(position, new JChessPiece(board, {'position': position,  fen: piece.color === 'w' ? 'Q': 'q'}));
-            piece.destroy();
-        });
+    $('canvas').on('piecemove', function (event, board, piece, x, y) {
+        console.log(piece.layer, piece.nextPositions);
 
         $('#fen').val(board.positionToFen());
+    });
 
-        $('#fen').keyup(function () {
-                board.fenToPosition($('#fen').val());
-        });
+    $('canvas').on('checkmate', function () {
+        alert('Checkmate');
+    });
 
-        /**
-         * Thanks
-         * http://stackoverflow.com/questions/19491336/get-url-parameter-jquery
-         *
-         * @param sParam
-         * @returns {*}
-         */
-        function getUrlParameter(sParam)
-        {
-            var sPageURL = window.location.search.substring(1);
-            var sURLVariables = sPageURL.split('&');
-            for (var i = 0; i < sURLVariables.length; i++)
-            {
-                var sParameterName = sURLVariables[i].split('=');
-                if (sParameterName[0] == sParam)
-                {
-                    return sParameterName[1];
-                }
+    var board = $('canvas').jschessboard({});
+
+    var fen = getUrlParameter('fen');
+    if (fen === undefined) {
+        board.start();
+    } else {
+        board.fenToPosition(fen.replace('%20', ''));
+    }
+
+    $('canvas').on('promotion', function (event, board, piece) {
+        // r3k2r/2P5/8/8/8/8/8/R3K2R w KQkq
+        var position = piece.currentPosition;
+        board.delete(position);
+        board.set(position, new JChessPiece(board, {'position': position, fen: piece.color === 'w' ? 'Q' : 'q'}));
+        piece.destroy();
+    });
+
+    $('#fen').val(board.positionToFen());
+
+    $('#fen').keyup(function () {
+        board.fenToPosition($('#fen').val());
+    });
+
+    /**
+     * Thanks
+     * http://stackoverflow.com/questions/19491336/get-url-parameter-jquery
+     *
+     * @param sParam
+     * @returns {*}
+     */
+    function getUrlParameter(sParam) {
+        var sPageURL = window.location.search.substring(1);
+        var sURLVariables = sPageURL.split('&');
+        for (var i = 0; i < sURLVariables.length; i++) {
+            var sParameterName = sURLVariables[i].split('=');
+            if (sParameterName[0] == sParam) {
+                return sParameterName[1];
             }
         }
+    }
 
 </script>
 </body>
