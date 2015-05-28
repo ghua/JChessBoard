@@ -628,6 +628,50 @@
         board.clear();
     });
 
+    QUnit.test("Test convertation algebraic notation to position - white side", function(assert) {
+        var board = $('canvas').jschessboard();
+        assert.equal(board._anToPosition('a1'), 56);
+        assert.equal(board._anToPosition('e4'), 36);
+        assert.equal(board._anToPosition('a8'), 0);
+    });
+
+    QUnit.test("Test convertation algebraic notation to position - black side", function(assert) {
+        var board = $('canvas').jschessboard($.extend({'side': 'b'}, settings));
+        assert.equal(board._anToPosition('a1'), 56);
+        assert.equal(board._anToPosition('e4'), 36);
+        assert.equal(board._anToPosition('a8'), 0);
+    });
+
+    QUnit.test("Test get pawn by algebraic notation - _pieceByNextSan", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        var piece;
+        board.start();
+        piece = board._pieceByNextSan('e4');
+        assert.equal(piece.fen, 'P');
+        assert.equal(piece.currentPosition, 52);
+        board.clear();
+    });
+
+    QUnit.test("Test get knight by algebraic notation - _pieceByNextSan", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        var piece;
+        board.start();
+        piece = board._pieceByNextSan('Nc3');
+        assert.equal(piece.fen, 'N');
+        assert.equal(piece.currentPosition, 57);
+        board.clear();
+    });
+
+    QUnit.test("Test choice between two knights by algebraic notation - _pieceByNextSan", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        var piece;
+        board.fenToPosition('rnbqkbn1/pppppp1r/6pp/8/8/2N3N1/PPPPPPPP/R1BQKB1R w KQq');
+        piece = board._pieceByNextSan('Ne4');
+        assert.equal(piece.fen, 'N');
+        assert.equal(piece.currentPosition, 46);
+        board.clear();
+    });
+
 }(QUnit, JChessPiece, JChessBoard));
 
 

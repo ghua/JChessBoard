@@ -500,6 +500,8 @@ var JChessBoard = (function (JChessPiece, $) {
         this.check = false;
         this.castlings = '-';
         this.side = settings.side;
+        this.files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+        this.ranks = [8, 7, 6, 5, 4, 3, 2, 1];
 
         var size = settings.cellSize;
         var x = 0, y = 0, c = 0;
@@ -530,9 +532,9 @@ var JChessBoard = (function (JChessPiece, $) {
                         layer: true,
                         fillStyle: '#9cf',
                         x: x, y: y,
-                        fontSize: 48,
+                        fontSize: 24,
                         fontFamily: 'Verdana, sans-serif',
-                        text: c
+                        text: this.files[col] + '' + this.ranks[row]
                     });
                 }
 
@@ -851,8 +853,12 @@ var JChessBoard = (function (JChessPiece, $) {
         return [0, 56].indexOf(rook.currentPosition) > -1 ? 'q' : 'k';
     };
 
-    JChessBoard.prototype.coordinateToPosition = function (x, y) {
-        if (this.side === 'w') {
+    JChessBoard.prototype.coordinateToPosition = function (x, y, side) {
+        if (side === undefined) {
+            side = this.side;
+        }
+
+        if (side === 'w') {
             return 8 * y + x;
         }
 
@@ -1007,6 +1013,39 @@ var JChessBoard = (function (JChessPiece, $) {
         }
 
         return true;
+    };
+
+    JChessBoard.prototype._anToPosition = function(an) {
+        if (an.match(/[a-h][1-8]/)) {
+            var x = this.files.indexOf(an[0]);
+            var y = this.ranks.indexOf(parseInt(an[1]));
+            return this.coordinateToPosition(x, y, 'w');
+        }
+    };
+
+    JChessBoard.prototype._pieceByNextSan = function(san) {
+        var i, pieces, piece, type, positions, newPosition, an, sub;
+        var found = [];
+        type = 'p';
+        pieces = this.allPieces();
+        sub = san.match(/^(P?|K|N)([a-h][1-8])$/);
+        if (sub) {
+            if (sub[1]) {
+                type = sub[1].toLowerCase();
+            }
+            an = sub[2];
+            newPosition = this._anToPosition(an);
+
+            for (i = 0; i < pieces.length; i++) {
+                piece = pieces[i];
+                if (piece.color === this.nextStepSide && piece.type === type) {
+                    positions = piece.possiblePositions.all();
+                    if (positions.indexOf(newPosition) > -1) {
+                        return piece;
+                    }
+                }
+            }
+        }
     };
 
     return JChessBoard;

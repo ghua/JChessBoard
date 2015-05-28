@@ -37,7 +37,7 @@
         alert('Checkmate');
     });
 
-    var board = $('canvas').jschessboard({});
+    var board = $('canvas').jschessboard({numbers: true});
 
     var fen = getUrlParameter('fen');
     if (fen === undefined) {
