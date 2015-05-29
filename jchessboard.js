@@ -1023,17 +1023,26 @@ var JChessBoard = (function (JChessPiece, $) {
         }
     };
 
+    JChessBoard.prototype._positionToAn = function(position) {
+        var XY = this.positionToCoordinate(position);
+        var file = this.files[XY[0]];
+        var rank = this.ranks[XY[1]];
+
+        return file + '' + rank;
+    };
+
     JChessBoard.prototype._pieceByNextSan = function(san) {
-        var i, pieces, piece, type, positions, newPosition, an, sub;
+        var i, pieces, piece, type, positions, newPosition, an, sub, XY, oldPosition;
         var found = [];
         type = 'p';
         pieces = this.allPieces();
-        sub = san.match(/^(P?|K|N)([a-h][1-8])$/);
+        sub = san.match(/^(P?|K|N)([a-h]?[1-8]?)x?([a-h][1-8])$/);
         if (sub) {
             if (sub[1]) {
                 type = sub[1].toLowerCase();
             }
-            an = sub[2];
+            oldPosition = sub[2];
+            an = sub[3];
             newPosition = this._anToPosition(an);
 
             for (i = 0; i < pieces.length; i++) {
@@ -1041,10 +1050,33 @@ var JChessBoard = (function (JChessPiece, $) {
                 if (piece.color === this.nextStepSide && piece.type === type) {
                     positions = piece.possiblePositions.all();
                     if (positions.indexOf(newPosition) > -1) {
-                        return piece;
+                        found.push(piece);
                     }
                 }
             }
+        }
+
+        if (oldPosition) {
+            found = found.filter(function(piece, index) {
+                if (oldPosition.length === 2 && piece.currentPosition === this._anToPosition(oldPosition)) {
+                    return true;
+                }
+                if (oldPosition.length === 1) {
+                    XY = this.positionToCoordinate(piece.currentPosition);
+                    if (oldPosition.match(/[a-h]/)) {
+                        return XY[0] === this.files.indexOf(oldPosition);
+                    }
+                    if (oldPosition.match(/[0-9]/)) {
+                        return XY[1] === this.ranks.indexOf(parseInt(oldPosition));
+                    }
+                }
+
+                return false;
+            }, this);
+        }
+
+        if (found.length === 1) {
+            return found.shift();
         }
     };
 
