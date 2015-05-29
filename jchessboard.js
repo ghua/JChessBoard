@@ -753,7 +753,7 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype.move = function () {
-        var checkFen, checkColor, piece, oldPosition, newPosition, isFake;
+        var checkFen, checkColor, piece, oldPosition, newPosition, isFake, promotion;
 
         if (arguments.length >= 2) {
             oldPosition = arguments[0];
@@ -775,8 +775,13 @@ var JChessBoard = (function (JChessPiece, $) {
             if (!piece) {
                 return false;
             }
-
             oldPosition = piece.currentPosition;
+            promotion = san.match(/([N|Q|R|B]?)$/);
+            if (promotion) {
+                this.canvas.on('promotion', function (event, board, piece) {
+                    board._pawnPromotion(piece, promotion[1]);
+                });
+            }
         }
 
         if (piece !== undefined && (this.settings.validation !== true || this._checkStepSide(piece))) {
@@ -807,6 +812,13 @@ var JChessBoard = (function (JChessPiece, $) {
         }
 
         return false;
+    };
+
+    JChessBoard.prototype._pawnPromotion = function(pawn, type) {
+        var position = pawn.currentPosition;
+        this.delete(position);
+        this.set(position, new JChessPiece(this, {'position': position, fen: pawn.color === 'w' ? type.toUpperCase() : type.toLowerCase() }));
+        pawn.destroy();
     };
 
     JChessBoard.prototype._move = function (piece, newPosition, isFake) {
@@ -1035,7 +1047,7 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype._anToPosition = function(an) {
-        var match = an.match(/([a-h])([1-8])$/);
+        var match = an.match(/([a-h])([1-8])([N|Q|R|B]?)$/);
         if (match) {
             var x = this.files.indexOf(match[1]);
             var y = this.ranks.indexOf(parseInt(match[2]));
@@ -1069,7 +1081,7 @@ var JChessBoard = (function (JChessPiece, $) {
 
         type = 'p';
         pieces = this.allPieces();
-        sub = san.match(/^(P?|K|N|Q|R)([a-h]?[1-8]?)(x?)([a-h][1-8])$/);
+        sub = san.match(/^(K|N|Q|R|B)?([a-h]?[1-8]?)(x?)([a-h][1-8])([N|Q|R|B]?)$/);
         if (sub) {
             if (sub[1]) {
                 type = sub[1].toLowerCase();

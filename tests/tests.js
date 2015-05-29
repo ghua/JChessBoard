@@ -703,10 +703,17 @@
     QUnit.test("Test changing double castling by algebraic notation", function(assert) {
         var board = $('canvas').jschessboard(settings);
         board.fenToPosition('r3k2r/8/8/8/8/8/8/R3K2R w KQkq');
-
         assert.ok(board.move('0-0-0'));
         assert.ok(board.move('O-O'));
+        board.clear();
+    });
 
+    QUnit.test("Test pawn promotion by algebraic notation", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition('4k3/1P6/8/8/8/8/8/4K3 w KQkq');
+        assert.ok(board.move('b8N'));
+        assert.ok(board.has(1));
+        assert.equal(board.get(1).fen, 'N');
         board.clear();
     });
 

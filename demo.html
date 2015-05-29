@@ -48,10 +48,7 @@
 
     $('canvas').on('promotion', function (event, board, piece) {
         // r3k2r/2P5/8/8/8/8/8/R3K2R w KQkq
-        var position = piece.currentPosition;
-        board.delete(position);
-        board.set(position, new JChessPiece(board, {'position': position, fen: piece.color === 'w' ? 'Q' : 'q'}));
-        piece.destroy();
+        board._pawnPromotion(piece, 'q');
     });
 
     $('#fen').val(board.positionToFen());
