@@ -689,6 +689,27 @@
         board.clear();
     });
 
+    QUnit.test("Test move by algebraic notation", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        board.start();
+        assert.ok(board.move('e4'));
+        assert.ok(board.move('e5'));
+        assert.ok(board.move('Nf3'));
+        assert.ok(board.move('Nf6'));
+        assert.ok(board.move('Nxe5'));
+        board.clear();
+    });
+
+    QUnit.test("Test changing double castling by algebraic notation", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition('r3k2r/8/8/8/8/8/8/R3K2R w KQkq');
+
+        assert.ok(board.move('0-0-0'));
+        assert.ok(board.move('O-O'));
+
+        board.clear();
+    });
+
 }(QUnit, JChessPiece, JChessBoard));
 
 

@@ -752,15 +752,34 @@ var JChessBoard = (function (JChessPiece, $) {
         }
     };
 
-    JChessBoard.prototype.move = function (oldPosition, newPosition, isFake) {
-        var checkFen, checkColor;
+    JChessBoard.prototype.move = function () {
+        var checkFen, checkColor, piece, oldPosition, newPosition, isFake;
 
-        if (!this.has(oldPosition)) {
-            return false;
+        if (arguments.length >= 2) {
+            oldPosition = arguments[0];
+            newPosition = arguments[1];
+            if (arguments.length === 3) {
+                isFake = arguments[2];
+            }
+            if (!this.has(oldPosition)) {
+                return false;
+            }
+
+            piece = this.get(oldPosition);
         }
 
-        var piece = this.get(oldPosition);
-        if (this.settings.validation !== true || this._checkStepSide(piece)) {
+        if (arguments.length === 1) {
+            var san = arguments[0];
+            newPosition = this._anToPosition(san);
+            piece = this._pieceByNextSan(san);
+            if (!piece) {
+                return false;
+            }
+
+            oldPosition = piece.currentPosition;
+        }
+
+        if (piece !== undefined && (this.settings.validation !== true || this._checkStepSide(piece))) {
             piece.genPossiblePositions();
             if (this.settings.validation !== true || piece.isPossiblePosition(newPosition) === true) {
                 checkColor = this.nextStepSide;
@@ -1016,10 +1035,19 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype._anToPosition = function(an) {
-        if (an.match(/[a-h][1-8]/)) {
-            var x = this.files.indexOf(an[0]);
-            var y = this.ranks.indexOf(parseInt(an[1]));
+        var match = an.match(/([a-h])([1-8])$/);
+        if (match) {
+            var x = this.files.indexOf(match[1]);
+            var y = this.ranks.indexOf(parseInt(match[2]));
             return this.coordinateToPosition(x, y, 'w');
+        }
+
+        if (an.match(/^(0|O)\-(0|O)$/)) {
+            return this.nextStepSide === 'w'? 62 : 6;
+        }
+
+        if (an.match(/^(0|O)\-(0|O)\-(0|O)$/)) {
+            return this.nextStepSide === 'w'? 58 : 2;
         }
     };
 
@@ -1032,24 +1060,30 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype._pieceByNextSan = function(san) {
-        var i, pieces, piece, type, positions, newPosition, an, sub, XY, oldPosition;
+        var i, pieces, piece, type, positions, newPosition, an, sub, XY, oldPosition, isCapture;
         var found = [];
+
+        if (san.match(/(0|O)\-(0|O)(\-(0|O))?/)) {
+            return this.kings[this.nextStepSide];
+        }
+
         type = 'p';
         pieces = this.allPieces();
-        sub = san.match(/^(P?|K|N)([a-h]?[1-8]?)x?([a-h][1-8])$/);
+        sub = san.match(/^(P?|K|N|Q|R)([a-h]?[1-8]?)(x?)([a-h][1-8])$/);
         if (sub) {
             if (sub[1]) {
                 type = sub[1].toLowerCase();
             }
             oldPosition = sub[2];
-            an = sub[3];
+            isCapture = sub[3] !== "";
+            an = sub[4];
             newPosition = this._anToPosition(an);
 
             for (i = 0; i < pieces.length; i++) {
                 piece = pieces[i];
                 if (piece.color === this.nextStepSide && piece.type === type) {
                     positions = piece.possiblePositions.all();
-                    if (positions.indexOf(newPosition) > -1) {
+                    if (positions.indexOf(newPosition) > -1 && isCapture === this.has(newPosition)) {
                         found.push(piece);
                     }
                 }
