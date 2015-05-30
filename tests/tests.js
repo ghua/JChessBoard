@@ -703,17 +703,29 @@
     QUnit.test("Test changing double castling by algebraic notation", function(assert) {
         var board = $('canvas').jschessboard(settings);
         board.fenToPosition('r3k2r/8/8/8/8/8/8/R3K2R w KQkq');
-        assert.ok(board.move('0-0-0'));
-        assert.ok(board.move('O-O'));
+        assert.equal(board.move('0-0-0'), '0-0-0');
+        assert.equal(board.move('O-O'), '0-0');
         board.clear();
     });
 
     QUnit.test("Test pawn promotion by algebraic notation", function(assert) {
         var board = $('canvas').jschessboard(settings);
         board.fenToPosition('4k3/1P6/8/8/8/8/8/4K3 w KQkq');
-        assert.ok(board.move('b8N'));
+        assert.equal(board.move('b8N'), 'b7b8N');
         assert.ok(board.has(1));
         assert.equal(board.get(1).fen, 'N');
+        board.clear();
+    });
+
+    QUnit.test("Test returning algebraic notation by board move method", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        board.start();
+        assert.equal(board.move('e4'), 'e2e4');
+        assert.equal(board.move('e5'), 'e7e5');
+        assert.equal(board.move('h4'), 'h2h4');
+        assert.equal(board.move('Nf6'), 'Ng8f6');
+        assert.equal(board.move('h5'), 'h4h5');
+        assert.equal(board.move('Nxh5'), 'Nf6xh5');
         board.clear();
     });
 
