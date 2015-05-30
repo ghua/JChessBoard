@@ -776,7 +776,7 @@ var JChessBoard = (function (JChessPiece, $) {
                 return false;
             }
             oldPosition = piece.currentPosition;
-            promotion = san.match(/([N|Q|R|B]?)$/);
+            promotion = san.match(/([N|Q|R|B])$/);
             if (promotion) {
                 this.canvas.on('promotion', function (event, board, piece) {
                     board._pawnPromotion(piece, promotion[1]);
