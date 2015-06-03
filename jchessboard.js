@@ -757,6 +757,9 @@ var JChessBoard = (function (JChessPiece, $) {
 
         if (arguments.length >= 2) {
             oldPosition = arguments[0];
+            if (oldPosition instanceof JChessPiece) {
+                oldPosition = oldPosition.currentPosition;
+            }
             newPosition = arguments[1];
             if (arguments.length === 3) {
                 isFake = arguments[2];

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        canvas {
+            border: 1px solid #000000;
+        }
+
+        input {
+            width: 512px;
+            margin-bottom: 1em;
+        }
+    </style>
+</head>
+
+<div>
+    <input type="text" id="fen">
+</div>
+<canvas width="512" height="512" style="cursor: default;">
+</canvas>
+
+<script src="//code.jquery.com/jquery-2.1.4.js"></script>
+<script src="jcanvas.js"></script>
+<script src="jchessboard.js"></script>
+
+<script>
+
+    $('canvas').on('piecemove', function (event, board, piece, x, y) {
+        console.log(piece.layer, piece.nextPositions);
+
+        $('#fen').val(board.positionToFen());
+    });
+
+    $('canvas').on('checkmate', function () {
+        alert('Checkmate');
+    });
+
+    var board = $('canvas').jschessboard();
+    board.start();
+
+    $('#fen').val(board.positionToFen());
+
+    $('#fen').keyup(function () {
+        board.fenToPosition($('#fen').val());
+    });
+
+</script>
+</body>
+</html>
