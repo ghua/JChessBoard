@@ -27,8 +27,8 @@
 
 <script>
 
-    $('canvas').on('piecemove', function (event, board, piece, x, y) {
-        console.log(piece.layer, piece.nextPositions);
+    $('canvas').on('piecemove', function (event, board, piece, san) {
+        console.log(piece.layer, san);
 
         $('#fen').val(board.positionToFen());
     });
