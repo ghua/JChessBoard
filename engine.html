@@ -24,6 +24,7 @@
 <script src="//code.jquery.com/jquery-2.1.4.js"></script>
 <script src="jcanvas.js"></script>
 <script src="jchessboard.js"></script>
+<script src="jchessengine.js"></script>
 
 <script>
 
@@ -45,6 +46,8 @@
     $('#fen').keyup(function () {
         board.fenToPosition($('#fen').val());
     });
+
+    var engine = new JChessEngine(board);
 
 </script>
 </body>

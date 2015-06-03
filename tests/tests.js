@@ -729,6 +729,39 @@
         board.clear();
     });
 
+
+    QUnit.test("Test _buildGraph with zero level depth", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        var engine = new JChessEngine(board);
+        var n, vertex;
+        board.fenToPosition('8/7p/8/8/2N5/8/8/8 w');
+
+        engine._buildGraph('w', 0);
+        assert.ok(engine.graph.vertices.length === 8);
+        for (n = 0; n < engine.graph.vertices.length; n++) {
+            vertex = engine.graph.vertices[n];
+            assert.ok([17,19,28,44,51,49,40,24].indexOf(vertex.newPosition) > -1);
+        }
+
+        board.clear();
+    });
+
+    QUnit.test("Test _buildGraph with single level depth", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        var engine = new JChessEngine(board);
+        var n, vertex;
+        board.fenToPosition('8/7p/8/8/2N5/8/8/8 w');
+
+        engine._buildGraph('w', 0);
+        assert.ok(engine.graph.vertices.length === 8);
+        for (n = 0; n < engine.graph.vertices.length; n++) {
+            vertex = engine.graph.vertices[n];
+            assert.ok([17,19,28,44,51,49,40,24].indexOf(vertex.newPosition) > -1);
+        }
+
+        board.clear();
+    });
+
 }(QUnit, JChessPiece, JChessBoard));
 
 
