@@ -97,7 +97,7 @@
     QUnit.test("Pawn isValid test", function (assert) {
         var board = $('canvas').jschessboard(settings);
         var piece = new JChessPiece(board, {fen: 'P', position: 51, imagesPath: '../images/'});
-        piece.genPossiblePositions();
+        piece._genPossiblePositions();
         piece.isTouched = false;
         assert.ok(piece.isPossiblePosition(35));
         assert.ok(piece.isPossiblePosition(35));
@@ -107,7 +107,7 @@
         assert.notOk(piece.isPossiblePosition(53));
         assert.notOk(piece.isPossiblePosition(51));
         piece.isTouched = true;
-        piece.genPossiblePositions();
+        piece._genPossiblePositions();
         assert.notOk(piece.isPossiblePosition(35)); // second try
         assert.notOk(piece.isPossiblePosition(27));
         board.clear();
@@ -116,7 +116,7 @@
     QUnit.test("Bishop isValid test", function (assert) {
         var board = $('canvas').jschessboard(settings);
         var piece = new JChessPiece(board, {fen: 'B', position: 51, imagesPath: '../images/'});
-        piece.genPossiblePositions();
+        piece._genPossiblePositions();
         assert.ok(piece.isPossiblePosition(60));
         assert.ok(piece.isPossiblePosition(42));
         assert.ok(piece.isPossiblePosition(33));
@@ -135,7 +135,7 @@
     QUnit.test("Knight isValid test", function (assert) {
         var board = $('canvas').jschessboard(settings);
         var piece = new JChessPiece(board, {fen: 'N', position: 36, imagesPath: '../images/'});
-        piece.genPossiblePositions();
+        piece._genPossiblePositions();
         assert.ok(piece.isPossiblePosition(21));
         assert.ok(piece.isPossiblePosition(30));
         assert.ok(piece.isPossiblePosition(46));
@@ -154,7 +154,7 @@
     QUnit.test("King isValid test", function (assert) {
         var board = $('canvas').jschessboard(settings);
         var piece = new JChessPiece(board, {fen: 'K', position: 36, imagesPath: '../images/'});
-        piece.genPossiblePositions();
+        piece._genPossiblePositions();
         assert.ok(piece.isPossiblePosition(44));
         assert.ok(piece.isPossiblePosition(43));
         assert.ok(piece.isPossiblePosition(35));
@@ -173,7 +173,7 @@
     QUnit.test("Rook isValid test", function (assert) {
         var board = $('canvas').jschessboard(settings);
         var piece = new JChessPiece(board, {fen: 'R', position: 36, imagesPath: '../images/'});
-        piece.genPossiblePositions();
+        piece._genPossiblePositions();
         assert.ok(piece.isPossiblePosition(44));
         assert.ok(piece.isPossiblePosition(52));
         assert.ok(piece.isPossiblePosition(60));
@@ -197,7 +197,7 @@
     QUnit.test("Queen isValid test", function (assert) {
         var board = $('canvas').jschessboard(settings);
         var piece = new JChessPiece(board, {fen: 'Q', position: 36, imagesPath: '../images/'});
-        piece.genPossiblePositions();
+        piece._genPossiblePositions();
         assert.ok(piece.isPossiblePosition(44));
         assert.ok(piece.isPossiblePosition(52));
         assert.ok(piece.isPossiblePosition(60));
@@ -226,7 +226,7 @@
         settings.type = 'b';
         var board = $('canvas').jschessboard(settings);
         piece = new JChessPiece(board, {fen: 'B', position: 36, imagesPath: '../images/'});
-        var actual = piece.genPossiblePositions();
+        var actual = piece._genPossiblePositions();
         var expected = [[45, 54, 63], [27, 18, 9, 0], [43, 50, 57], [29, 22, 15]];
         assert.ok(actual.vectors.length === 4);
         for (var e = 0; e < expected.length; e++) {
@@ -239,7 +239,7 @@
         var piece;
         var board = $('canvas').jschessboard(settings);
         piece = new JChessPiece(board, {fen: 'N', position: 36, imagesPath: '../images/'});
-        var actual = piece.genPossiblePositions();
+        var actual = piece._genPossiblePositions();
         var expected = [[19], [51], [26], [42], [21], [53], [30], [46]];
         assert.ok(actual.vectors.length === 8);
         for (var e = 0; e < expected.length; e++) {
