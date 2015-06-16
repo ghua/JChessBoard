@@ -1,18 +1,18 @@
-/** 
+/**
  * The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Semyon Velichko
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -143,13 +143,13 @@ var JChessPiece = (function ($) {
         };
         this.isTouched = false;
         this.board = board;
-        var me = this;
 
         var s = $.extend({
             position: 0,
             fen: 'P',
             size: 64,
-            castling: false
+            castling: false,
+            isBlind: false
         }, options, this.board.settings);
 
         this.settings = s;
@@ -159,7 +159,7 @@ var JChessPiece = (function ($) {
         this.castling = s.castling;
         this.type = this.fen.toLowerCase();
 
-        var image = s.imagesPath + '/wikipedia/' + this.color + this.fen.toUpperCase() + '.png';
+        this.image = s.imagesPath + '/wikipedia/' + this.color + this.fen.toUpperCase() + '.png';
         var XY;
 
         XY = this.board.positionToCoordinate(this.currentPosition);
@@ -170,9 +170,21 @@ var JChessPiece = (function ($) {
         this.y = this.board.relativeToAbsolute(this.Y);
 
         this.layer = this.fen + '_' + this.currentPosition;
+
+        if (s.isBlind === true) {
+            return this;
+        }
+
+        this._drawLayer(board);
+
+        return this;
+    }
+
+    JChessPiece.prototype._drawLayer = function (board) {
+        var me = this;
         board.canvas.drawImage({
             name: this.layer,
-            source: image,
+            source: this.image,
             x: this.x,
             y: this.y,
             layer: true,
@@ -222,7 +234,7 @@ var JChessPiece = (function ($) {
                 var oldPosition = board.coordinateToPosition(oldPositionX, oldPositionY);
                 var newPosition = board.coordinateToPosition(newPositionX, newPositionY);
 
-                if (me.board.move(me.currentPosition, newPosition) === false) {
+                if (me.board.move(me.currentPosition, newPosition, false, true) === false) {
                     board.canvas.animateLayer(layer, {
                         x: oldX, y: oldY
                     });
@@ -231,9 +243,7 @@ var JChessPiece = (function ($) {
                 board.canvas.removeLayerGroup('help');
             }
         });
-
-        return this;
-    }
+    };
 
     JChessPiece.prototype.isCastlingAvailable = function () {
         return ['k', 'r'].indexOf(this.type) > -1 && this.castling === true && this.isTouched === false;
@@ -249,6 +259,8 @@ var JChessPiece = (function ($) {
         this._genPossiblePositions();
         this.X = newXY[0];
         this.Y = newXY[1];
+        this.x = this.board.relativeToAbsolute(this.X);
+        this.y = this.board.relativeToAbsolute(this.Y);
         this.isTouched = true;
     };
 
@@ -317,7 +329,6 @@ var JChessPiece = (function ($) {
             crossingPiece = crossing[c].piece;
             isShadow = crossing[c].shadow;
             offsets = this.board.offsetsByPositions(crossingPiece.currentPosition, newPosition);
-            crossingPiece.isPossiblePosition(newPosition);
             if (crossingPiece.color !== this.color) {
                 if (crossingPiece.type === 'p' && Math.abs(offsets[1]) > 0 && offsets[0] === 0) {
                     continue;
@@ -502,6 +513,7 @@ var JChessBoard = (function (JChessPiece, $) {
         this.side = settings.side;
         this.files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
         this.ranks = [8, 7, 6, 5, 4, 3, 2, 1];
+        this.moveLog = [];
 
         var size = settings.cellSize;
         var x = 0, y = 0, c = 0;
@@ -554,8 +566,8 @@ var JChessBoard = (function (JChessPiece, $) {
         return this.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq');
     };
 
-    JChessBoard.prototype.fenToPosition = function (fenString) {
-        this.clear();
+    JChessBoard.prototype.fenToPosition = function (fenString, isBlind) {
+        this.clear(isBlind);
 
         var rows = fenString.match(/([\d\w\-]+)+/gi);
         var row, char, chars, settings, position;
@@ -581,7 +593,8 @@ var JChessBoard = (function (JChessPiece, $) {
                         this.set(position, new JChessPiece(this, {
                             position: position,
                             fen: char,
-                            castling: this.castlings.indexOf(char === 'R' ? 'Q' : char === 'r' ? 'q' : char) > -1
+                            castling: this.castlings.indexOf(char === 'R' ? 'Q' : char === 'r' ? 'q' : char) > -1,
+                            isBlind: isBlind
                         }));
                         position++;
                     }
@@ -733,7 +746,7 @@ var JChessBoard = (function (JChessPiece, $) {
         return sequence;
     };
 
-    JChessBoard.prototype.clear = function () {
+    JChessBoard.prototype.clear = function (isBlind) {
         var i;
         for (i = 0; i < 64; i++) {
             if (this.has(i)) {
@@ -741,7 +754,9 @@ var JChessBoard = (function (JChessPiece, $) {
             }
         }
 
-        this.canvas.drawLayers();
+        if (isBlind !== true) {
+            this.canvas.drawLayers();
+        }
 
         delete this.cells;
         this.cells = [];
@@ -753,13 +768,25 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype.move = function () {
-        var checkFen, checkColor, piece, oldPosition, newPosition, isFake, isPromotion, sanResult;
+        var isValidMove, piece, oldPosition, newPosition, isBlind, isPromotion, sanResult, isDrugNDrop, isBack;
 
+        isBlind = false;
+        isDrugNDrop = false;
+        isBack = false;
         if (arguments.length >= 2) {
             oldPosition = arguments[0];
+            if (oldPosition instanceof JChessPiece) {
+                oldPosition = oldPosition.currentPosition;
+            }
             newPosition = arguments[1];
-            if (arguments.length === 3) {
-                isFake = arguments[2];
+            if (arguments.length >= 3) {
+                isBlind = arguments[2];
+            }
+            if (arguments.length >= 4) {
+                isDrugNDrop = arguments[3];
+            }
+            if (arguments.length >= 5) {
+                isBack = arguments[4];
             }
             if (!this.has(oldPosition)) {
                 return false;
@@ -775,7 +802,6 @@ var JChessBoard = (function (JChessPiece, $) {
             if (!piece) {
                 return false;
             }
-            oldPosition = piece.currentPosition;
             isPromotion = san.match(/([N|Q|R|B])$/);
             if (piece.type === 'p' && isPromotion) {
                 isPromotion = isPromotion[1];
@@ -787,44 +813,43 @@ var JChessBoard = (function (JChessPiece, $) {
 
         if (piece !== undefined && (this.settings.validation !== true || this._checkStepSide(piece))) {
             piece._genPossiblePositions();
-            if (this.settings.validation !== true || piece.isPossiblePosition(newPosition) === true) {
-                checkColor = this.nextStepSide;
-                if (this.isCheck(checkColor) === true) {
+            isValidMove = piece.isPossiblePosition(newPosition);
+            if (this.settings.validation !== true || isValidMove === true) {
+                sanResult = this._move(piece, newPosition, isBlind, isBack) + (isPromotion ? isPromotion : '');
+
+                if (isBack === false && isBlind === false && this.isCheck(this.nextStepSide)) {
                     this.canvas.trigger('check', [this, piece]);
-                    checkFen = this.positionToFen();
+                    if (this.isCheckmate(this.nextStepSide)) {
+                        this.canvas.trigger('checkmate', [this]);
+                    }
                 }
 
-                sanResult = this._move(piece, newPosition, isFake) + (isPromotion ? isPromotion : '');
-
-                if (this.isCheck(checkColor) === true && checkFen !== undefined) {
-                    this._move(piece, oldPosition);
-                    this.nextStepSide = checkColor;
-
-                    return false;
+                if (this.isCheck(piece.color) === false) {
+                    this.canvas.trigger('piecemove', [this, piece, sanResult, isBlind, isDrugNDrop]);
+                    return sanResult;
+                } else {
+                    if (isBack === false) {
+                        this.back(isBlind);
+                    }
                 }
-
-                if (this.isCheck(this.nextStepSide) && this.isCheckmate(this.nextStepSide)) {
-                    this.nextStepSide = undefined;
-                    this.canvas.trigger('checkmate', [this]);
-                }
-
-                this.canvas.trigger('piecemove', [this, piece, sanResult]);
-
-                return sanResult;
             }
         }
+
 
         return false;
     };
 
-    JChessBoard.prototype._pawnPromotion = function(pawn, type) {
+    JChessBoard.prototype._pawnPromotion = function (pawn, type) {
         var position = pawn.currentPosition;
         this.delete(position);
-        this.set(position, new JChessPiece(this, {'position': position, fen: pawn.color === 'w' ? type.toUpperCase() : type.toLowerCase() }));
+        this.set(position, new JChessPiece(this, {
+            'position': position,
+            fen: pawn.color === 'w' ? type.toUpperCase() : type.toLowerCase()
+        }));
         pawn.destroy();
     };
 
-    JChessBoard.prototype._move = function (piece, newPosition, isFake) {
+    JChessBoard.prototype._move = function (piece, newPosition, isBlind, isBack) {
         var layer = piece.layer;
         var XY = this.positionToCoordinate(newPosition);
         var oldPosition = piece.currentPosition;
@@ -834,59 +859,100 @@ var JChessBoard = (function (JChessPiece, $) {
             return false;
         }
 
-        if (isFake !== true) {
+        if (isBlind !== true) {
             this.canvas.animateLayer(layer, {
                 x: this.relativeToAbsolute(XY[0]),
                 y: this.relativeToAbsolute(XY[1])
             });
+        }
 
-            isCastlingRook = this._isCastlingSideAvailable(oldPosition, newPosition);
+        isCastlingRook = this._isCastlingSideAvailable(oldPosition, newPosition);
 
-            if (piece.type === 'k') {
-                this.castlings = this.castlings.replace(piece.color === 'w' ? /(K|Q)/g : /k|q/g, '');
-            }
-            if (piece.type === 'r') {
-                side = this._getSideByRook(piece);
-                this.castlings = this.castlings.replace(piece.color === 'w' ? side.toUpperCase() : side, '');
-            }
+        if (piece.type === 'k') {
+            this.castlings = this.castlings.replace(piece.color === 'w' ? /(K|Q)/g : /k|q/g, '');
+        }
+        if (piece.type === 'r') {
+            side = this._getSideByRook(piece);
+            this.castlings = this.castlings.replace(piece.color === 'w' ? side.toUpperCase() : side, '');
         }
 
         this.delete(oldPosition, true);
 
         if (this.has(newPosition)) {
-            this.get(newPosition).destroy();
+            var capturedPiece = this.get(newPosition);
+            capturedPiece.destroy();
             isCapture = true;
         }
 
         this.set(newPosition, piece);
 
+        if (isBack !== true) {
+            this.moveLog.push({
+                oldPosition: oldPosition,
+                newPosition: newPosition,
+                isTouched: piece.isTouched,
+                capturedPiece: capturedPiece
+            });
+        }
+
         piece.setCurrentPosition(newPosition);
 
         this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
 
-        if (isFake !== true) {
-            if (isCastlingRook !== false) {
-                side = this._getSideByRook(isCastlingRook);
-                this._move(isCastlingRook, side === 'k' ? newPosition - 1 : newPosition + 1);
-                this.canvas.trigger('castling', [this, piece, isCastlingRook]);
-                this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
-            }
-
-            if (piece.type === 'p' && [0, 7].indexOf(XY[1]) > -1) {
-                this.canvas.trigger('promotion', [this, piece]);
-            }
+        if (isCastlingRook !== false) {
+            side = this._getSideByRook(isCastlingRook);
+            this._move(isCastlingRook, side === 'k' ? newPosition - 1 : newPosition + 1, isBlind);
+            this.canvas.trigger('castling', [this, piece, isCastlingRook]);
+            this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
         }
 
-        this.each(function (piece) {
-            piece._genPossiblePositions();
+        if (piece.type === 'p' && [0, 7].indexOf(XY[1]) > -1) {
+            this.canvas.trigger('promotion', [this, piece]);
+        }
+
+        this.each(function (value) {
+            value._genPossiblePositions();
         });
         this._genCrossing();
-
 
         if (isCastlingRook !== false && side !== undefined) {
             return side === 'k' ? '0-0' : '0-0-0';
         }
 
+        return this._genPieceStepSan(piece, oldPosition, newPosition, isCapture);
+    };
+
+    JChessBoard.prototype.back = function (isBlind) {
+        if (this.moveLog.length === 0) {
+            console.log('OOOps');
+            return false;
+        }
+
+        var move = this.moveLog.pop();
+
+        this.settings.validation = false;
+        this.move(move.newPosition, move.oldPosition, isBlind, false, true);
+        if (this.has(move.oldPosition)) {
+            this.get(move.oldPosition).isTouched = move.isTouched;
+        }
+
+        this.settings.validation = true;
+
+        if (move.capturedPiece !== undefined) {
+            this.set(move.newPosition, move.capturedPiece);
+            if (isBlind !== true) {
+                move.capturedPiece._drawLayer(this);
+            }
+        }
+
+        this.each(function (value) {
+            value._genPossiblePositions();
+        });
+        this._genCrossing();
+
+    };
+
+    JChessBoard.prototype._genPieceStepSan = function (piece, oldPosition, newPosition, isCapture) {
         return (piece.type !== 'p' ? piece.type.toUpperCase() : '') +
             this._positionToAn(oldPosition) +
             (isCapture === true ? 'x' : '') +
@@ -1024,6 +1090,7 @@ var JChessBoard = (function (JChessPiece, $) {
 
         for (n = 0; n < crossing.length; n++) {
             piece = crossing[n].piece;
+            piece._genPossiblePositions();
             if (piece.color !== color && piece.isPossiblePosition(currentPosition)) {
                 return true;
             }
@@ -1033,8 +1100,8 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype.isCheckmate = function (color) {
-        var n, p, positions, position, piece;
-        var currentFen = this.positionToFen();
+        var n, p, positions, position, piece, moves = [];
+
         var king = this.kings[color];
         if (king === undefined) {
             return false;
@@ -1043,23 +1110,28 @@ var JChessBoard = (function (JChessPiece, $) {
             return piece.color === color;
         });
 
+        if (this.nextStepSide !== color) {
+            return false;
+        }
+
         for (n = 0; n < pieces.length; n++) {
             piece = pieces[n];
             positions = piece.possiblePositions.all();
             for (p = 0; p < positions.length; p++) {
                 position = positions[p];
-                this.move(piece.currentPosition, position, true);
-                if (this.isCheck(color) === false) {
-                    this.fenToPosition(currentFen);
-                    return false;
+                if (this.move(piece.currentPosition, position, true)) {
+                    if (this.isCheck(color) === false) {
+                        moves.push(position);
+                    }
+                    this.back(true);
                 }
             }
         }
 
-        return true;
+        return this.isCheck(color) && moves.length === 0;
     };
 
-    JChessBoard.prototype._anToPosition = function(an) {
+    JChessBoard.prototype._anToPosition = function (an) {
         var match = an.match(/([a-h])([1-8])([N|Q|R|B]?)$/);
         if (match) {
             var x = this.files.indexOf(match[1]);
@@ -1068,15 +1140,15 @@ var JChessBoard = (function (JChessPiece, $) {
         }
 
         if (an.match(/^(0|O)\-(0|O)$/)) {
-            return this.nextStepSide === 'w'? 62 : 6;
+            return this.nextStepSide === 'w' ? 62 : 6;
         }
 
         if (an.match(/^(0|O)\-(0|O)\-(0|O)$/)) {
-            return this.nextStepSide === 'w'? 58 : 2;
+            return this.nextStepSide === 'w' ? 58 : 2;
         }
     };
 
-    JChessBoard.prototype._positionToAn = function(position) {
+    JChessBoard.prototype._positionToAn = function (position) {
         var XY = this.positionToCoordinate(position);
         var file = this.files[XY[0]];
         var rank = this.ranks[XY[1]];
@@ -1084,7 +1156,7 @@ var JChessBoard = (function (JChessPiece, $) {
         return file + '' + rank;
     };
 
-    JChessBoard.prototype._pieceByNextSan = function(san) {
+    JChessBoard.prototype._pieceByNextSan = function (san) {
         var i, pieces, piece, type, positions, newPosition, an, sub, XY, oldPosition, isCapture;
         var found = [];
 
@@ -1116,7 +1188,7 @@ var JChessBoard = (function (JChessPiece, $) {
         }
 
         if (oldPosition) {
-            found = found.filter(function(piece, index) {
+            found = found.filter(function (piece, index) {
                 if (oldPosition.length === 2 && piece.currentPosition === this._anToPosition(oldPosition)) {
                     return true;
                 }
@@ -1137,6 +1209,10 @@ var JChessBoard = (function (JChessPiece, $) {
         if (found.length === 1) {
             return found.shift();
         }
+    };
+
+    JChessBoard.prototype.getCrossing = function(position) {
+        return this.crossing[position];
     };
 
     return JChessBoard;

@@ -1,5 +1,5 @@
 (function (QUnit, JChessPiece, JChessBoard) {
-    var settings = {imagesPath: '../images/'};
+    var settings = {imagesPath: '../../images/'};
     QUnit.test("test jChessBoard cells", function (assert) {
         var board = $('canvas').jschessboard(settings);
         assert.equal(board.cells.length, 64);
@@ -491,7 +491,7 @@
         assert.notOk(board.move(36, 46));
         assert.notOk(board.move(36, 47));
 
-        assert.ok(board.nextStepSide === undefined);
+        //assert.ok(board.nextStepSide === undefined);
 
         board.clear();
     });
@@ -726,6 +726,28 @@
         assert.equal(board.move('Nf6'), 'Ng8f6');
         assert.equal(board.move('h5'), 'h4h5');
         assert.equal(board.move('Nxh5'), 'Nf6xh5');
+        board.clear();
+    });
+
+    QUnit.test("Test isPossiblePosition with kingcheck #1", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition('kn2R3/8/1K6/8/8/8/8/8 b -');
+
+        assert.notOk(board.get(1).isPossiblePosition(16));
+        assert.notOk(board.get(1).isPossiblePosition(18));
+        assert.notOk(board.get(1).isPossiblePosition(11));
+
+        board.clear();
+    });
+
+    QUnit.test("Test isPossiblePosition with kingcheck #2", function(assert) {
+        var board = $('canvas').jschessboard(settings);
+        board.fenToPosition('k3R3/8/8/1K6/8/3n4/8/8 b -');
+
+        assert.notOk(board.get(43).isPossiblePosition(58));
+        assert.notOk(board.get(43).isPossiblePosition(60));
+        assert.notOk(board.get(43).isPossiblePosition(26));
+
         board.clear();
     });
 

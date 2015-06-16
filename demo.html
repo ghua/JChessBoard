@@ -14,7 +14,7 @@
         }
     </style>
 </head>
-
+<body>
 <div>
     <input type="text" id="fen">
 </div>
@@ -41,7 +41,8 @@
 
     var fen = getUrlParameter('fen');
     if (fen === undefined) {
-        board.start();
+//        board.start();
+        board.fenToPosition('k7/1R6/nK6/8/8/8/8/8 w -');
     } else {
         board.fenToPosition(fen.replace('%20', ''));
     }
