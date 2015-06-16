@@ -1,5 +1,5 @@
 (function (QUnit, JChessPiece, JChessBoard) {
-    var settings = {imagesPath: '../images/'};
+    var settings = {imagesPath: '../../images/'};
     QUnit.test("test jChessBoard cells", function (assert) {
         var board = $('canvas').jschessboard(settings);
         assert.equal(board.cells.length, 64);

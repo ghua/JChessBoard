@@ -149,7 +149,8 @@ var JChessPiece = (function ($) {
             position: 0,
             fen: 'P',
             size: 64,
-            castling: false
+            castling: false,
+            isBlind: false
         }, options, this.board.settings);
 
         this.settings = s;
@@ -170,6 +171,11 @@ var JChessPiece = (function ($) {
         this.y = this.board.relativeToAbsolute(this.Y);
 
         this.layer = this.fen + '_' + this.currentPosition;
+
+        if (s.isBlind === true) {
+            return this;
+        }
+
         board.canvas.drawImage({
             name: this.layer,
             source: image,
@@ -554,8 +560,8 @@ var JChessBoard = (function (JChessPiece, $) {
         return this.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq');
     };
 
-    JChessBoard.prototype.fenToPosition = function (fenString) {
-        this.clear();
+    JChessBoard.prototype.fenToPosition = function (fenString, isBlind) {
+        this.clear(isBlind);
 
         var rows = fenString.match(/([\d\w\-]+)+/gi);
         var row, char, chars, settings, position;
@@ -581,7 +587,8 @@ var JChessBoard = (function (JChessPiece, $) {
                         this.set(position, new JChessPiece(this, {
                             position: position,
                             fen: char,
-                            castling: this.castlings.indexOf(char === 'R' ? 'Q' : char === 'r' ? 'q' : char) > -1
+                            castling: this.castlings.indexOf(char === 'R' ? 'Q' : char === 'r' ? 'q' : char) > -1,
+                            isBlind: isBlind
                         }));
                         position++;
                     }
@@ -733,7 +740,7 @@ var JChessBoard = (function (JChessPiece, $) {
         return sequence;
     };
 
-    JChessBoard.prototype.clear = function () {
+    JChessBoard.prototype.clear = function (isBlind) {
         var i;
         for (i = 0; i < 64; i++) {
             if (this.has(i)) {
@@ -741,7 +748,9 @@ var JChessBoard = (function (JChessPiece, $) {
             }
         }
 
-        this.canvas.drawLayers();
+        if (isBlind !== true) {
+            this.canvas.drawLayers();
+        }
 
         delete this.cells;
         this.cells = [];
@@ -753,13 +762,13 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype.move = function () {
-        var checkFen, checkColor, piece, oldPosition, newPosition, isFake, isPromotion, sanResult;
+        var checkFen, checkColor, piece, oldPosition, newPosition, isBlind, isPromotion, sanResult;
 
         if (arguments.length >= 2) {
             oldPosition = arguments[0];
             newPosition = arguments[1];
             if (arguments.length === 3) {
-                isFake = arguments[2];
+                isBlind = arguments[2];
             }
             if (!this.has(oldPosition)) {
                 return false;
@@ -794,7 +803,7 @@ var JChessBoard = (function (JChessPiece, $) {
                     checkFen = this.positionToFen();
                 }
 
-                sanResult = this._move(piece, newPosition, isFake) + (isPromotion ? isPromotion : '');
+                sanResult = this._move(piece, newPosition, isBlind) + (isPromotion ? isPromotion : '');
 
                 if (this.isCheck(checkColor) === true && checkFen !== undefined) {
                     this._move(piece, oldPosition);
@@ -824,7 +833,7 @@ var JChessBoard = (function (JChessPiece, $) {
         pawn.destroy();
     };
 
-    JChessBoard.prototype._move = function (piece, newPosition, isFake) {
+    JChessBoard.prototype._move = function (piece, newPosition, isBlind) {
         var layer = piece.layer;
         var XY = this.positionToCoordinate(newPosition);
         var oldPosition = piece.currentPosition;
@@ -834,7 +843,7 @@ var JChessBoard = (function (JChessPiece, $) {
             return false;
         }
 
-        if (isFake !== true) {
+        if (isBlind !== true) {
             this.canvas.animateLayer(layer, {
                 x: this.relativeToAbsolute(XY[0]),
                 y: this.relativeToAbsolute(XY[1])
@@ -864,7 +873,7 @@ var JChessBoard = (function (JChessPiece, $) {
 
         this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
 
-        if (isFake !== true) {
+        if (isBlind !== true) {
             if (isCastlingRook !== false) {
                 side = this._getSideByRook(isCastlingRook);
                 this._move(isCastlingRook, side === 'k' ? newPosition - 1 : newPosition + 1);
@@ -887,6 +896,10 @@ var JChessBoard = (function (JChessPiece, $) {
             return side === 'k' ? '0-0' : '0-0-0';
         }
 
+        return this._genPieceStepSan(piece, oldPosition, newPosition, isCapture);
+    };
+
+    JChessBoard.prototype._genPieceStepSan = function(piece, oldPosition, newPosition, isCapture) {
         return (piece.type !== 'p' ? piece.type.toUpperCase() : '') +
             this._positionToAn(oldPosition) +
             (isCapture === true ? 'x' : '') +
