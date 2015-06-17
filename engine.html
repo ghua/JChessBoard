@@ -28,15 +28,9 @@
 
 <script>
 
-    $('canvas').on('piecemove', function (event, board, piece, x, y) {
-        console.log(piece.layer, piece.nextPositions);
-
-        $('#fen').val(board.positionToFen());
-    });
-
-    $('canvas').on('checkmate', function () {
-        alert('Checkmate');
-    });
+//    $('canvas').on('checkmate', function () {
+//        alert('Checkmate');
+//    });
 
     var board = $('canvas').jschessboard({numbers: true});
 //    board.start();

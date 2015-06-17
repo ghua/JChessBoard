@@ -1,23 +1,19 @@
 var JChessVertex = (function () {
 
-    function JChessVertex(step, weight) {
-        this.step = step;
-        this.edges = [];
+    function JChessVertex(san, weight) {
+        this.san = san;
         this.weight = weight;
     }
-
-    JChessVertex.prototype.addEdge = function (toVertex) {
-        this.edges.push(new JChessEdge(this, toVertex));
-    };
 
     return JChessVertex;
 }());
 
 var JChessEdge = (function () {
 
-    function JChessEdge(fromVertex, toVertex) {
+    function JChessEdge(fromVertex, toVertex, weight) {
         this.fromVertex = fromVertex;
         this.toVertex = toVertex;
+        this.weight = weight;
     }
 
     return JChessEdge;
@@ -27,14 +23,22 @@ var JChessGraph = (function () {
 
     function JChessGraph() {
         this.vertices = [];
+        this.roots = [];
+        this.edges = [];
     }
 
-    JChessGraph.prototype.addVertex = function (step, weight) {
-        var vertex = new JChessVertex(step, weight);
-
+    JChessGraph.prototype.addVertex = function (vertex, isRoot) {
         this.vertices.push(vertex);
+        if (isRoot === true) {
+            this.roots.push(vertex);
+        }
 
         return vertex;
+    };
+
+    JChessGraph.prototype.addEdge = function (edge) {
+        this.edges.push(edge);
+        return edge;
     };
 
     return JChessGraph;
@@ -46,69 +50,87 @@ var JChessEngine = (function () {
         this.board = board;
         this.graph = new JChessGraph();
         this.piecePrice = {
-            p: 1, n: 3, b: 3, r: 6, q: 9, k: 12
+            p: 2, n: 5, b: 5, r: 8, q: 12, k: 20
         };
     }
 
     JChessEngine.prototype.think = function () {
         var currentFen = this.board.positionToFen();
 
-        var graph = this._buildRoute(this.board.nextStepSide, 3);
-        var result = {};
+
+        var graph = new JChessGraph();
+
+        this._buildRoute(this.board.nextStepSide, 3, graph);
 
         this.board.fenToPosition(currentFen);
 
-        for (var san in graph) {
-            if (graph.hasOwnProperty(san)) {
-                var branches = graph[san].branches;
-                result[san] = this._assessRoute(this._getScoreListFromBranch(graph[san]));
-            }
-        }
+        //return this._findBestRoute(graph);
 
-        return result;
+        return graph;
     };
 
-    JChessEngine.prototype._getScoreListFromBranch = function (vertex) {
-        var result = [vertex.score];
+    //JChessEngine.prototype._findBestRoute = function (graph) {
+    //    var routes = [];
+    //
+    //    for (var san in graph.branches) {
+    //        if (vertex.branches.hasOwnProperty(san)) {
+    //            result = result.concat(this._getScoreListFromBranch(vertex.branches[san]));
+    //        }
+    //    }
+    //
+    //    return routes;
+    //};
+    //
+    //JChessEngine.prototype._getUniqPaths = function(vertex) {
+    //    var path = [ vertex.san ];
+    //
+    //    if (vertex.branches.length === 0) {
+    //        delete vertex;
+    //    }
+    //
+    //    return path;
+    //};
 
-        for (var san in vertex.branches) {
-            if (vertex.branches.hasOwnProperty(san)) {
-                result = result.concat(this._getScoreListFromBranch(vertex.branches[san]));
-            }
-        }
-
-        return result;
-    };
-
-    JChessEngine.prototype._buildRoute = function (nextStepSide, depthLeft) {
+    JChessEngine.prototype._buildRoute = function (stepSide, depthLeft, graph, parentVertex) {
         var p, n;
         var pieces = this.board.allPieces().filter(function (piece) {
-            return piece.color === nextStepSide
+            return piece.color === stepSide
         });
-        var possiblePositions, piece, possiblePosition, score, san;
-        var currentFen = this.board.positionToFen();
-        var graph = {};
+        var possiblePositions, vertex, piece, possiblePosition, score, san, isCapture, capturePiece;
+        var currentPosition;
 
         for (p = 0; p < pieces.length; p++) {
             piece = pieces[p];
 
+            currentPosition = piece.currentPosition;
             possiblePositions = piece.possiblePositions.all()
                 .filter(function (element) {
                     return piece.isPossiblePosition(element);
                 });
+
             for (n = 0; n < possiblePositions.length; n++) {
                 possiblePosition = possiblePositions[n];
+                isCapture = this.board.has(possiblePosition);
+                san = this.board._genPieceStepSan(piece, currentPosition, possiblePosition, isCapture);
+                vertex = new JChessVertex(san, this._assessStep(piece, possiblePosition));
 
-                san = this.board._genPieceStepSan(piece, piece.currentPosition, possiblePosition, this.board.has(possiblePosition));
-
-                graph[san] = {score: this._assessStep(possiblePosition)};
+                if (parentVertex !== undefined) {
+                    graph.addEdge(new JChessEdge(parentVertex, vertex, parentVertex.weight + vertex.weight));
+                }
 
                 if (depthLeft > 0) {
-                    this.board.move(piece, possiblePosition, true);
-                    graph[san].branches = this._buildRoute(nextStepSide === 'w' ? 'b' : 'w', depthLeft - 1);
+                    var currentFen = this.board.positionToFen();
+                    this.board.move(currentPosition, possiblePosition, true);
+
+                    if (this.board.isCheckmate(stepSide === 'w' ? 'b' : 'w')) {
+                        vertex.weight = 20;
+                    }
+
+                    this._buildRoute(stepSide === 'w' ? 'b' : 'w', depthLeft - 1, graph, vertex);
+                    this.board.fenToPosition(currentFen, true);
                 }
+                graph.addVertex(vertex, parentVertex === undefined);
             }
-            this.board.fenToPosition(currentFen, true);
         }
 
         return graph;
@@ -122,12 +144,12 @@ var JChessEngine = (function () {
         return this.piecePrice[type];
     };
 
-    JChessEngine.prototype._assessStep = function (newPosition) {
+    JChessEngine.prototype._assessStep = function (piece, newPosition) {
         if (this.board.has(newPosition)) {
             return this.price(this.board.get(newPosition).type);
         }
 
-        return 0;
+        return 1;
     };
 
     JChessEngine.prototype._assessRoute = function (numbers) {

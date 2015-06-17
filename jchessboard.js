@@ -1066,12 +1066,13 @@ var JChessBoard = (function (JChessPiece, $) {
                 position = positions[p];
                 this.move(piece.currentPosition, position, true);
                 if (this.isCheck(color) === false) {
-                    this.fenToPosition(currentFen);
+                    this.fenToPosition(currentFen, true);
                     return false;
                 }
             }
         }
 
+        this.fenToPosition(currentFen, true);
         return true;
     };
 
