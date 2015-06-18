@@ -3,7 +3,13 @@ var JChessVertex = (function () {
     function JChessVertex(san, weight) {
         this.san = san;
         this.weight = weight;
+        this.edges = [];
     }
+
+    JChessVertex.prototype.addEdge = function (edge) {
+        this.edges.push(edge);
+        return edge;
+    };
 
     return JChessVertex;
 }());
@@ -14,6 +20,7 @@ var JChessEdge = (function () {
         this.fromVertex = fromVertex;
         this.toVertex = toVertex;
         this.weight = weight;
+        this.status = 1;
     }
 
     return JChessEdge;
@@ -24,7 +31,6 @@ var JChessGraph = (function () {
     function JChessGraph() {
         this.vertices = [];
         this.roots = [];
-        this.edges = [];
     }
 
     JChessGraph.prototype.addVertex = function (vertex, isRoot) {
@@ -34,11 +40,6 @@ var JChessGraph = (function () {
         }
 
         return vertex;
-    };
-
-    JChessGraph.prototype.addEdge = function (edge) {
-        this.edges.push(edge);
-        return edge;
     };
 
     return JChessGraph;
@@ -64,32 +65,56 @@ var JChessEngine = (function () {
 
         this.board.fenToPosition(currentFen);
 
-        //return this._findBestRoute(graph);
+        return this._findBestRoute(graph);
 
-        return graph;
+        //return graph;
     };
 
-    //JChessEngine.prototype._findBestRoute = function (graph) {
-    //    var routes = [];
-    //
-    //    for (var san in graph.branches) {
-    //        if (vertex.branches.hasOwnProperty(san)) {
-    //            result = result.concat(this._getScoreListFromBranch(vertex.branches[san]));
-    //        }
-    //    }
-    //
-    //    return routes;
-    //};
-    //
-    //JChessEngine.prototype._getUniqPaths = function(vertex) {
-    //    var path = [ vertex.san ];
-    //
-    //    if (vertex.branches.length === 0) {
-    //        delete vertex;
-    //    }
-    //
-    //    return path;
-    //};
+    JChessEngine.prototype._findBestRoute = function (graph) {
+        var _paths = {}, r, root, path;
+
+        for (r = 0; r < graph.roots.length; r++) {
+            root = graph.roots[r];
+            path = this._getUniqPaths(root);
+            if (_paths[root.san] === undefined) {
+                _paths[root.san] = [];
+            }
+            _paths[root.san].push(path);
+        }
+
+        return _paths;
+    };
+
+    JChessEngine.prototype._getUniqPaths = function(root, path, level) {
+        var v, edge, child;
+
+        root.edges.filter(function(value) {
+            return value.status > 1;
+        });
+
+        if (level === 0) {
+            path = [];
+        }
+
+        for (v = 0; v < root.edges.length; v++) {
+            edge = root.edges[v];
+            edge.status = 1;
+            child = edge.toVertex;
+            path.push(edge.weight);
+            if (child.edges.length > 0) {
+                if (this._getUniqPaths(child, path, level + 1) === false) {
+                    if (level > 0) {
+                        return false;
+                    }
+                }
+            } else {
+                root.edges[v].status = 2;
+                return false;
+            }
+        }
+
+        return path;
+    };
 
     JChessEngine.prototype._buildRoute = function (stepSide, depthLeft, graph, parentVertex) {
         var p, n;
@@ -115,7 +140,7 @@ var JChessEngine = (function () {
                 vertex = new JChessVertex(san, this._assessStep(piece, possiblePosition));
 
                 if (parentVertex !== undefined) {
-                    graph.addEdge(new JChessEdge(parentVertex, vertex, parentVertex.weight + vertex.weight));
+                    parentVertex.addEdge(new JChessEdge(parentVertex, vertex, parentVertex.weight + vertex.weight));
                 }
 
                 if (depthLeft > 0) {
