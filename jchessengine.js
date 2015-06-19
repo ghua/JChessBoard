@@ -20,7 +20,6 @@ var JChessEdge = (function () {
         this.fromVertex = fromVertex;
         this.toVertex = toVertex;
         this.weight = weight;
-        this.status = 1;
     }
 
     return JChessEdge;
@@ -65,9 +64,9 @@ var JChessEngine = (function () {
 
         this.board.fenToPosition(currentFen);
 
-        return this._findBestRoute(graph);
-
         //return graph;
+
+        return this._findBestRoute(graph);
     };
 
     JChessEngine.prototype._findBestRoute = function (graph) {
@@ -75,45 +74,38 @@ var JChessEngine = (function () {
 
         for (r = 0; r < graph.roots.length; r++) {
             root = graph.roots[r];
-            path = this._getUniqPaths(root);
-            if (_paths[root.san] === undefined) {
-                _paths[root.san] = [];
-            }
-            _paths[root.san].push(path);
+            _paths[root.san] = this._getUniqPaths(root);
         }
 
         return _paths;
     };
 
-    JChessEngine.prototype._getUniqPaths = function(root, path, level) {
-        var v, edge, child;
+    JChessEngine.prototype._getUniqPaths = function(root) {
+        var paths = [], path;
 
-        root.edges.filter(function(value) {
-            return value.status > 1;
-        });
-
-        if (level === 0) {
+        while (root.edges.length > 0) {
             path = [];
+            this._getPath(root, path);
+            paths.push(path);
         }
 
-        for (v = 0; v < root.edges.length; v++) {
-            edge = root.edges[v];
-            edge.status = 1;
-            child = edge.toVertex;
-            path.push(edge.weight);
-            if (child.edges.length > 0) {
-                if (this._getUniqPaths(child, path, level + 1) === false) {
-                    if (level > 0) {
-                        return false;
-                    }
-                }
-            } else {
-                root.edges[v].status = 2;
-                return false;
+        return paths;
+    };
+
+    JChessEngine.prototype._getPath = function(root, path) {
+        var edge;
+
+        path.push(root.san);
+
+        if (root.edges.length > 0) {
+            edge = root.edges.pop();
+            if (this._getPath(edge.toVertex, path)) {
+                root.edges.push(edge);
             }
+            return true
         }
 
-        return path;
+        return false;
     };
 
     JChessEngine.prototype._buildRoute = function (stepSide, depthLeft, graph, parentVertex) {
@@ -127,34 +119,35 @@ var JChessEngine = (function () {
         for (p = 0; p < pieces.length; p++) {
             piece = pieces[p];
 
+            piece._genPossiblePositions();
             currentPosition = piece.currentPosition;
-            possiblePositions = piece.possiblePositions.all()
-                .filter(function (element) {
-                    return piece.isPossiblePosition(element);
-                });
+            possiblePositions = piece.possiblePositions.all();
 
             for (n = 0; n < possiblePositions.length; n++) {
                 possiblePosition = possiblePositions[n];
-                isCapture = this.board.has(possiblePosition);
-                san = this.board._genPieceStepSan(piece, currentPosition, possiblePosition, isCapture);
-                vertex = new JChessVertex(san, this._assessStep(piece, possiblePosition));
 
-                if (parentVertex !== undefined) {
-                    parentVertex.addEdge(new JChessEdge(parentVertex, vertex, parentVertex.weight + vertex.weight));
-                }
+                if (piece.isPossiblePosition(possiblePosition) === true) {
+                    isCapture = this.board.has(possiblePosition);
+                    san = this.board._genPieceStepSan(piece, currentPosition, possiblePosition, isCapture);
+                    vertex = new JChessVertex(san, this._assessStep(piece, possiblePosition));
 
-                if (depthLeft > 0) {
-                    var currentFen = this.board.positionToFen();
-                    this.board.move(currentPosition, possiblePosition, true);
-
-                    if (this.board.isCheckmate(stepSide === 'w' ? 'b' : 'w')) {
-                        vertex.weight = 20;
+                    if (parentVertex !== undefined) {
+                        parentVertex.addEdge(new JChessEdge(parentVertex, vertex, parentVertex.weight + vertex.weight));
                     }
 
-                    this._buildRoute(stepSide === 'w' ? 'b' : 'w', depthLeft - 1, graph, vertex);
-                    this.board.fenToPosition(currentFen, true);
+                    if (depthLeft > 0) {
+                        var currentFen = this.board.positionToFen();
+                        this.board.move(currentPosition, possiblePosition, true);
+
+                        if (this.board.isCheckmate(stepSide === 'w' ? 'b' : 'w')) {
+                            vertex.weight = 20;
+                        }
+
+                        this._buildRoute(stepSide === 'w' ? 'b' : 'w', depthLeft - 1, graph, vertex);
+                        this.board.fenToPosition(currentFen, true);
+                    }
+                    graph.addVertex(vertex, parentVertex === undefined);
                 }
-                graph.addVertex(vertex, parentVertex === undefined);
             }
         }
 
