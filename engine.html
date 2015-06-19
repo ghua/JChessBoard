@@ -28,9 +28,18 @@
 
 <script>
 
-//    $('canvas').on('checkmate', function () {
-//        alert('Checkmate');
-//    });
+    var makeMove = function(board, engine) {
+        var san = engine.think();
+        setTimeout(function() {
+            if (san !== undefined) {
+                board.move(san);
+            } else {
+                alert('Game over');
+            }
+
+
+        }, 500);
+    };
 
     var board = $('canvas').jschessboard({numbers: true});
 //    board.start();
@@ -44,6 +53,14 @@
 
     var engine = new JChessEngine(board);
 //    engine.think();
+
+    $('canvas').on('piecemove', function (event, board, piece, sanResult, isBlind, isDrugNDrop) {
+        if (isBlind === false && isDrugNDrop === true) {
+            setTimeout(function() {
+                makeMove(board, engine);
+            }, 500);
+        }
+    });
 
 </script>
 </body>

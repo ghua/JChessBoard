@@ -55,6 +55,7 @@ var JChessEngine = (function () {
     }
 
     JChessEngine.prototype.think = function () {
+        console.log('Thinking...');
         var currentFen = this.board.positionToFen();
 
 
@@ -66,18 +67,23 @@ var JChessEngine = (function () {
 
         //return graph;
 
-        return this._findBestRoute(graph);
+        var result = this._findBestRoute(graph);
+
+        console.log('... Simon says: ' + result);
+
+        return result;
     };
 
     JChessEngine.prototype._findBestRoute = function (graph) {
-        var _paths = {}, r, root, path;
+        var steps = [], scores = [], r, root;
 
         for (r = 0; r < graph.roots.length; r++) {
             root = graph.roots[r];
-            _paths[root.san] = this._getUniqPaths(root);
+            steps.push(root.san);
+            scores.push(this._getMaxOfArray(this._getUniqPaths(root)));
         }
 
-        return _paths;
+        return steps[scores.indexOf(this._getMaxOfArray(scores))];
     };
 
     JChessEngine.prototype._getUniqPaths = function(root) {
@@ -86,7 +92,9 @@ var JChessEngine = (function () {
         while (root.edges.length > 0) {
             path = [];
             this._getPath(root, path);
-            paths.push(path);
+            paths.push(
+                this._assessRoute(path)
+            );
         }
 
         return paths;
@@ -95,7 +103,7 @@ var JChessEngine = (function () {
     JChessEngine.prototype._getPath = function(root, path) {
         var edge;
 
-        path.push(root.san);
+        path.push(root.weight);
 
         if (root.edges.length > 0) {
             edge = root.edges.pop();
@@ -113,7 +121,7 @@ var JChessEngine = (function () {
         var pieces = this.board.allPieces().filter(function (piece) {
             return piece.color === stepSide
         });
-        var possiblePositions, vertex, piece, possiblePosition, score, san, isCapture, capturePiece;
+        var possiblePositions, vertex, piece, possiblePosition, score, san, isCapture;
         var currentPosition;
 
         for (p = 0; p < pieces.length; p++) {
@@ -126,7 +134,7 @@ var JChessEngine = (function () {
             for (n = 0; n < possiblePositions.length; n++) {
                 possiblePosition = possiblePositions[n];
 
-                if (piece.isPossiblePosition(possiblePosition) === true) {
+                if (possiblePositions.indexOf(possiblePosition) > 0) {
                     isCapture = this.board.has(possiblePosition);
                     san = this.board._genPieceStepSan(piece, currentPosition, possiblePosition, isCapture);
                     vertex = new JChessVertex(san, this._assessStep(piece, possiblePosition));
@@ -139,8 +147,8 @@ var JChessEngine = (function () {
                         var currentFen = this.board.positionToFen();
                         this.board.move(currentPosition, possiblePosition, true);
 
-                        if (this.board.isCheckmate(stepSide === 'w' ? 'b' : 'w')) {
-                            vertex.weight = 20;
+                        if (this.board.isCheckmate(stepSide === 'w' ? 'b' : 'w', true)) {
+                            vertex.weight = 100;
                         }
 
                         this._buildRoute(stepSide === 'w' ? 'b' : 'w', depthLeft - 1, graph, vertex);
@@ -180,7 +188,7 @@ var JChessEngine = (function () {
             score += numbers[n];
         }
 
-        return score;
+        return Math.round(score / numbers.length);
     };
 
     return JChessEngine;
