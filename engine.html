@@ -43,6 +43,7 @@
 
     var board = $('canvas').jschessboard({numbers: true});
 //    board.start();
+//    board.fenToPosition('8/6K1/8/8/8/8/1k6/8 w -');
     board.fenToPosition('k7/1R6/nK6/8/8/8/8/8 w -');
 
     $('#fen').val(board.positionToFen());
@@ -54,13 +55,13 @@
     var engine = new JChessEngine(board);
 //    engine.think();
 
-    $('canvas').on('piecemove', function (event, board, piece, sanResult, isBlind, isDrugNDrop) {
-        if (isBlind === false && isDrugNDrop === true) {
-            setTimeout(function() {
-                makeMove(board, engine);
-            }, 500);
-        }
-    });
+//    $('canvas').on('piecemove', function (event, board, piece, sanResult, isBlind, isDrugNDrop) {
+//        if (isBlind === false && isDrugNDrop === true) {
+//            setTimeout(function() {
+//                makeMove(board, engine);
+//            }, 500);
+//        }
+//    });
 
 </script>
 </body>

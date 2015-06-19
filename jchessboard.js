@@ -143,7 +143,6 @@ var JChessPiece = (function ($) {
         };
         this.isTouched = false;
         this.board = board;
-        var me = this;
 
         var s = $.extend({
             position: 0,
@@ -160,7 +159,7 @@ var JChessPiece = (function ($) {
         this.castling = s.castling;
         this.type = this.fen.toLowerCase();
 
-        var image = s.imagesPath + '/wikipedia/' + this.color + this.fen.toUpperCase() + '.png';
+        this.image = s.imagesPath + '/wikipedia/' + this.color + this.fen.toUpperCase() + '.png';
         var XY;
 
         XY = this.board.positionToCoordinate(this.currentPosition);
@@ -176,9 +175,16 @@ var JChessPiece = (function ($) {
             return this;
         }
 
+        this._drawLayer(board);
+
+        return this;
+    }
+
+    JChessPiece.prototype._drawLayer = function(board) {
+        var me = this;
         board.canvas.drawImage({
             name: this.layer,
-            source: image,
+            source: this.image,
             x: this.x,
             y: this.y,
             layer: true,
@@ -237,9 +243,7 @@ var JChessPiece = (function ($) {
                 board.canvas.removeLayerGroup('help');
             }
         });
-
-        return this;
-    }
+    };
 
     JChessPiece.prototype.isCastlingAvailable = function () {
         return ['k', 'r'].indexOf(this.type) > -1 && this.castling === true && this.isTouched === false;
@@ -255,6 +259,8 @@ var JChessPiece = (function ($) {
         this._genPossiblePositions();
         this.X = newXY[0];
         this.Y = newXY[1];
+        this.x = this.board.relativeToAbsolute(this.X);
+        this.y = this.board.relativeToAbsolute(this.Y);
         this.isTouched = true;
     };
 
@@ -508,6 +514,7 @@ var JChessBoard = (function (JChessPiece, $) {
         this.side = settings.side;
         this.files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
         this.ranks = [8, 7, 6, 5, 4, 3, 2, 1];
+        this.moveLog = [];
 
         var size = settings.cellSize;
         var x = 0, y = 0, c = 0;
@@ -762,10 +769,11 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype.move = function () {
-        var checkFen, checkColor, piece, oldPosition, newPosition, isBlind, isPromotion, sanResult, isDrugNDrop;
+        var isValidMove, checkColor, piece, oldPosition, newPosition, isBlind, isPromotion, sanResult, isDrugNDrop, isBack;
 
         isBlind = false;
         isDrugNDrop = false;
+        isBack = false;
         if (arguments.length >= 2) {
             oldPosition = arguments[0];
             if (oldPosition instanceof JChessPiece) {
@@ -777,6 +785,9 @@ var JChessBoard = (function (JChessPiece, $) {
             }
             if (arguments.length >= 4) {
                 isDrugNDrop = arguments[3];
+            }
+            if (arguments.length >= 5) {
+                isBack = arguments[4];
             }
             if (!this.has(oldPosition)) {
                 return false;
@@ -804,25 +815,15 @@ var JChessBoard = (function (JChessPiece, $) {
 
         if (piece !== undefined && (this.settings.validation !== true || this._checkStepSide(piece))) {
             piece._genPossiblePositions();
-            if (this.settings.validation !== true || piece.isPossiblePosition(newPosition) === true) {
+            isValidMove = piece.isPossiblePosition(newPosition);
+            if (this.settings.validation !== true || isValidMove === true) {
                 checkColor = this.nextStepSide;
-                if (this.isCheck(checkColor) === true) {
+
+                sanResult = this._move(piece, newPosition, isBlind, isBack) + (isPromotion ? isPromotion : '');
+
+                if (this.isCheck(checkColor) === true && isBack !== true) {
                     this.canvas.trigger('check', [this, piece]);
-                    checkFen = this.positionToFen();
-                }
-
-                sanResult = this._move(piece, newPosition, isBlind) + (isPromotion ? isPromotion : '');
-
-                if (this.isCheck(checkColor) === true && checkFen !== undefined) {
-                    this._move(piece, oldPosition, isBlind);
-                    this.nextStepSide = checkColor;
-
                     return false;
-                }
-
-                if (this.isCheck(this.nextStepSide) && this.isCheckmate(this.nextStepSide)) {
-                    this.nextStepSide = undefined;
-                    this.canvas.trigger('checkmate', [this, isBlind]);
                 }
 
                 this.canvas.trigger('piecemove', [this, piece, sanResult, isBlind, isDrugNDrop]);
@@ -841,7 +842,7 @@ var JChessBoard = (function (JChessPiece, $) {
         pawn.destroy();
     };
 
-    JChessBoard.prototype._move = function (piece, newPosition, isBlind) {
+    JChessBoard.prototype._move = function (piece, newPosition, isBlind, isBack) {
         var layer = piece.layer;
         var XY = this.positionToCoordinate(newPosition);
         var oldPosition = piece.currentPosition;
@@ -871,11 +872,16 @@ var JChessBoard = (function (JChessPiece, $) {
         this.delete(oldPosition, true);
 
         if (this.has(newPosition)) {
-            this.get(newPosition).destroy();
+            var capturedPiece = this.get(newPosition);
+            capturedPiece.destroy();
             isCapture = true;
         }
 
         this.set(newPosition, piece);
+
+        if (isBack !== true) {
+            this.moveLog.push({oldPosition: oldPosition, newPosition: newPosition, isTouched: piece.isTouched, capturedPiece: capturedPiece });
+        }
 
         piece.setCurrentPosition(newPosition);
 
@@ -904,7 +910,32 @@ var JChessBoard = (function (JChessPiece, $) {
             return side === 'k' ? '0-0' : '0-0-0';
         }
 
-        return this._genPieceStepSan(piece, oldPosition, newPosition, isCapture);
+        return this._genPieceStepSan(piece, oldPosition, newPosition, isCapture);;
+    };
+
+    JChessBoard.prototype.back = function(isBlind) {
+        if (this.moveLog.length === 0) {
+            console.log('OOOps');
+            return false;
+        }
+
+        var move = this.moveLog.pop();
+
+        this.settings.validation = false;
+        this.move(move.newPosition, move.oldPosition, isBlind, false, true);
+        if (this.has(move.oldPosition)) {
+            this.get(move.oldPosition).isTouched = move.isTouched;
+        }
+
+        this.settings.validation = true;
+
+        if (move.capturedPiece !== undefined) {
+            this.set(move.newPosition, move.capturedPiece);
+            if (isBlind !== true) {
+                move.capturedPiece._drawLayer(this);
+            }
+        }
+
     };
 
     JChessBoard.prototype._genPieceStepSan = function(piece, oldPosition, newPosition, isCapture) {
@@ -1055,7 +1086,7 @@ var JChessBoard = (function (JChessPiece, $) {
 
     JChessBoard.prototype.isCheckmate = function (color, isBlind) {
         var n, p, positions, position, piece;
-        var currentFen = this.positionToFen();
+
         var king = this.kings[color];
         if (king === undefined) {
             return false;
@@ -1071,13 +1102,15 @@ var JChessBoard = (function (JChessPiece, $) {
                 position = positions[p];
                 this.move(piece.currentPosition, position, true);
                 if (this.isCheck(color) === false) {
-                    this.fenToPosition(currentFen, isBlind);
+                    var isCheckmate = false;
+                }
+                this.back(isBlind);
+                if (isCheckmate === false) {
                     return false;
                 }
             }
         }
 
-        this.fenToPosition(currentFen, isBlind);
         return true;
     };
 
