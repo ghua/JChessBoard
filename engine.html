@@ -46,9 +46,22 @@
     };
 
     var board = $('canvas').jschessboard({numbers: true});
-//    board.start();
-//    board.fenToPosition('8/6K1/8/8/8/8/1k6/8 w -');
-    board.fenToPosition('k7/1R6/nK6/8/8/8/8/8 w -');
+
+    var problems = [
+        'k7/1R6/nK6/8/8/8/8/8 w -',
+        '7k/7b/5Kp1/8/8/8/8/5Q2 w -',
+        'k1b5/ppK5/8/8/8/5Q2/8/1R6 w -'
+    ];
+
+    var problem = parseInt(localStorage.getItem('problem'));
+    if (problem < problems.length-1) {
+        problem += 1;
+    } else {
+        problem = 0;
+    }
+    localStorage.setItem('problem', problem);
+
+    board.fenToPosition(problems[problem]);
 
     $('#fen').val(board.positionToFen());
 
@@ -66,6 +79,10 @@
             }, 500);
         }
     });
+
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min)) + min;
+    }
 
 </script>
 </body>

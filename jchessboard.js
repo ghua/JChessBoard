@@ -880,7 +880,9 @@ var JChessBoard = (function (JChessPiece, $) {
 
         if (this.has(newPosition)) {
             var capturedPiece = this.get(newPosition);
-            capturedPiece.destroy();
+            if (isBlind !== true) {
+                capturedPiece.destroy();
+            }
             isCapture = true;
         }
 
