@@ -6,7 +6,7 @@ I created this project just for fun. You can use this code in your project witho
 [Demo](http://velichko.net/projects/jchessboard/demo.html)
 
 Last changes:
-7f4dce8 - added prototype of chess engine - [DEMO](http://velichko.net/projects/jchessboard/demo.html), first step is your
+7f4dce8 - added prototype of chess engine - [DEMO](http://velichko.net/projects/jchessboard/engine.html), first step is your
 
 ## Features
 
