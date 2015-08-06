@@ -1,6 +1,6 @@
 # JChessBoard
 
-JChessBoard is an javascript & canvas chessboard implementation.
+The JChessBoard is a javascript & canvas chessboard implementation.
 I created this project just for fun. You can use this code in your project without any fee or limitations.
 
 [Demo](http://velichko.net/projects/jchessboard/demo.html)
@@ -13,8 +13,8 @@ Last changes:
   - Canvas as graphical backend
   - Step validation
   - Step help
-  - FEN is a standard notation for describing a particular board position
-  - Algebraic notation is a method for recording and describing the moves in a game
+  - FEN - is a standard notation for describing a particular board position
+  - Algebraic notation - is a method for recording and describing the moves in a game
 
 ## Dependencies
 
