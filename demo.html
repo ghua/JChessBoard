@@ -27,29 +27,22 @@
 
 <script>
 
-    $('canvas').on('piecemove', function (event, board, piece, san) {
-        console.log(piece.layer, san);
+    var board = $('canvas').jschessboard({numbers: true}).board;
+    var eventDispatcher = board.eventDispatcher;
 
+    eventDispatcher.addEventListener('board_post_piece_move', function (event) {
+        console.log(event.subject.identificator, event.environment);
         $('#fen').val(board.positionToFen());
     });
 
-    $('canvas').on('checkmate', function () {
+    eventDispatcher.addEventListener('board_checkmate_detected', function(event) {
         alert('Checkmate');
     });
 
-    var board = $('canvas').jschessboard({numbers: true});
+    board.start();
 
-    var fen = getUrlParameter('fen');
-    if (fen === undefined) {
-        board.start();
-//        board.fenToPosition();
-    } else {
-        board.fenToPosition(fen.replace('%20', ''));
-    }
-
-    $('canvas').on('promotion', function (event, board, piece) {
-        // r3k2r/2P5/8/8/8/8/8/R3K2R w KQkq
-        board._pawnPromotion(piece, 'q');
+    eventDispatcher.addEventListener('board_pawn_promotion', function(event) {
+        board.onPawnPromotion(event.subject, 'q');
     });
 
     $('#fen').val(board.positionToFen());
@@ -57,24 +50,6 @@
     $('#fen').keyup(function () {
         board.fenToPosition($('#fen').val());
     });
-
-    /**
-     * Thanks
-     * http://stackoverflow.com/questions/19491336/get-url-parameter-jquery
-     *
-     * @param sParam
-     * @returns {*}
-     */
-    function getUrlParameter(sParam) {
-        var sPageURL = window.location.search.substring(1);
-        var sURLVariables = sPageURL.split('&');
-        for (var i = 0; i < sURLVariables.length; i++) {
-            var sParameterName = sURLVariables[i].split('=');
-            if (sParameterName[0] == sParam) {
-                return sParameterName[1];
-            }
-        }
-    }
 
 </script>
 </body>

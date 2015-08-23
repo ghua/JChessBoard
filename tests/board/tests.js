@@ -1,7 +1,7 @@
 (function (QUnit, JChessPiece, JChessBoard) {
     var settings = {imagesPath: '../../images/'};
     QUnit.test("test jChessBoard cells", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         assert.equal(board.cells.length, 64);
         var i;
         for (i = 0; i < 64; i++) {
@@ -11,7 +11,7 @@
     });
 
     QUnit.test("test jChessBoard: fenToPosition & positionToFen", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         var fenString = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w -';
         board.fenToPosition(fenString);
         assert.equal(board.positionToFen(), fenString);
@@ -33,7 +33,7 @@
 
 
     QUnit.test("test jChessBoard coordinateToPosition - wite side", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         assert.equal(board.coordinateToPosition(0, 0), 0);
         assert.equal(board.coordinateToPosition(0, 1), 8);
         assert.equal(board.coordinateToPosition(0, 2), 16);
@@ -44,7 +44,7 @@
 
     QUnit.test("test jChessBoard coordinateToPosition - black side", function (assert) {
         var settings = $.extend({'side': 'b'}, settings);
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         assert.equal(board.coordinateToPosition(0, 0), 56);
         assert.equal(board.coordinateToPosition(0, 1), 48);
         assert.equal(board.coordinateToPosition(0, 2), 40);
@@ -54,7 +54,7 @@
     });
 
     QUnit.test("test jChessBoard positionToCoordinate - wite side", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         assert.deepEqual(board.positionToCoordinate(8), [0, 1]);
         assert.deepEqual(board.positionToCoordinate(16), [0, 2]);
         assert.deepEqual(board.positionToCoordinate(63), [7, 7]);
@@ -63,7 +63,7 @@
 
     QUnit.test("test jChessBoard positionToCoordinate - black side", function (assert) {
         var settings = $.extend({'side': 'b'}, settings);
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         assert.deepEqual(board.positionToCoordinate(8), [0, 6]);
         assert.deepEqual(board.positionToCoordinate(16), [0, 5]);
         assert.deepEqual(board.positionToCoordinate(63), [7, 0]);
@@ -71,7 +71,7 @@
     });
 
     QUnit.test("test jChessBoard newPositionByPositionAndOffset", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         assert.deepEqual(board.newPositionByPositionAndOffset(36, 1, 1), 45);
         assert.deepEqual(board.newPositionByPositionAndOffset(36, -1, -1), 27);
         assert.deepEqual(board.newPositionByPositionAndOffset(36, 1, -1), 29);
@@ -83,7 +83,7 @@
     });
 
     QUnit.test("test jChessBoard offsetsByPositions", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         assert.deepEqual(board.offsetsByPositions(36, 37), [1, 0]);
         assert.deepEqual(board.offsetsByPositions(36, 44), [0, 1]);
         assert.deepEqual(board.offsetsByPositions(36, 28), [0, -1]);
@@ -95,7 +95,7 @@
 
 
     QUnit.test("Pawn isValid test", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         var piece = new JChessPiece(board, {fen: 'P', position: 51, imagesPath: '../images/'});
         piece._genPossiblePositions();
         piece.isTouched = false;
@@ -114,7 +114,7 @@
     });
 
     QUnit.test("Bishop isValid test", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         var piece = new JChessPiece(board, {fen: 'B', position: 51, imagesPath: '../images/'});
         piece._genPossiblePositions();
         assert.ok(piece.isPossiblePosition(60));
@@ -133,7 +133,7 @@
     });
 
     QUnit.test("Knight isValid test", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         var piece = new JChessPiece(board, {fen: 'N', position: 36, imagesPath: '../images/'});
         piece._genPossiblePositions();
         assert.ok(piece.isPossiblePosition(21));
@@ -152,7 +152,7 @@
     });
 
     QUnit.test("King isValid test", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         var piece = new JChessPiece(board, {fen: 'K', position: 36, imagesPath: '../images/'});
         piece._genPossiblePositions();
         assert.ok(piece.isPossiblePosition(44));
@@ -171,7 +171,7 @@
     });
 
     QUnit.test("Rook isValid test", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         var piece = new JChessPiece(board, {fen: 'R', position: 36, imagesPath: '../images/'});
         piece._genPossiblePositions();
         assert.ok(piece.isPossiblePosition(44));
@@ -195,7 +195,7 @@
     });
 
     QUnit.test("Queen isValid test", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         var piece = new JChessPiece(board, {fen: 'Q', position: 36, imagesPath: '../images/'});
         piece._genPossiblePositions();
         assert.ok(piece.isPossiblePosition(44));
@@ -224,7 +224,7 @@
 
     QUnit.test("Test genLegalPositions by Bishop", function (assert) {
         settings.type = 'b';
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         piece = new JChessPiece(board, {fen: 'B', position: 36, imagesPath: '../images/'});
         var actual = piece._genPossiblePositions();
         var expected = [[45, 54, 63], [27, 18, 9, 0], [43, 50, 57], [29, 22, 15]];
@@ -237,7 +237,7 @@
 
     QUnit.test("Test genLegalPositions by Knight", function (assert) {
         var piece;
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         piece = new JChessPiece(board, {fen: 'N', position: 36, imagesPath: '../images/'});
         var actual = piece._genPossiblePositions();
         var expected = [[19], [51], [26], [42], [21], [53], [30], [46]];
@@ -249,8 +249,8 @@
     });
 
     QUnit.test("Test Pawn back step", function (assert) {
-        var board = $('canvas').jschessboard(settings);
-        board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
+        board = new JChessBoard(settings);
         board.start();
         assert.ok(board.move(51, 35));
         assert.notOk(board.move(35, 43));
@@ -258,7 +258,7 @@
     });
 
     QUnit.test("Test Pawn second double step", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.start();
         assert.ok(board.move(51, 35));
         assert.ok(board.move(14, 22));
@@ -267,14 +267,14 @@
     });
 
     QUnit.test("Test Bishop illegal jump", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.start();
         assert.notOk(board.move(61, 43));
         board.clear();
     });
 
     QUnit.test("Test Bishop illegal double punch", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.fenToPosition('rnbqkbnr/pppppp2/8/6pp/2B1P3/8/PPPP1PPP/RNBQK1NR');
         assert.notOk(board.move(34, 6));
         board.clear();
@@ -285,7 +285,7 @@
     });
 
     QUnit.test("Test Bishop illegal rook jump", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.fenToPosition('rnbqkbnr/pppppB2/8/6pp/4P3/8/PPPP1PPP/RNBQK1NR');
         assert.notOk(board.move(34, 6));
         board.clear();
@@ -296,7 +296,7 @@
     });
 
     QUnit.test("Test king can't step on check field", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 b');
         assert.ok(board.crossing[3].length === 2);
         assert.ok(board.crossing[11].length === 2);
@@ -308,7 +308,7 @@
     });
 
     QUnit.test("Test king can't step on check field after other step", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 b');
 
         assert.ok(board.crossing[3].length === 2);
@@ -338,7 +338,7 @@
     });
 
     QUnit.test("Test king ignore self color shadow", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 w');
         assert.ok(board.move(60, 51));
         board.clear();
@@ -353,7 +353,7 @@
     });
 
     QUnit.test("Two kings fight first step", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.fenToPosition('8/8/8/4k3/8/4K3/8/8 w');
 
         assert.notOk(board.move(44, 35));
@@ -365,7 +365,7 @@
     });
 
     QUnit.test("Two kings fight second step", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.fenToPosition('8/8/8/4k3/8/4K3/8/8 w');
         assert.ok(board.move(44, 45));
         assert.notOk(board.move(28, 37));
@@ -436,7 +436,7 @@
     });
 
     QUnit.test("Test king false checked by pawn", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.fenToPosition('8/8/8/4p3/8/4K3/8/8 w');
         assert.notOk(board.move(44, 35));
         assert.ok(board.move(44, 36));
@@ -450,29 +450,29 @@
     });
 
     QUnit.test("Test king false checked by pawn 2", function (assert) {
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
 
         board.fenToPosition('rnbq1bnr/ppp1kppp/3P4/1N6/4p3/8/PPPP1PPP/R1BQKBNR b');
         assert.ok(board.move(12, 11));
         board.clear();
     });
 
-    QUnit.test("Test hitting the protected position", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.test("Test hitting the protected position", function (assert) {
+        var board = new JChessBoard(settings);
         board.fenToPosition('8/8/8/6n1/3Kp3/8/8/8 w');
         assert.notOk(board.move(35, 36));
         board.clear();
     });
 
-    QUnit.test("Test check", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.test("Test check", function (assert) {
+        var board = new JChessBoard(settings);
         board.fenToPosition('8/8/8/6n1/3Kq3/8/R7/8 w');
         assert.notOk(board.move(48, 0));
         board.clear();
     });
 
-    QUnit.test("Test move after check and position reset", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.test("Test move after check and position reset", function (assert) {
+        var board = new JChessBoard(settings);
         var fen = '8/8/8/6n1/3Kq3/8/R7/8 w -';
         board.fenToPosition(fen);
         assert.notOk(board.move(48, 0));
@@ -480,8 +480,8 @@
         board.clear();
     });
 
-    QUnit.test("Test checkmate", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.test("Test checkmate", function (assert) {
+        var board = new JChessBoard(settings);
         board.fenToPosition('8/8/8/8/4k2K/8/8/7r b');
 
         assert.ok(board.move(36, 37));
@@ -496,9 +496,9 @@
         board.clear();
     });
 
-    QUnit.test("Test basic king side castling", function(assert) {
+    QUnit.test("Test basic king side castling", function (assert) {
         var fen = 'rnbqkb1r/ppppp2p/8/5np1/5Pp1/7N/PPPPP1BP/RNBQK2R w KQkq';
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.fenToPosition(fen);
 
         assert.ok(board.move(60, 62));
@@ -509,9 +509,9 @@
         board.clear();
     });
 
-    QUnit.test("Test basic queen side castling", function(assert) {
+    QUnit.test("Test basic queen side castling", function (assert) {
         var fen = 'rnbqkb1r/ppp5/5n2/3ppppp/1PPP4/B2Q4/P2NPPPP/R3KBNR w KQkq';
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.fenToPosition(fen);
 
         assert.ok(board.move(60, 58));
@@ -522,25 +522,25 @@
         board.clear();
     });
 
-    QUnit.test("Test _makeRangeBetween", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.test("Test _makeRangeBetween", function (assert) {
+        var board = new JChessBoard(settings);
         var i;
         var range = board._makeRangeBetween(0, 3);
         assert.ok(range.length === 4);
-        for(i = 0; i < range.length; i++) {
+        for (i = 0; i < range.length; i++) {
             assert.ok(range[i] === i);
         }
 
         range = board._makeRangeBetween(3, 0);
         assert.ok(range.length === 4);
-        for(i = 0; i < range.length; i++) {
-            assert.ok(range[i] === range.length-i-1);
+        for (i = 0; i < range.length; i++) {
+            assert.ok(range[i] === range.length - i - 1);
         }
     });
 
-    QUnit.test("Test basic queen side castling fail - rook already is touched", function(assert) {
+    QUnit.test("Test basic queen side castling fail - rook already is touched", function (assert) {
         var fen = 'rnbqkb1r/ppp5/5n2/3ppppp/1PPP4/B2Q4/P2NPPPP/R3KBNR w KQkq';
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.fenToPosition(fen);
 
         assert.ok(board.move(56, 57));
@@ -553,9 +553,9 @@
         board.clear();
     });
 
-    QUnit.test("Test basic queen side castling fail - king already is touched", function(assert) {
+    QUnit.test("Test basic queen side castling fail - king already is touched", function (assert) {
         var fen = 'rnbqkb1r/ppp5/5n2/3ppppp/1PPP4/B2Q4/P2NPPPP/R3KBNR w KQkq';
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.fenToPosition(fen);
 
         assert.ok(board.move(60, 59));
@@ -568,9 +568,9 @@
         board.clear();
     });
 
-    QUnit.test("Test basic queen side castling fail - king way is in attack", function(assert) {
+    QUnit.test("Test basic queen side castling fail - king way is in attack", function (assert) {
         var fen = 'rnbqk2r/ppp5/5n2/8/8/b7/7R/R3KBN1 w KQkq';
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.fenToPosition(fen);
 
         assert.notOk(board.move(60, 58));
@@ -578,9 +578,9 @@
         board.clear();
     });
 
-    QUnit.test("Test basic queen side castling fail - king is in check", function(assert) {
+    QUnit.test("Test basic queen side castling fail - king is in check", function (assert) {
         var fen = 'rnbqk2r/ppp5/5n2/8/1b6/8/7R/R3KBN1 w KQkq';
-        var board = $('canvas').jschessboard(settings);
+        var board = new JChessBoard(settings);
         board.fenToPosition(fen);
 
         assert.notOk(board.move(60, 58));
@@ -588,8 +588,8 @@
         board.clear();
     });
 
-    QUnit.test("Test changing fen by castling", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.test("Test changing fen by castling", function (assert) {
+        var board = new JChessBoard(settings);
         board.fenToPosition('r3k2r/8/8/8/8/8/8/R3K2R w KQkq');
         assert.ok(board.move(63, 55));
         assert.ok(board.positionToFen().match(/Qkq$/));
@@ -621,29 +621,29 @@
         board.clear();
     });
 
-    QUnit.test("Test piece wrong jump", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.test("Test piece wrong jump", function (assert) {
+        var board = new JChessBoard(settings);
         board.fenToPosition('rnbqkbnr/ppppp1pp/5p2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq');
         assert.notOk(board.move(53, 37));
         board.clear();
     });
 
-    QUnit.test("Test _anToPosition - white side", function(assert) {
-        var board = $('canvas').jschessboard();
+    QUnit.test("Test _anToPosition - white side", function (assert) {
+        var board = new JChessBoard(settings);
         assert.equal(board._anToPosition('a1'), 56);
         assert.equal(board._anToPosition('e4'), 36);
         assert.equal(board._anToPosition('a8'), 0);
     });
 
-    QUnit.test("Test _anToPosition - black side", function(assert) {
-        var board = $('canvas').jschessboard($.extend({'side': 'b'}, settings));
+    QUnit.test("Test _anToPosition - black side", function (assert) {
+        var board = new JChessBoard($.extend({'side': 'b'}, settings));
         assert.equal(board._anToPosition('a1'), 56);
         assert.equal(board._anToPosition('e4'), 36);
         assert.equal(board._anToPosition('a8'), 0);
     });
 
-    QUnit.test("Test get pawn by algebraic notation - _pieceByNextSan", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.test("Test get pawn by algebraic notation - _pieceByNextSan", function (assert) {
+        var board = new JChessBoard(settings);
         var piece;
         board.start();
         piece = board._pieceByNextSan('e4');
@@ -652,8 +652,8 @@
         board.clear();
     });
 
-    QUnit.test("Test get knight by algebraic notation - _pieceByNextSan", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.test("Test get knight by algebraic notation - _pieceByNextSan", function (assert) {
+        var board = new JChessBoard(settings);
         var piece;
         board.start();
         piece = board._pieceByNextSan('Nc3');
@@ -662,15 +662,15 @@
         board.clear();
     });
 
-    QUnit.test("Test _positionToAn", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.test("Test _positionToAn", function (assert) {
+        var board = new JChessBoard(settings);
         assert.equal(board._positionToAn(56), 'a1');
         assert.equal(board._positionToAn(36), 'e4');
         assert.equal(board._positionToAn(0), 'a8');
     });
 
-    QUnit.test("Test choice between two knights by algebraic notation - _pieceByNextSan", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.test("Test choice between two knights by algebraic notation - _pieceByNextSan", function (assert) {
+        var board = new JChessBoard(settings);
         var piece;
         board.fenToPosition('rnbqkbn1/pppppp1r/6pp/8/8/2N3N1/PPPPPPPP/R1BQKB1R w KQq');
         piece = board._pieceByNextSan('Nge4');
@@ -689,8 +689,8 @@
         board.clear();
     });
 
-    QUnit.test("Test move by algebraic notation", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.test("Test move by algebraic notation", function (assert) {
+        var board = new JChessBoard(settings);
         board.start();
         assert.ok(board.move('e4'));
         assert.ok(board.move('e5'));
@@ -700,16 +700,16 @@
         board.clear();
     });
 
-    QUnit.test("Test changing double castling by algebraic notation", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.test("Test changing double castling by algebraic notation", function (assert) {
+        var board = new JChessBoard(settings);
         board.fenToPosition('r3k2r/8/8/8/8/8/8/R3K2R w KQkq');
         assert.equal(board.move('0-0-0'), '0-0-0');
         assert.equal(board.move('O-O'), '0-0');
         board.clear();
     });
 
-    QUnit.test("Test pawn promotion by algebraic notation", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.test("Test pawn promotion by algebraic notation", function (assert) {
+        var board = new JChessBoard(settings);
         board.fenToPosition('4k3/1P6/8/8/8/8/8/4K3 w KQkq');
         assert.equal(board.move('b8N'), 'b7b8N');
         assert.ok(board.has(1));
@@ -717,8 +717,8 @@
         board.clear();
     });
 
-    QUnit.test("Test returning algebraic notation by board move method", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.test("Test returning algebraic notation by board move method", function (assert) {
+        var board = new JChessBoard(settings);
         board.start();
         assert.equal(board.move('e4'), 'e2e4');
         assert.equal(board.move('e5'), 'e7e5');
@@ -729,8 +729,40 @@
         board.clear();
     });
 
-    QUnit.test("Test isPossiblePosition with kingcheck #1", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.skip("Test piece.getPossiblePositions", function (assert) {
+        var board = new JChessBoard(settings);
+        board.fenToPosition('4k3/1P6/8/8/8/8/8/4K3 w KQkq');
+
+        var piece = board.get(9);
+
+        assert.equal(piece.possiblePositions.all().length, 3);
+        assert.equal(piece.getPossiblePositions().length, 1);
+        assert.deepEqual(piece.getPossiblePositions(), [1]);
+    });
+
+    QUnit.skip("Test board.countPossiblePositions", function (assert) {
+        var board = new JChessBoard(settings);
+        board.fenToPosition('4k3/1P6/8/8/8/8/8/4K3 w KQkq');
+
+        assert.equal(board.countPossiblePositions(), 6);
+    });
+
+    QUnit.test("Test board.countPossiblePositions with stalemate", function (assert) {
+        var board = new JChessBoard(settings);
+        board.fenToPosition('k7/1R6/K7/8/8/8/8/8 b -');
+
+        assert.equal(board.countPossiblePositions(), 0);
+    });
+
+    QUnit.test("Test board.countPossiblePositions with check", function (assert) {
+        var board = new JChessBoard(settings);
+        board.fenToPosition('kR6/8/nK6/8/8/8/8/8 b -');
+
+        assert.equal(board.countPossiblePositions(), 2);
+    });
+
+    QUnit.skip("Test isPossiblePosition with kingcheck #1", function (assert) {
+        var board = new JChessBoard(settings);
         board.fenToPosition('kn2R3/8/1K6/8/8/8/8/8 b -');
 
         assert.notOk(board.get(1).isPossiblePosition(16));
@@ -740,8 +772,8 @@
         board.clear();
     });
 
-    QUnit.test("Test isPossiblePosition with kingcheck #2", function(assert) {
-        var board = $('canvas').jschessboard(settings);
+    QUnit.skip("Test isPossiblePosition with kingcheck #2", function (assert) {
+        var board = new JChessBoard(settings);
         board.fenToPosition('k3R3/8/8/1K6/8/3n4/8/8 b -');
 
         assert.notOk(board.get(43).isPossiblePosition(58));
@@ -749,6 +781,38 @@
         assert.notOk(board.get(43).isPossiblePosition(26));
 
         board.clear();
+    });
+
+    QUnit.test("Test JChessEventDispatcher.addEventListener", function (assert) {
+        var eventDispatcher = new JChessEventDispatcher();
+        var listener = function (target) {
+        };
+        var eventName = 'some_event';
+
+        eventDispatcher.addEventListener(eventName, listener);
+
+        assert.ok(eventDispatcher.listeners.hasOwnProperty(eventName));
+        //assert.ok(eventDispatcher.listeners[eventName].indexOf(listener) > -1);
+    });
+
+    QUnit.test("Test JChessEventDispatcher.dispatchEvent", function (assert) {
+        var isDispatched = false;
+
+        var eventDispatcher = new JChessEventDispatcher();
+        var listener = {
+            callback: function (event) {
+                isDispatched = event instanceof JChessEvent && event.subject instanceof JChessBoard && event.environment.isDispatched === true;
+            },
+            thisArg: null
+        };
+        var eventName = 'some_event';
+        var board = new JChessBoard(settings);
+        var subject = new JChessEvent(board, {'isDispatched': true});
+
+        eventDispatcher.listeners[eventName] = [listener];
+        eventDispatcher.dispatchEvent(eventName, subject);
+
+        assert.ok(isDispatched);
     });
 
 }(QUnit, JChessPiece, JChessBoard));

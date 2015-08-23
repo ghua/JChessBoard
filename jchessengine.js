@@ -22,60 +22,15 @@
  * THE SOFTWARE.
  */
 
-var JChessVertex = (function () {
+var JChessEngine = (function ($) {
 
-    function JChessVertex(san, weight, depthLeft) {
-        this.san = san;
-        this.weight = weight;
-        this.edges = [];
-        this.depthLeft = depthLeft;
-    }
-
-    JChessVertex.prototype.addEdge = function (edge) {
-        this.edges.push(edge);
-        return edge;
-    };
-
-    return JChessVertex;
-}());
-
-var JChessEdge = (function () {
-
-    function JChessEdge(fromVertex, toVertex) {
-        this.fromVertex = fromVertex;
-        this.toVertex = toVertex;
-    }
-
-    return JChessEdge;
-}());
-
-var JChessGraph = (function () {
-
-    function JChessGraph() {
-        this.vertices = [];
-        this.roots = [];
-    }
-
-    JChessGraph.prototype.addVertex = function (vertex, isRoot) {
-        this.vertices.push(vertex);
-        if (isRoot === true) {
-            this.roots.push(vertex);
-        }
-
-        return vertex;
-    };
-
-    return JChessGraph;
-}());
-
-var JChessEngine = (function () {
-
-    function JChessEngine(board) {
+    function JChessEngine(board, side) {
         this.board = board;
-        this.graph = new JChessGraph();
         this.piecePrice = {
             p: 2, n: 5, b: 5, r: 8, q: 12, k: 20
         };
+        this.bestScore = board.countPossiblePositions();
+        this.side = side;
     }
 
     JChessEngine.prototype.think = function () {
@@ -86,11 +41,9 @@ var JChessEngine = (function () {
         console.log('Checkmate FEN\'s:');
         this._buildRoute(this.board.nextStepSide, 3, graph);
 
-        board.allPieces().forEach(function(piece) {
+        board.allPieces().forEach(function (piece) {
             piece._drawLayer(board);
         });
-
-        //return graph;
 
         var result = this._findBestRoute(graph);
 
@@ -147,6 +100,33 @@ var JChessEngine = (function () {
         }
 
         return false;
+    };
+
+    JChessEngine.prototype._bestPossibleMove = function () {
+        var board = $.clone(true, {}, this.board);
+
+        this._minimax(board, 0, -this.bestScore, this.bestScore);
+
+        return this.currentMoveChoice;
+    };
+
+    JChessEngine.prototype._minimax = function (board, depth, lowerBound, upperBound) {
+        var isGameOver = board.isGameOver();
+        if (isGameOver) {
+            return this._evaluateState(board, depth);
+        }
+    };
+
+    JChessEngine.prototype._evaluateStep = function (board, piece, newPosition, depth) {
+        if (board.isGameOver()) {
+            return 0;
+        }
+
+        if (board.nextStepSide === this.side) {
+
+        } else {
+            
+        }
     };
 
     JChessEngine.prototype._buildRoute = function (stepSide, depthLeft, graph, parentVertex) {
@@ -225,7 +205,7 @@ var JChessEngine = (function () {
         return Math.round(this._sum(numbers) / numbers.length);
     };
 
-    JChessEngine.prototype._sum = function(numbers) {
+    JChessEngine.prototype._sum = function (numbers) {
         var score = 0;
         for (var n = 0; n < numbers.length; n++) {
             score += numbers[n];
@@ -235,4 +215,4 @@ var JChessEngine = (function () {
     };
 
     return JChessEngine;
-}());
+}(jQuery));
