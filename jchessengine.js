@@ -111,10 +111,9 @@ var JChessEngine = (function ($) {
     };
 
     JChessEngine.prototype._minimax = function (board, depth, lowerBound, upperBound) {
-        var isGameOver = board.isGameOver();
-        if (isGameOver) {
-            return this._evaluateState(board, depth);
-        }
+
+
+
     };
 
     JChessEngine.prototype._evaluateStep = function (board, piece, newPosition, depth) {

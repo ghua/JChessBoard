@@ -1052,6 +1052,10 @@ var JChessBoard = (function (JChessPiece, $) {
     JChessBoard.prototype.isCheckmate = function (color) {
         var n, p, positions, position, piece, moves = [];
 
+        if (color === undefined) {
+            color = this.nextStepSide;
+        }
+
         var king = this.kings[color];
         if (king === undefined) {
             return false;
@@ -1069,11 +1073,13 @@ var JChessBoard = (function (JChessPiece, $) {
             positions = piece.possiblePositions.all();
             for (p = 0; p < positions.length; p++) {
                 position = positions[p];
-                if (this.move(piece.currentPosition, position, true)) {
-                    if (this.isCheck(color) === false) {
+                var cloneBoard = new JChessBoard(this.settings, new JChessEventDispatcher());
+                cloneBoard.fenToPosition(this.positionToFen());
+
+                if (cloneBoard.move(piece.currentPosition, position, true)) {
+                    if (cloneBoard.isCheck(color) === false) {
                         moves.push(position);
                     }
-                    this.back(true);
                 }
             }
         }
@@ -1107,9 +1113,7 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype.isGameOver = function () {
-        var side = this.nextStepSide === 'w' ? 'b' : 'w';
-
-        return this.isCheckmate(side);
+        return this.isCheckmate() || this.countPossiblePositions() === 0;
     };
 
     JChessBoard.prototype._pieceByNextSan = function (san) {
@@ -1305,7 +1309,7 @@ var JChessCanvas = (function ($) {
             draggable: true,
             bringToFront: true,
             dragstart: function (layer) {
-                var n, v, XY, size, newPosition, vector;
+                var n, v, XY, size, newPosition, vector, possiblePositions;
 
                 if (piece.settings.validation !== true || piece.settings.help !== true) {
                     return;
@@ -1314,27 +1318,24 @@ var JChessCanvas = (function ($) {
                 if (piece.board._checkStepSide(piece)) {
                     piece._genPossiblePositions();
                     size = piece.settings.cellSize / 2;
-                    for (n = 0; n < piece.possiblePositions.vectors.length; n++) {
-                        vector = piece.possiblePositions.vectors[n].keys;
-                        for (v = 0; v < vector.length; v++) {
-                            newPosition = vector[v];
+                    possiblePositions = piece.getPossiblePositions();
 
-                            if (piece.possiblePositions.vectors[n].get(newPosition) === false) {
-                                XY = piece.board.positionToCoordinate(newPosition);
+                    for (n = 0; n < possiblePositions.length; n++) {
+                        newPosition = possiblePositions[n];
 
-                                me.canvas.drawEllipse($.extend({
-                                    strokeStyle: 'green',
-                                    strokeWidth: 2,
-                                    fillStyle: 'yellow',
-                                    layer: true,
-                                    groups: ['help'],
-                                    x: me.relativeToAbsolute(XY[0]),
-                                    y: me.relativeToAbsolute(XY[1]),
-                                    width: size,
-                                    height: size
-                                }, piece.settings.helpStyle));
-                            }
-                        }
+                        XY = piece.board.positionToCoordinate(newPosition);
+
+                        me.canvas.drawEllipse($.extend({
+                            strokeStyle: 'green',
+                            strokeWidth: 2,
+                            fillStyle: 'yellow',
+                            layer: true,
+                            groups: ['help'],
+                            x: me.relativeToAbsolute(XY[0]),
+                            y: me.relativeToAbsolute(XY[1]),
+                            width: size,
+                            height: size
+                        }, piece.settings.helpStyle));
                     }
                 }
             },

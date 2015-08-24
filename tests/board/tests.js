@@ -838,7 +838,22 @@
         assert.equal(canvas.absoluteToRelative(32), 0);
         assert.equal(canvas.absoluteToRelative(63), 0);
         assert.equal(canvas.absoluteToRelative(64), 1);
-    })
+    });
+
+    QUnit.test("Test JChessBoard.isGameOver with pat", function (assert) {
+        var board = new JChessBoard(settings);
+        board.fenToPosition('k7/1R6/K7/8/8/8/8/8 b -');
+
+        assert.ok(board.isGameOver());
+    });
+
+    QUnit.test("Test JChessBoard.isGameOver with checkmate", function (assert) {
+        var board = new JChessBoard(settings);
+        board.fenToPosition('k3R3/8/1K6/8/8/8/8/8 b -');
+
+        assert.ok(board.isGameOver());
+        assert.ok(board.isCheckmate());
+    });
 
 }(QUnit, JChessPiece, JChessBoard));
 
