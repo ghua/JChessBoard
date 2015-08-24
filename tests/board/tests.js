@@ -815,6 +815,31 @@
         assert.ok(isDispatched);
     });
 
+    QUnit.test("Test JChessCanvas.relativeToAbsolute", function (assert) {
+        var canvas = $('canvas').jschessboard({cellSize: 64});
+        assert.equal(canvas.relativeToAbsolute(1), 96);
+        assert.equal(canvas.relativeToAbsolute(2), 160);
+        assert.equal(canvas.relativeToAbsolute(3), 224);
+    });
+
+    QUnit.test("Test JChessCanvas.absoluteCeil", function (assert) {
+        var canvas = $('canvas').jschessboard({cellSize: 64});
+
+        assert.equal(canvas.absoluteCeil(1), 32);
+        assert.equal(canvas.absoluteCeil(63), 32);
+        assert.equal(canvas.absoluteCeil(64), 32);
+        assert.equal(canvas.absoluteCeil(65), 96);
+    });
+
+    QUnit.test("Test JChessCanvas.absoluteToRelative", function (assert) {
+        var canvas = $('canvas').jschessboard({cellSize: 64});
+
+        assert.equal(canvas.absoluteToRelative(1), 0);
+        assert.equal(canvas.absoluteToRelative(32), 0);
+        assert.equal(canvas.absoluteToRelative(63), 0);
+        assert.equal(canvas.absoluteToRelative(64), 1);
+    })
+
 }(QUnit, JChessPiece, JChessBoard));
 
 

@@ -27,7 +27,8 @@
 
 <script>
 
-    var board = $('canvas').jschessboard({numbers: true}).board;
+    var canvas = $('canvas').jschessboard({numbers: true});
+    var board = canvas.board;
     var eventDispatcher = board.eventDispatcher;
 
     eventDispatcher.addEventListener('board_post_piece_move', function (event) {

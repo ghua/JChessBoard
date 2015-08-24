@@ -1186,7 +1186,6 @@ var JChessBoard = (function (JChessPiece, $) {
 var JChessCanvas = (function ($) {
 
     function JChessCanvas(canvas, options) {
-        var me = this;
         this.canvas = canvas;
         this.settings = $.extend({
             cellSize: 64,
@@ -1199,9 +1198,9 @@ var JChessCanvas = (function ($) {
             side: 'w'
         }, options);
 
-        var eventDispatcher = new JChessEventDispatcher();
+        this.eventDispatcher = new JChessEventDispatcher();
 
-        eventDispatcher
+        this.eventDispatcher
             .addEventListener('board_post_init', this.onBoardPostInit, this)
             .addEventListener('board_post_clear', this.onBoardPostClear, this)
             .addEventListener('board_piece_captured', this.onBoardPieceCaptured, this)
@@ -1210,7 +1209,7 @@ var JChessCanvas = (function ($) {
             .addEventListener('board_step_back', this.onBoardStepBack, this)
             .addEventListener('board_pawn_promotion', this.onBoardPawnPromotion, this);
 
-        this.board = new JChessBoard(this.settings, eventDispatcher);
+        this.board = new JChessBoard(this.settings, this.eventDispatcher);
     }
 
     /**
