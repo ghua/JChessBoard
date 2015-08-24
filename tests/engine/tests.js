@@ -1,18 +1,18 @@
 (function (QUnit, JChessPiece, JChessBoard) {
     var settings = {imagesPath: '../../images/'};
 
-    QUnit.test("Test _buildGraph", function(assert) {
-        //var board = $('canvas').jschessboard(settings);
-        //board.start();
-        //var engine = new JChessEngine(board);
-        //
-        //engine._buildGraph('w', 1);
-        //
-        //board.clear();
+    QUnit.test("Test JChessEngine._evaluateFen", function(assert) {
+        var board = new JChessBoard(settings);
+        board.start();
+        var engine = new JChessEngine(board, 'w');
 
-        var numbers = [0, 3, 5, 3, 0, 5]; // 0 - 3 + 5 - 3 + 0 - 5 = 4
+        assert.equal(engine._evaluateFen(board.positionToFen()), 0);
 
+        board.fenToPosition('8/8/8/8/4k2K/8/8/7r b')
+        assert.equal(engine._evaluateFen(board.positionToFen()), -5);
 
+        engine.side = 'b';
+        assert.equal(engine._evaluateFen(board.positionToFen()), 5);
     });
 
 }(QUnit, JChessPiece, JChessBoard));

@@ -27,11 +27,11 @@ var JChessEngine = (function ($) {
     function JChessEngine(board, side) {
         this.board = board;
         this.piecePrice = {
-            p: 2, n: 5, b: 5, r: 8, q: 12, k: 20
+            p: 1, n: 3, b: 3, r: 5, q: 10, k: 20
         };
-        this.bestScore = board.countPossiblePositions();
         this.side = side;
         this.currentMoveChoice = null;
+        this.bestScore = 100;
     }
 
     JChessEngine.prototype.think = function () {
@@ -56,20 +56,17 @@ var JChessEngine = (function ($) {
     JChessEngine.prototype._bestPossibleMove = function () {
         var board = $.clone(true, {}, this.board);
 
-        this._minimax(board, 10, -this.bestScore, this.bestScore);
+        this._minimax(board, 0, -this.bestScore, this.bestScore);
 
         return this.currentMoveChoice;
     };
 
     JChessEngine.prototype._minimax = function (board, depth, lowerBound, upperBound) {
-        if (depth < 0) {
-            return;
-        }
-
         var n, p, piece, possiblePositions, possiblePosition;
 
+        var side = this.side;
         var pieces = board.allPieces().filter(function (value) {
-            return value.color === stepSide
+            return value.color === side
         });
 
         var candidateMoveNodes = [];
@@ -81,10 +78,9 @@ var JChessEngine = (function ($) {
 
                 var clone = new JChessBoard(board.settings, new JChessEventDispatcher());
                 var move = clone.move(piece, possiblePosition);
-                depth = depth - 1;
-                this._minimax(clone, depth, lowerBound, upperBound);
+                this._minimax(clone, depth + 1, lowerBound, upperBound);
 
-                var score = this._evaluateStep(clone, piece, depth);
+                var score = this._evaluateState(clone, depth);
                 var node = {'score': score, 'move': move};
 
                 if (board.nextStepSide === this.side) {
@@ -112,7 +108,7 @@ var JChessEngine = (function ($) {
                 candidateScores.push(node.score);
             }
 
-            this.currentMoveChoice = candidateMoves[candidateScores.indexOf(Math.max(candidateScores))];
+            this.currentMoveChoice = candidateMoves[candidateScores.indexOf(Math.max.apply(null, candidateScores))];
 
             return lowerBound;
         } else {
@@ -120,32 +116,56 @@ var JChessEngine = (function ($) {
         }
     };
 
-    JChessEngine.prototype._evaluateStep = function (board, piece, depth) {
+    /**
+     * @param board {JChessBoard}
+     * @param depth {number}
+     * @returns {number}
+     * @private
+     */
+    JChessEngine.prototype._evaluateState = function (board, depth) {
+        var score;
         if (board.isCheckmate()) {
-            return 100;
+            score = this.bestScore;
+        } else if (board.isGameOver()) {
+            score = 0;
+        } else {
+
         }
 
-        if (board.isCheck()) {
-            return 20;
-        }
-
-        if (board.isGameOver()) {
-            return 0;
-        }
+        var fen = board.positionToFen();
 
         if (board.nextStepSide === this.side) {
-            return this.bestScore - depth;
+            return this.bestScore + depth + score;
         } else {
-            return depth - this.bestScore;
+            return depth - this.bestScore - score;
         }
     };
 
-    JChessEngine.prototype._getMaxOfArray = function (numArray) {
-        return Math.max.apply(null, numArray);
-    };
+    /**
+     * @param fen {string}
+     * @returns {number}
+     * @private
+     */
+    JChessEngine.prototype._evaluateFen = function (fen) {
+        var me = this;
+        var scores = fen.match(/^([a-zA-Z0-9\/]+)/)[0].replace(/[0-9\/]/gi, '').replace(/./g, function (value) {
+            var score;
+            score = me.piecePrice[value.toLowerCase()];
 
-    JChessEngine.prototype.price = function (type) {
-        return this.piecePrice[type];
+            var isBlackPiece = /[a-z]/.test(value)
+            if ((isBlackPiece === true && me.side === 'w' ) || (isBlackPiece === false && me.side === 'b')) {
+                score = score * -1;
+            }
+
+            return score + ':';
+        }).replace(/:$/, '').split(':');
+
+        var sum = 0, n;
+        for (n = 0; n < scores.length; n++) {
+            sum += parseInt(scores[n]);
+        }
+
+        return sum;
     };
 
     return JChessEngine;

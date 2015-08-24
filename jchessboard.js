@@ -607,6 +607,9 @@ var JChessBoard = (function (JChessPiece, $) {
         }
     };
 
+    /**
+     * @returns {string}
+     */
     JChessBoard.prototype.positionToFen = function () {
         var fenString = '';
         var i = 0;
