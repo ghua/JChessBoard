@@ -1030,6 +1030,11 @@ var JChessBoard = (function (JChessPiece, $) {
 
     JChessBoard.prototype.isCheck = function (color) {
         var king, currentPosition, crossing, n, piece;
+
+        if (color === undefined) {
+            color = this.nextStepSide;
+        }
+
         king = this.kings[color];
         if (king === undefined) {
             return false;

@@ -31,6 +31,7 @@ var JChessEngine = (function ($) {
         };
         this.bestScore = board.countPossiblePositions();
         this.side = side;
+        this.currentMoveChoice = null;
     }
 
     JChessEngine.prototype.think = function () {
@@ -52,132 +53,91 @@ var JChessEngine = (function ($) {
         return result;
     };
 
-    JChessEngine.prototype._findBestRoute = function (graph) {
-        var steps = [], scores = [], r, root, score, paths;
-
-
-        console.log('Step scores:');
-        for (r = 0; r < graph.roots.length; r++) {
-            root = graph.roots[r];
-            steps.push(root.san);
-            paths = this._getUniqPaths(root);
-            score = this._getMaxOfArray(paths) + this._sum(paths);
-            scores.push(score);
-            console.log('  ', root.san, score);
-        }
-
-
-        return steps[scores.indexOf(this._getMaxOfArray(scores))];
-    };
-
-    JChessEngine.prototype._getUniqPaths = function (root) {
-        var paths = [], path;
-
-        path = [];
-        this._getPath(root, path);
-        paths.push(this._assessRoute(path));
-
-        while (root.edges.length > 0) {
-            path = [];
-            this._getPath(root, path);
-            paths.push(this._assessRoute(path));
-        }
-
-        return paths;
-    };
-
-    JChessEngine.prototype._getPath = function (root, path) {
-        var edge;
-
-        path.push(root.weight);
-
-        if (root.edges.length > 0) {
-            edge = root.edges.pop();
-            if (this._getPath(edge.toVertex, path)) {
-                root.edges.push(edge);
-            }
-            return true
-        }
-
-        return false;
-    };
-
     JChessEngine.prototype._bestPossibleMove = function () {
         var board = $.clone(true, {}, this.board);
 
-        this._minimax(board, 0, -this.bestScore, this.bestScore);
+        this._minimax(board, 10, -this.bestScore, this.bestScore);
 
         return this.currentMoveChoice;
     };
 
     JChessEngine.prototype._minimax = function (board, depth, lowerBound, upperBound) {
+        if (depth < 0) {
+            return;
+        }
 
+        var n, p, piece, possiblePositions, possiblePosition;
 
+        var pieces = board.allPieces().filter(function (value) {
+            return value.color === stepSide
+        });
 
+        var candidateMoveNodes = [];
+        for (p = 0; p < pieces.length; p++) {
+            piece = pieces[p];
+            possiblePositions = piece.getPossiblePositions();
+            for (n = 0; n < possiblePositions.length; n++) {
+                possiblePosition = possiblePositions[n];
+
+                var clone = new JChessBoard(board.settings, new JChessEventDispatcher());
+                var move = clone.move(piece, possiblePosition);
+                depth = depth - 1;
+                this._minimax(clone, depth, lowerBound, upperBound);
+
+                var score = this._evaluateStep(clone, piece, depth);
+                var node = {'score': score, 'move': move};
+
+                if (board.nextStepSide === this.side) {
+                    candidateMoveNodes.push(node);
+                    if (node.score > lowerBound) {
+                        lowerBound = node.score;
+                    }
+                } else {
+                    if (node.score < upperBound) {
+                        upperBound = node.score;
+                    }
+                }
+                if (upperBound < lowerBound) {
+                    break;
+                }
+            }
+        }
+
+        if (board.nextStepSide === this.side) {
+            var candidateScores = [];
+            var candidateMoves = [];
+            for (n = 0; n < candidateMoveNodes.length; n++) {
+                node = candidateMoveNodes[n];
+                candidateMoves.push(node.move);
+                candidateScores.push(node.score);
+            }
+
+            this.currentMoveChoice = candidateMoves[candidateScores.indexOf(Math.max(candidateScores))];
+
+            return lowerBound;
+        } else {
+            return upperBound;
+        }
     };
 
-    JChessEngine.prototype._evaluateStep = function (board, piece, newPosition, depth) {
+    JChessEngine.prototype._evaluateStep = function (board, piece, depth) {
+        if (board.isCheckmate()) {
+            return 100;
+        }
+
+        if (board.isCheck()) {
+            return 20;
+        }
+
         if (board.isGameOver()) {
             return 0;
         }
 
         if (board.nextStepSide === this.side) {
-
+            return this.bestScore - depth;
         } else {
-            
+            return depth - this.bestScore;
         }
-    };
-
-    JChessEngine.prototype._buildRoute = function (stepSide, depthLeft, graph, parentVertex) {
-        var p, n;
-        var pieces = this.board.allPieces().filter(function (value) {
-            return value.color === stepSide
-        });
-        var possiblePositions, vertex, piece, possiblePosition, score, san, isCapture;
-
-        if (this.board.nextStepSide === undefined) {
-            return;
-        }
-
-        for (p = 0; p < pieces.length; p++) {
-            piece = pieces[p];
-
-            possiblePositions = piece.possiblePositions.all();
-
-            for (n = 0; n < possiblePositions.length; n++) {
-                possiblePosition = possiblePositions[n];
-                piece._genPossiblePositions();
-                if (piece.isPossiblePosition(possiblePosition) === true) {
-                    if (this.board.move(piece, possiblePosition, true)) {
-                        this.board.back(true);
-
-                        isCapture = this.board.has(possiblePosition);
-                        san = this.board._genPieceStepSan(piece, piece.currentPosition, possiblePosition, isCapture);
-                        vertex = new JChessVertex(san, this._assessStep(piece, possiblePosition), depthLeft);
-                        graph.addVertex(vertex, parentVertex === undefined);
-                        this.board.nextStepSide = stepSide;
-
-                        if (parentVertex !== undefined) {
-                            parentVertex.addEdge(new JChessEdge(parentVertex, vertex));
-                        }
-
-                        if (depthLeft > 0) {
-                            if (this.board.move(piece, possiblePosition, true)) {
-                                if (this.board.isCheckmate(stepSide === 'w' ? 'b' : 'w', true)) {
-                                    console.log('  ' + this.board.positionToFen());
-                                    vertex.weight = 100;
-                                } else {
-                                    this._buildRoute(stepSide === 'w' ? 'b' : 'w', depthLeft - 1, graph, vertex);
-                                }
-                                this.board.back(true);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return graph;
     };
 
     JChessEngine.prototype._getMaxOfArray = function (numArray) {
@@ -186,31 +146,6 @@ var JChessEngine = (function ($) {
 
     JChessEngine.prototype.price = function (type) {
         return this.piecePrice[type];
-    };
-
-    JChessEngine.prototype._assessStep = function (piece, newPosition) {
-        if (this.board.has(newPosition)) {
-            return this.price(this.board.get(newPosition).type);
-        }
-
-        return 1;
-    };
-
-    JChessEngine.prototype._assessRoute = function (numbers) {
-        numbers = numbers.map(function (elem, index) {
-            return (index % 2 === 0) ? elem : -elem;
-        });
-
-        return Math.round(this._sum(numbers) / numbers.length);
-    };
-
-    JChessEngine.prototype._sum = function (numbers) {
-        var score = 0;
-        for (var n = 0; n < numbers.length; n++) {
-            score += numbers[n];
-        }
-
-        return score;
     };
 
     return JChessEngine;
