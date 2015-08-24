@@ -31,34 +31,24 @@ var JChessEngine = (function ($) {
         };
         this.side = side;
         this.currentMoveChoice = null;
-        this.bestScore = 100;
+        this.bestScore = 50;
     }
 
     JChessEngine.prototype.think = function () {
         console.log('Thinking...');
 
-        var graph = new JChessGraph();
+        this._bestPossibleMove();
 
-        console.log('Checkmate FEN\'s:');
-        this._buildRoute(this.board.nextStepSide, 3, graph);
+        console.log('Result: \n... Simon says: ' + this.currentMoveChoice);
 
-        board.allPieces().forEach(function (piece) {
-            piece._drawLayer(board);
-        });
-
-        var result = this._findBestRoute(graph);
-
-        console.log('Result: \n... Simon says: ' + result);
-
-        return result;
+        return this.currentMoveChoice;
     };
 
     JChessEngine.prototype._bestPossibleMove = function () {
-        var board = $.clone(true, {}, this.board);
+        var clone = new JChessBoard(this.board.settings, new JChessEventDispatcher());
+        clone.fenToPosition(this.board.positionToFen());
 
-        this._minimax(board, 0, -this.bestScore, this.bestScore);
-
-        return this.currentMoveChoice;
+        this._minimax(clone, 0, -this.bestScore, this.bestScore);
     };
 
     JChessEngine.prototype._minimax = function (board, depth, lowerBound, upperBound) {
@@ -77,6 +67,7 @@ var JChessEngine = (function ($) {
                 possiblePosition = possiblePositions[n];
 
                 var clone = new JChessBoard(board.settings, new JChessEventDispatcher());
+                clone.fenToPosition(board.positionToFen());
                 var move = clone.move(piece, possiblePosition);
                 this._minimax(clone, depth + 1, lowerBound, upperBound);
 
@@ -125,14 +116,12 @@ var JChessEngine = (function ($) {
     JChessEngine.prototype._evaluateState = function (board, depth) {
         var score;
         if (board.isCheckmate()) {
-            score = this.bestScore;
+            score = 50;
         } else if (board.isGameOver()) {
             score = 0;
         } else {
-
+            score = this._evaluateFen(board.positionToFen());
         }
-
-        var fen = board.positionToFen();
 
         if (board.nextStepSide === this.side) {
             return this.bestScore + depth + score;

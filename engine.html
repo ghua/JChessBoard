@@ -28,30 +28,31 @@
 
 <script>
 
-    var makeMove = function(board, engine) {
-        var san = engine.think();
-        setTimeout(function() {
-            if (san !== undefined) {
-                board.move(san);
 
-                board.allPieces().forEach(function(piece) {
-                    piece._drawLayer(board);
-                });
-            } else {
-                alert('Game over');
-            }
-
-
-        }, 500);
-    };
-
-    var board = $('canvas').jschessboard({numbers: true});
 
     var problems = [
         'k7/1R6/nK6/8/8/8/8/8 w -',
-        '7k/7b/5Kp1/8/8/8/8/5Q2 w -',
-        'k1b5/ppK5/8/8/8/5Q2/8/1R6 w -'
+//        '7k/7b/5Kp1/8/8/8/8/5Q2 w -',
+//        'k1b5/ppK5/8/8/8/5Q2/8/1R6 w -'
     ];
+
+    var canvas = $('canvas').jschessboard({numbers: true});
+    var board = canvas.board;
+    var eventDispatcher = board.eventDispatcher;
+
+    eventDispatcher.addEventListener('board_post_piece_move', function (event) {
+        console.log(event.subject.identificator, event.environment);
+        $('#fen').val(board.positionToFen());
+    });
+
+    eventDispatcher.addEventListener('board_checkmate_detected', function(event) {
+        alert('Checkmate');
+    });
+
+    eventDispatcher.addEventListener('board_pawn_promotion', function(event) {
+        board.onPawnPromotion(event.subject, 'q');
+    });
+
 
     var problem = parseInt(localStorage.getItem('problem'));
     if (problem < problems.length-1) {
@@ -63,21 +64,19 @@
 
     board.fenToPosition(problems[problem]);
 
-    $('#fen').val(board.positionToFen());
-
-    $('#fen').keyup(function () {
-        board.fenToPosition($('#fen').val());
-    });
-
-    var engine = new JChessEngine(board);
+    var engine = new JChessEngine(board, 'b');
 //    engine.think();
 
-    $('canvas').on('piecemove', function (event, board, piece, sanResult, isBlind, isDrugNDrop) {
-        if (isBlind === false && isDrugNDrop === true) {
-            setTimeout(function() {
-                makeMove(board, engine);
-            }, 500);
-        }
+    eventDispatcher.addEventListener('board_post_piece_move', function (event) {
+        setTimeout(function() {
+            var san = engine.think();
+
+            if (san !== undefined) {
+                board.move(san);
+            } else {
+                alert('Game over');
+            }
+        }, 500);
     });
 
     function getRandomInt(min, max) {
