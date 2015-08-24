@@ -718,7 +718,7 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype.move = function () {
-        var isValidMove, piece, oldPosition, newPosition, promotionType, sanResult, isDrugNDrop, isBack;
+        var isValidMove, piece, oldPosition, newPosition, promotionType, sanResult, isBack;
         var me = this;
 
         isBack = false;
@@ -732,7 +732,7 @@ var JChessBoard = (function (JChessPiece, $) {
                 // FIXME: isBlind removed
             }
             if (arguments.length >= 4) {
-                isDrugNDrop = arguments[3];
+                // FIXME: isDrugNDrop removed
             }
             if (arguments.length >= 5) {
                 isBack = arguments[4];
@@ -990,8 +990,12 @@ var JChessBoard = (function (JChessPiece, $) {
         return this.cells[num] !== undefined;
     };
 
-    JChessBoard.prototype.delete = function (num, isMove) {
-        var cell = this.cells[num];
+    JChessBoard.prototype.delete = function (num) {
+        var piece = this.cells[num];
+
+        if (piece instanceof JChessPiece) {
+            this.eventDispatcher.dispatchEvent('board_piece_delete', new JChessEvent(piece));
+        }
 
         this.cells[num] = undefined;
 
@@ -1207,10 +1211,19 @@ var JChessCanvas = (function ($) {
             .addEventListener('piece_post_init', this.onPiecePostInit, this)
             .addEventListener('board_piece_move', this.onBoardPieceMove, this)
             .addEventListener('board_step_back', this.onBoardStepBack, this)
-            .addEventListener('board_pawn_promotion', this.onBoardPawnPromotion, this);
+            .addEventListener('board_pawn_promotion', this.onBoardPawnPromotion, this)
+            .addEventListener('board_piece_delete', this.onBoardPieceDelete, this);
 
         this.board = new JChessBoard(this.settings, this.eventDispatcher);
     }
+
+    /**
+     * @param event {JChessEvent}
+     */
+    JChessCanvas.prototype.onBoardPieceDelete = function (event) {
+        var piece = event.subject;
+        this.canvas.removeLayer(piece.identificator);
+    };
 
     /**
      * @param event {JChessEvent}

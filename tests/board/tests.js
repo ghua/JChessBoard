@@ -729,7 +729,7 @@
         board.clear();
     });
 
-    QUnit.skip("Test piece.getPossiblePositions", function (assert) {
+    QUnit.test("Test piece.getPossiblePositions", function (assert) {
         var board = new JChessBoard(settings);
         board.fenToPosition('4k3/1P6/8/8/8/8/8/4K3 w KQkq');
 
@@ -740,7 +740,7 @@
         assert.deepEqual(piece.getPossiblePositions(), [1]);
     });
 
-    QUnit.skip("Test board.countPossiblePositions", function (assert) {
+    QUnit.test("Test board.countPossiblePositions", function (assert) {
         var board = new JChessBoard(settings);
         board.fenToPosition('4k3/1P6/8/8/8/8/8/4K3 w KQkq');
 
