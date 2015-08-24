@@ -474,8 +474,9 @@ var JChessPiece = (function ($) {
 
         return this.possiblePositions.all().filter(
             function (position) {
-                var board = $.extend(true, {}, me.board);
-                return me.isPossiblePosition(position) && board.move(me.currentPosition, position, true);
+                var boardClone = new JChessBoard(this.settings, new JChessEventDispatcher);
+                boardClone.fenToPosition(me.board.positionToFen());
+                return me.isPossiblePosition(position) && boardClone.move(me.currentPosition, position);
             });
     };
 
@@ -990,11 +991,13 @@ var JChessBoard = (function (JChessPiece, $) {
         return this.cells[num] !== undefined;
     };
 
-    JChessBoard.prototype.delete = function (num) {
+    JChessBoard.prototype.delete = function (num, isMove) {
         var piece = this.cells[num];
 
-        if (piece instanceof JChessPiece) {
-            this.eventDispatcher.dispatchEvent('board_piece_delete', new JChessEvent(piece));
+        if (isMove === false) {
+            if (piece instanceof JChessPiece) {
+                this.eventDispatcher.dispatchEvent('board_piece_delete', new JChessEvent(piece));
+            }
         }
 
         this.cells[num] = undefined;
@@ -1169,7 +1172,7 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype.countPossiblePositions = function () {
-        var count = 0, pieces, piece, n;
+        var count = 0, pieces, n;
         var me = this;
 
         pieces = this.allPieces().filter(function (piece) {
@@ -1177,8 +1180,8 @@ var JChessBoard = (function (JChessPiece, $) {
         });
 
         for (n = 0; n < pieces.length; n++) {
-            var all = pieces[n].getPossiblePositions();
-            count += all.length;
+            var pieceValidPositions = pieces[n].getPossiblePositions();
+            count += pieceValidPositions.length;
         }
 
         return count;
@@ -1212,7 +1215,8 @@ var JChessCanvas = (function ($) {
             .addEventListener('board_piece_move', this.onBoardPieceMove, this)
             .addEventListener('board_step_back', this.onBoardStepBack, this)
             .addEventListener('board_pawn_promotion', this.onBoardPawnPromotion, this)
-            .addEventListener('board_piece_delete', this.onBoardPieceDelete, this);
+            .addEventListener('board_piece_delete', this.onBoardPieceDelete, this)
+        ;
 
         this.board = new JChessBoard(this.settings, this.eventDispatcher);
     }
