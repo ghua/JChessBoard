@@ -792,7 +792,7 @@
         eventDispatcher.addEventListener(eventName, listener);
 
         assert.ok(eventDispatcher.listeners.hasOwnProperty(eventName));
-        //assert.ok(eventDispatcher.listeners[eventName].indexOf(listener) > -1);
+        assert.deepEqual(eventDispatcher.listeners[eventName][0], {'callback': listener, 'thisArg': undefined});
     });
 
     QUnit.test("Test JChessEventDispatcher.dispatchEvent", function (assert) {
