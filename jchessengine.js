@@ -31,6 +31,7 @@ var JChessEngine = (function ($) {
         };
         this.side = side;
         this.currentMoveChoice = null;
+        this.maxDepth = 3;
     }
 
     JChessEngine.prototype.think = function () {
@@ -53,7 +54,7 @@ var JChessEngine = (function ($) {
 
     JChessEngine.prototype._minimax = function (board, depth, lowerBound, upperBound) {
         var n, p, piece, possiblePositions, possiblePosition;
-        if (depth > 3 || board.isGameOver()) {
+        if (depth > this.maxDepth || board.isGameOver()) {
             return this._evaluateState(board, depth);
         }
 
@@ -115,8 +116,7 @@ var JChessEngine = (function ($) {
      * @private
      */
     JChessEngine.prototype._evaluateState = function (board, depth) {
-        var score = this._evaluateFen(board.positionToFen(), this.side);
-        return score;
+        return this._evaluateFen(board.positionToFen(), this.side);
     };
 
     /**
@@ -131,7 +131,7 @@ var JChessEngine = (function ($) {
             var score;
             score = parseInt(me.piecePrice[value.toLowerCase()]);
 
-            var isBlackPiece = /[a-z]/.test(value)
+            var isBlackPiece = /[a-z]/.test(value);
             if (( (isBlackPiece === true && mySide === 'w' ) || (isBlackPiece === false && mySide === 'b'))) {
                 score = score * -1;
             }

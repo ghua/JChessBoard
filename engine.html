@@ -13,6 +13,13 @@
             margin-bottom: 1em;
         }
     </style>
+
+
+    <script src="//code.jquery.com/jquery-2.1.4.js"></script>
+    <script src="jcanvas.js"></script>
+    <script src="jchessboard.js"></script>
+    <script src="jchessengine.js"></script>
+
 </head>
 <body>
 <div>
@@ -20,15 +27,10 @@
 </div>
 <canvas width="512" height="512" style="cursor: default;">
 </canvas>
-
-<script src="//code.jquery.com/jquery-2.1.4.js"></script>
-<script src="jcanvas.js"></script>
-<script src="jchessboard.js"></script>
-<script src="jchessengine.js"></script>
-
+<div>
+    <span id="thinking" style="color: red; display: none;">Thinking...</span>
+</div>
 <script>
-
-
 
     var problems = [
 //            '1P6/2R5/n7/8/8/8/8/8 b -'
@@ -37,9 +39,9 @@
 //        '1B6/8/n7/2N5/8/8/8/8 b -'
 //        'k7/R7/n7/K7/8/8/8/8 b -'
         'k7/1R6/nK6/8/8/8/8/8 w -',
-//            'k7/1R6/n7/8/8/8/8/7K w -'
-//        '7k/7b/5Kp1/8/8/8/8/5Q2 w -',
-//        'k1b5/ppK5/8/8/8/5Q2/8/1R6 w -'
+//        'k7/1R6/n7/8/8/8/8/7K w -',
+        '7k/7b/5Kp1/8/8/8/8/5Q2 w -'
+//        'k1b5/ppK5/5Q2/8/8/8/8/1R6 w -'
     ];
 
     var canvas = $('canvas').jschessboard({numbers: true});
@@ -51,16 +53,16 @@
         $('#fen').val(board.positionToFen());
     });
 
-    eventDispatcher.addEventListener('board_checkmate_detected', function(event) {
+    eventDispatcher.addEventListener('board_checkmate_detected', function (event) {
         alert('Checkmate');
     });
 
-    eventDispatcher.addEventListener('board_pawn_promotion', function(event) {
+    eventDispatcher.addEventListener('board_pawn_promotion', function (event) {
         board.onPawnPromotion(event.subject, 'q');
     });
 
     var problem = parseInt(localStorage.getItem('problem'));
-    if (problem < problems.length-1) {
+    if (problem < problems.length - 1) {
         problem += 1;
     } else {
         problem = 0;
@@ -70,10 +72,12 @@
     board.fenToPosition(problems[problem]);
 
     var engine = new JChessEngine(board, 'b');
-//    board.move(engine.think());
+    //    board.move(engine.think());
 
     eventDispatcher.addEventListener('board_post_piece_move', function (event) {
-        setTimeout(function() {
+        $('#thinking').show();
+        setTimeout(function () {
+
             if (engine.side !== event.subject.board.nextStepSide) {
                 return;
             }
@@ -84,7 +88,9 @@
             } else {
                 alert('Game over');
             }
+            $('#thinking').hide();
         }, 500);
+
     });
 
     function getRandomInt(min, max) {
@@ -98,5 +104,6 @@
     });
 
 </script>
+
 </body>
 </html>
