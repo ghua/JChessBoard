@@ -31,7 +31,6 @@ var JChessEngine = (function ($) {
         };
         this.side = side;
         this.currentMoveChoice = null;
-        this.bestScore = 50;
     }
 
     JChessEngine.prototype.think = function () {
@@ -46,17 +45,20 @@ var JChessEngine = (function ($) {
 
     JChessEngine.prototype._bestPossibleMove = function () {
         var clone = new JChessBoard(this.board.settings, new JChessEventDispatcher());
-        clone.fenToPosition(this.board.positionToFen());
+        var fen = this.board.positionToFen();
+        clone.fenToPosition(fen);
 
-        this._minimax(clone, 0, -this.bestScore, this.bestScore);
+        this._minimax(clone, 0, -10, 10);
     };
 
     JChessEngine.prototype._minimax = function (board, depth, lowerBound, upperBound) {
         var n, p, piece, possiblePositions, possiblePosition;
+        if (depth > 3 || board.isGameOver()) {
+            return this._evaluateState(board, depth);
+        }
 
-        var side = this.side;
         var pieces = board.allPieces().filter(function (value) {
-            return value.color === side
+            return value.color === board.nextStepSide;
         });
 
         var candidateMoveNodes = [];
@@ -69,9 +71,8 @@ var JChessEngine = (function ($) {
                 var clone = new JChessBoard(board.settings, new JChessEventDispatcher());
                 clone.fenToPosition(board.positionToFen());
                 var move = clone.move(piece, possiblePosition);
-                this._minimax(clone, depth + 1, lowerBound, upperBound);
+                var score = this._minimax(clone, depth + 1, lowerBound, upperBound);
 
-                var score = this._evaluateState(clone, depth);
                 var node = {'score': score, 'move': move};
 
                 if (board.nextStepSide === this.side) {
@@ -114,35 +115,24 @@ var JChessEngine = (function ($) {
      * @private
      */
     JChessEngine.prototype._evaluateState = function (board, depth) {
-        var score;
-        if (board.isCheckmate()) {
-            score = 50;
-        } else if (board.isGameOver()) {
-            score = 0;
-        } else {
-            score = this._evaluateFen(board.positionToFen());
-        }
-
-        if (board.nextStepSide === this.side) {
-            return this.bestScore + depth + score;
-        } else {
-            return depth - this.bestScore - score;
-        }
+        var score = this._evaluateFen(board.positionToFen(), this.side);
+        return score;
     };
 
     /**
      * @param fen {string}
+     * @param mySide {string}
      * @returns {number}
      * @private
      */
-    JChessEngine.prototype._evaluateFen = function (fen) {
+    JChessEngine.prototype._evaluateFen = function (fen, mySide) {
         var me = this;
         var scores = fen.match(/^([a-zA-Z0-9\/]+)/)[0].replace(/[0-9\/]/gi, '').replace(/./g, function (value) {
             var score;
-            score = me.piecePrice[value.toLowerCase()];
+            score = parseInt(me.piecePrice[value.toLowerCase()]);
 
             var isBlackPiece = /[a-z]/.test(value)
-            if ((isBlackPiece === true && me.side === 'w' ) || (isBlackPiece === false && me.side === 'b')) {
+            if (( (isBlackPiece === true && mySide === 'w' ) || (isBlackPiece === false && mySide === 'b'))) {
                 score = score * -1;
             }
 

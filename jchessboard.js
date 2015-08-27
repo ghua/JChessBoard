@@ -1084,7 +1084,7 @@ var JChessBoard = (function (JChessPiece, $) {
                 var cloneBoard = new JChessBoard(this.settings, new JChessEventDispatcher());
                 cloneBoard.fenToPosition(this.positionToFen());
 
-                if (cloneBoard.move(piece.currentPosition, position, true)) {
+                if (cloneBoard.move(piece.currentPosition, position, null, null, true)) {
                     if (cloneBoard.isCheck(color) === false) {
                         moves.push(position);
                     }

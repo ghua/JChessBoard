@@ -31,7 +31,13 @@
 
 
     var problems = [
+//            '1P6/2R5/n7/8/8/8/8/8 b -'
+//        'n7/2P5/1Q6/8/8/8/8/8 b -'
+//        '1P6/8/n7/2Q5/8/8/8/8 b -'
+//        '1B6/8/n7/2N5/8/8/8/8 b -'
+//        'k7/R7/n7/K7/8/8/8/8 b -'
         'k7/1R6/nK6/8/8/8/8/8 w -',
+//            'k7/1R6/n7/8/8/8/8/7K w -'
 //        '7k/7b/5Kp1/8/8/8/8/5Q2 w -',
 //        'k1b5/ppK5/8/8/8/5Q2/8/1R6 w -'
     ];
@@ -53,7 +59,6 @@
         board.onPawnPromotion(event.subject, 'q');
     });
 
-
     var problem = parseInt(localStorage.getItem('problem'));
     if (problem < problems.length-1) {
         problem += 1;
@@ -65,10 +70,13 @@
     board.fenToPosition(problems[problem]);
 
     var engine = new JChessEngine(board, 'b');
-//    engine.think();
+//    board.move(engine.think());
 
     eventDispatcher.addEventListener('board_post_piece_move', function (event) {
         setTimeout(function() {
+            if (engine.side !== event.subject.board.nextStepSide) {
+                return;
+            }
             var san = engine.think();
 
             if (san !== undefined) {
@@ -82,6 +90,12 @@
     function getRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
     }
+
+    $('#fen').val(board.positionToFen());
+
+    $('#fen').keyup(function () {
+        board.fenToPosition($('#fen').val());
+    });
 
 </script>
 </body>
