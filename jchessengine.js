@@ -27,7 +27,7 @@ var JChessEngine = (function ($) {
     function JChessEngine(board, side) {
         this.board = board;
         this.piecePrice = {
-            p: 1, n: 3, b: 3, r: 5, q: 10, k: 20
+            p: 1, n: 3, b: 3, r: 5, q: 10, k: 11
         };
         this.side = side;
         this.currentMoveChoice = null;
@@ -35,6 +35,12 @@ var JChessEngine = (function ($) {
     }
 
     JChessEngine.prototype.think = function () {
+        if (this.board.isGameOver()) {
+            console.log('Game Over');
+
+            return;
+        }
+
         console.log('Thinking...');
 
         this._bestPossibleMove();
@@ -49,12 +55,22 @@ var JChessEngine = (function ($) {
         var fen = this.board.positionToFen();
         clone.fenToPosition(fen);
 
-        this._minimax(clone, 0, -10, 10);
+        var scores = this._getScoresFromFen(fen, this.side);
+        var min = Math.min.apply(null, scores.filter(function(value) { return value < 0; }));
+        var max = Math.max.apply(null, scores.filter(function(value) { return value > 0; }));
+
+        this._minimax(clone, 0, min, max);
     };
 
     JChessEngine.prototype._minimax = function (board, depth, lowerBound, upperBound) {
         var n, p, piece, possiblePositions, possiblePosition;
-        if (depth > this.maxDepth || board.isGameOver()) {
+
+        if (depth > this.maxDepth || board.countPossiblePositions() === 0) {
+            // @todo: better fix this ↓↓↓↓↓
+            if (board.isCheckmate()) {
+                return 100;
+            }
+
             return this._evaluateState(board, depth);
         }
 
@@ -120,14 +136,14 @@ var JChessEngine = (function ($) {
     };
 
     /**
-     * @param fen {string}
-     * @param mySide {string}
-     * @returns {number}
+     * @param {string} fen
+     * @param {string} mySide
+     * @returns {Array}
      * @private
      */
-    JChessEngine.prototype._evaluateFen = function (fen, mySide) {
+    JChessEngine.prototype._getScoresFromFen = function (fen, mySide) {
         var me = this;
-        var scores = fen.match(/^([a-zA-Z0-9\/]+)/)[0].replace(/[0-9\/]/gi, '').replace(/./g, function (value) {
+        return fen.match(/^([a-zA-Z0-9\/]+)/)[0].replace(/[0-9\/]/gi, '').replace(/./g, function (value) {
             var score;
             score = parseInt(me.piecePrice[value.toLowerCase()]);
 
@@ -137,11 +153,26 @@ var JChessEngine = (function ($) {
             }
 
             return score + ':';
-        }).replace(/:$/, '').split(':');
+        })
+            .replace(/:$/, '')
+            .split(':')
+            .map(function (value) {
+                return parseInt(value);
+            }, me);
+    };
+
+    /**
+     * @param fen {string}
+     * @param mySide {string}
+     * @returns {number}
+     * @private
+     */
+    JChessEngine.prototype._evaluateFen = function (fen, mySide) {
+        var scores = this._getScoresFromFen(fen, mySide);
 
         var sum = 0, n;
         for (n = 0; n < scores.length; n++) {
-            sum += parseInt(scores[n]);
+            sum += scores[n];
         }
 
         return sum;

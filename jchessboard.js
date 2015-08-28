@@ -238,12 +238,6 @@ var JChessPiece = (function ($) {
         this._genPossiblePositions();
         this.X = newXY[0];
         this.Y = newXY[1];
-        /**
-         * TODO: delete this ↓↓↓↓↓
-         * this.x = this.board.relativeToAbsolute(this.X);
-         * this.y = this.board.relativeToAbsolute(this.Y);
-         */
-
         this.isTouched = true;
     };
 
@@ -1076,6 +1070,10 @@ var JChessBoard = (function (JChessPiece, $) {
             return false;
         }
 
+        if (!this.isCheck(color)) {
+            return false;
+        }
+
         for (n = 0; n < pieces.length; n++) {
             piece = pieces[n];
             positions = piece.possiblePositions.all();
@@ -1092,7 +1090,7 @@ var JChessBoard = (function (JChessPiece, $) {
             }
         }
 
-        return this.isCheck(color) && moves.length === 0;
+        return moves.length === 0;
     };
 
     JChessBoard.prototype._anToPosition = function (an) {
@@ -1121,7 +1119,7 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype.isGameOver = function () {
-        return this.isCheckmate() || this.countPossiblePositions() === 0;
+        return this.countPossiblePositions() === 0 || this.isCheckmate();
     };
 
     JChessBoard.prototype._pieceByNextSan = function (san) {
