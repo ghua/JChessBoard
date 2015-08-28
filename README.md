@@ -1,20 +1,25 @@
 # JChessBoard
 
-JChessBoard is an javascript & canvas chessboard implementation.
+The JChessBoard is a javascript & canvas chessboard implementation.
 I created this project just for fun. You can use this code in your project without any fee or limitations.
 
 [Demo](http://velichko.net/projects/jchessboard/demo.html)
 
 Last changes:
-7f4dce8 - added prototype of chess engine - [DEMO](http://velichko.net/projects/jchessboard/engine.html), first step is your
+
+* 7f4dce8 - added prototype of chess engine - [DEMO](http://velichko.net/projects/jchessboard/engine.html), first step is your
+* c9b338c - second version of chessboard:
+    - canvas was separated from board representation; 
+    - more unit-tests;
+    - in chess engine used minimax algorithm
 
 ## Features
 
   - Canvas as graphical backend
   - Step validation
   - Step help
-  - FEN is a standard notation for describing a particular board position
-  - Algebraic notation is a method for recording and describing the moves in a game
+  - FEN - is a standard notation for describing a particular board position
+  - Algebraic notation - is a method for recording and describing the moves in a game
 
 ## Dependencies
 
@@ -34,7 +39,7 @@ Last changes:
     <canvas width="512" height="512">
     </canvas>
     <script>
-        var board = $('canvas').jschessboard();
+        var board = $('canvas').jschessboard().board;
         board.start();
     </script>
     </body>
@@ -44,11 +49,11 @@ Last changes:
 
  - .start() - start game from standard position
  - .fenToPosition() - convert fen string to board position
- - .positionToFen() - vice versa previous positionToFen
+ - .positionToFen() - vice versa previous fenToPosition
  - .clear() - clear board
  - .move() - this method is main tool for you,
-     by this action you can move some piece to other cell.
-     a set of parameters can be: algebraic notation or number of cell (bitboard represent).
+     by this action you can move some piece to another cell.
+     a set of parameters can be: algebraic notation or number of cell (bitboard representation).
      Example: .move(52, 36) it is same as .move('e2e4') or .move('e4')
         
 You can consult the source code for definition of additional actions and events.
