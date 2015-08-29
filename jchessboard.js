@@ -468,7 +468,7 @@ var JChessPiece = (function ($) {
 
         return this.possiblePositions.all().filter(
             function (position) {
-                var boardClone = new JChessBoard(this.settings, new JChessEventDispatcher);
+                var boardClone = new JChessBoard({}, new JChessEventDispatcher);
                 boardClone.fenToPosition(me.board.positionToFen());
                 return me.isPossiblePosition(position) && boardClone.move(me.currentPosition, position);
             });

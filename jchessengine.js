@@ -92,6 +92,10 @@ var JChessEngine = (function ($) {
 
                 var node = {'score': score, 'move': move};
 
+                var log = [depth, board.nextStepSide, move, score];
+
+                console.log(log.join(' - '));
+
                 if (board.nextStepSide === this.side) {
                     candidateMoveNodes.push(node);
                     if (node.score > lowerBound) {
