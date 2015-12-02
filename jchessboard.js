@@ -558,6 +558,7 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype._initPieces = function () {
+        this.kings = {};
         this.each(function (piece) {
             piece._genPossiblePositions();
         });
@@ -884,7 +885,6 @@ var JChessBoard = (function (JChessPiece, $) {
 
     JChessBoard.prototype.back = function () {
         if (this.moveLog.length === 0) {
-            console.log('OOOps');
             return false;
         }
 

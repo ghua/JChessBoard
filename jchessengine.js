@@ -32,20 +32,11 @@ var JChessEngine = (function ($) {
         this.side = side;
         this.currentMoveChoice = null;
         this.maxDepth = 3;
+        this.eventDispatcher = new JChessEventDispatcher();
     }
 
     JChessEngine.prototype.think = function () {
-        if (this.board.isGameOver()) {
-            console.log('Game Over');
-
-            return;
-        }
-
-        console.log('Thinking...');
-
         this._bestPossibleMove();
-
-        console.log('Result: \n... Simon says: ' + this.currentMoveChoice);
 
         return this.currentMoveChoice;
     };
@@ -56,8 +47,12 @@ var JChessEngine = (function ($) {
         clone.fenToPosition(fen);
 
         var scores = this._getScoresFromFen(fen, this.side);
-        var min = Math.min.apply(null, scores.filter(function(value) { return value < 0; }));
-        var max = Math.max.apply(null, scores.filter(function(value) { return value > 0; }));
+        var min = Math.min.apply(null, scores.filter(function (value) {
+            return value < 0;
+        }));
+        var max = Math.max.apply(null, scores.filter(function (value) {
+            return value > 0;
+        }));
 
         this._minimax(clone, 0, min, max);
     };
@@ -65,8 +60,15 @@ var JChessEngine = (function ($) {
     JChessEngine.prototype._minimax = function (board, depth, lowerBound, upperBound) {
         var n, p, piece, possiblePositions, possiblePosition;
 
+        this.eventDispatcher.dispatchEvent('iteration', new JChessEvent(this, {
+            'board': board,
+            'depth': depth,
+            'lowerBound': lowerBound,
+            'upperBound': upperBound
+        }));
+
         if (depth > this.maxDepth || board.countPossiblePositions() === 0) {
-            // @todo: better fix this ↓↓↓↓↓
+            // @todo: would be better to fix this ↓↓↓↓↓
             if (board.isCheckmate()) {
                 return 100;
             }
@@ -144,16 +146,16 @@ var JChessEngine = (function ($) {
     JChessEngine.prototype._getScoresFromFen = function (fen, mySide) {
         var me = this;
         return fen.match(/^([a-zA-Z0-9\/]+)/)[0].replace(/[0-9\/]/gi, '').replace(/./g, function (value) {
-            var score;
-            score = parseInt(me.piecePrice[value.toLowerCase()]);
+                var score;
+                score = parseInt(me.piecePrice[value.toLowerCase()]);
 
-            var isBlackPiece = /[a-z]/.test(value);
-            if (( (isBlackPiece === true && mySide === 'w' ) || (isBlackPiece === false && mySide === 'b'))) {
-                score = score * -1;
-            }
+                var isBlackPiece = /[a-z]/.test(value);
+                if (( (isBlackPiece === true && mySide === 'w' ) || (isBlackPiece === false && mySide === 'b'))) {
+                    score = score * -1;
+                }
 
-            return score + ':';
-        })
+                return score + ':';
+            })
             .replace(/:$/, '')
             .split(':')
             .map(function (value) {
