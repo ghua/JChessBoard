@@ -275,29 +275,29 @@
 
     QUnit.test("Test Bishop illegal double punch", function (assert) {
         var board = new JChessBoard(settings);
-        board.fenToPosition('rnbqkbnr/pppppp2/8/6pp/2B1P3/8/PPPP1PPP/RNBQK1NR');
+        board.fenToPosition('rnbqkbnr/pppppp2/8/6pp/2B1P3/8/PPPP1PPP/RNBQK1NR w -');
         assert.notOk(board.move(34, 6));
         board.clear();
 
-        board.fenToPosition('rnbqkbnr/pppppp2/8/6pp/2B1P3/8/PPPP1PPP/RNBQK1NR');
+        board.fenToPosition('rnbqkbnr/pppppp2/8/6pp/2B1P3/8/PPPP1PPP/RNBQK1NR w -');
         assert.ok(board.move(34, 13));
         board.clear();
     });
 
     QUnit.test("Test Bishop illegal rook jump", function (assert) {
         var board = new JChessBoard(settings);
-        board.fenToPosition('rnbqkbnr/pppppB2/8/6pp/4P3/8/PPPP1PPP/RNBQK1NR');
+        board.fenToPosition('rnbqkbnr/pppppB2/8/6pp/4P3/8/PPPP1PPP/RNBQK1NR w -');
         assert.notOk(board.move(34, 6));
         board.clear();
 
-        board.fenToPosition('rnbqkbnr/pppppp2/8/6pp/2B1P3/8/PPPP1PPP/RNBQK1NR');
+        board.fenToPosition('rnbqkbnr/pppppp2/8/6pp/2B1P3/8/PPPP1PPP/RNBQK1NR w -');
         assert.ok(board.move(34, 13));
         board.clear();
     });
 
     QUnit.test("Test king can't step on check field", function (assert) {
         var board = new JChessBoard(settings);
-        board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 b');
+        board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 b -');
         assert.ok(board.crossing[3].length === 2);
         assert.ok(board.crossing[11].length === 2);
         assert.ok(board.crossing[12].length === 1);
@@ -309,7 +309,7 @@
 
     QUnit.test("Test king can't step on check field after other step", function (assert) {
         var board = new JChessBoard(settings);
-        board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 b');
+        board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 b -');
 
         assert.ok(board.crossing[3].length === 2);
         assert.ok(board.crossing[11].length === 2);
@@ -339,22 +339,22 @@
 
     QUnit.test("Test king ignore self color shadow", function (assert) {
         var board = new JChessBoard(settings);
-        board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 w');
+        board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 w -');
         assert.ok(board.move(60, 51));
         board.clear();
 
-        board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 w');
+        board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 w -');
         assert.ok(board.move(60, 52));
         board.clear();
 
-        board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 w');
+        board.fenToPosition('4k3/8/8/8/8/8/8/3QK3 w -');
         assert.ok(board.move(60, 53));
         board.clear();
     });
 
     QUnit.test("Two kings fight first step", function (assert) {
         var board = new JChessBoard(settings);
-        board.fenToPosition('8/8/8/4k3/8/4K3/8/8 w');
+        board.fenToPosition('8/8/8/4k3/8/4K3/8/8 w -');
 
         assert.notOk(board.move(44, 35));
         assert.notOk(board.move(44, 36));
@@ -366,12 +366,12 @@
 
     QUnit.test("Two kings fight second step", function (assert) {
         var board = new JChessBoard(settings);
-        board.fenToPosition('8/8/8/4k3/8/4K3/8/8 w');
+        board.fenToPosition('8/8/8/4k3/8/4K3/8/8 w -');
         assert.ok(board.move(44, 45));
         assert.notOk(board.move(28, 37));
         board.clear();
 
-        board.fenToPosition('8/8/8/4k3/8/4K3/8/8 w');
+        board.fenToPosition('8/8/8/4k3/8/4K3/8/8 w -');
         assert.ok(board.move(44, 45));
         assert.notOk(board.move(28, 36));
         board.clear();
@@ -437,13 +437,13 @@
 
     QUnit.test("Test king false checked by pawn", function (assert) {
         var board = new JChessBoard(settings);
-        board.fenToPosition('8/8/8/4p3/8/4K3/8/8 w');
+        board.fenToPosition('8/8/8/4p3/8/4K3/8/8 w -');
         assert.notOk(board.move(44, 35));
         assert.ok(board.move(44, 36));
         assert.notOk(board.move(44, 37));
         board.clear();
 
-        board.fenToPosition('8/8/8/8/3Kp3/8/8/8 w');
+        board.fenToPosition('8/8/8/8/3Kp3/8/8/8 w -');
         assert.notOk(board.move(35, 43));
         assert.ok(board.move(35, 27));
         board.clear();
@@ -452,21 +452,21 @@
     QUnit.test("Test king false checked by pawn 2", function (assert) {
         var board = new JChessBoard(settings);
 
-        board.fenToPosition('rnbq1bnr/ppp1kppp/3P4/1N6/4p3/8/PPPP1PPP/R1BQKBNR b');
+        board.fenToPosition('rnbq1bnr/ppp1kppp/3P4/1N6/4p3/8/PPPP1PPP/R1BQKBNR b -');
         assert.ok(board.move(12, 11));
         board.clear();
     });
 
     QUnit.test("Test hitting the protected position", function (assert) {
         var board = new JChessBoard(settings);
-        board.fenToPosition('8/8/8/6n1/3Kp3/8/8/8 w');
+        board.fenToPosition('8/8/8/6n1/3Kp3/8/8/8 w -');
         assert.notOk(board.move(35, 36));
         board.clear();
     });
 
     QUnit.test("Test check", function (assert) {
         var board = new JChessBoard(settings);
-        board.fenToPosition('8/8/8/6n1/3Kq3/8/R7/8 w');
+        board.fenToPosition('8/8/8/6n1/3Kq3/8/R7/8 w -');
         assert.notOk(board.move(48, 0));
         board.clear();
     });
@@ -482,7 +482,7 @@
 
     QUnit.test("Test checkmate", function (assert) {
         var board = new JChessBoard(settings);
-        board.fenToPosition('8/8/8/8/4k2K/8/8/7r b');
+        board.fenToPosition('8/8/8/8/4k2K/8/8/7r b -');
 
         assert.ok(board.move(36, 37));
         assert.notOk(board.move(39, 31));
@@ -853,6 +853,38 @@
 
         assert.ok(board.isGameOver());
         assert.ok(board.isCheckmate());
+    });
+
+    QUnit.test("Test JChessBoard.validateFen by valid combinations", function (assert) {
+        var board = new JChessBoard(settings);
+
+        var fenCombinations = [
+            'k7/1R6/K7/8/8/8/8/8 b -',
+            'k3R3/8/1K6/8/8/8/8/8 b -',
+            'k3R3/8/8/1K6/8/3n4/8/8 b -',
+            '4k3/1P6/8/8/8/8/8/4K3 w KQkq',
+            'rnbqkbn1/pppppp1r/6pp/8/8/2N3N1/PPPPPPPP/R1BQKB1R w KQq'
+        ];
+
+        for (var n = 0; n < fenCombinations.length; n++) {
+            assert.ok(board.validateFen(fenCombinations[n]));
+        }
+    });
+
+    QUnit.test("Test JChessBoard.validateFen by invalid combinations", function (assert) {
+        var board = new JChessBoard(settings);
+
+        var fenCombinations = [
+            'k7/1R9/K7/8/8/8/8/8 b -',
+            'k3R3/8/1K6/8/8/8/8/1 b -',
+            'k3R3/8/8/1K6/8/3n4/8/8 z -',
+            '4k3/1P6/8/8/8/8/8/4K3 w KKkq',
+            'rnbqkbn1/pppppp2r/6pp/8/8/2N3N1/PPPPPPPP/R1BQKB1R w KQq'
+        ];
+
+        for (var n = 0; n < fenCombinations.length; n++) {
+            assert.ok(board.validateFen(fenCombinations[n]) === false);
+        }
     });
 
 }(QUnit, JChessPiece, JChessBoard));

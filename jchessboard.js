@@ -468,7 +468,7 @@ var JChessPiece = (function ($) {
 
         return this.possiblePositions.all().filter(
             function (position) {
-                var boardClone = new JChessBoard(this.settings, new JChessEventDispatcher);
+                var boardClone = new JChessBoard({}, new JChessEventDispatcher);
                 boardClone.fenToPosition(me.board.positionToFen());
                 return me.isPossiblePosition(position) && boardClone.move(me.currentPosition, position);
             });
@@ -515,7 +515,28 @@ var JChessBoard = (function (JChessPiece, $) {
         return this.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq');
     };
 
+    JChessBoard.prototype.validateFen = function (fenString) {
+        var blocks = fenString.match(/([\d\w\-]+)+/gi) || [];
+        var blocksCount = +blocks.length;
+        if (blocksCount !== 10) {
+            return false;
+        }
+
+        for (var n = 0; n < 8; n++) {
+            var block = blocks[n];
+            if (+(block.match(/[a-zA-Z]/g) || []).length + +(block.match(/\d/g) || []).reduce(function(a, b) { return +a + +b; }, 0) !== 8) {
+                return false;
+            }
+        }
+
+        return (/w|b/).test(blocks[8]) && (/^(K?Q?k?q?)$/.test(blocks[9]) || blocks[9] === '-');
+    };
+
     JChessBoard.prototype.fenToPosition = function (fenString) {
+        if ( ! this.validateFen(fenString)) {
+            return false;
+        }
+
         this.clear();
 
         var rows = fenString.match(/([\d\w\-]+)+/gi);
@@ -555,6 +576,8 @@ var JChessBoard = (function (JChessPiece, $) {
         }
 
         this._initPieces();
+
+        return this;
     };
 
     JChessBoard.prototype._initPieces = function () {

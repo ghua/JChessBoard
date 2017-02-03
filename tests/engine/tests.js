@@ -8,7 +8,7 @@
 
         assert.equal(engine._evaluateFen(board.positionToFen(), 'w'), 0);
 
-        board.fenToPosition('8/8/8/8/4k2K/8/8/7r b')
+        board.fenToPosition('8/8/8/8/4k2K/8/8/7r b -')
         assert.equal(engine._evaluateFen(board.positionToFen(), 'w'), -5);
 
         assert.equal(engine._evaluateFen(board.positionToFen(), 'b'), 5);
