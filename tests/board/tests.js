@@ -10,6 +10,24 @@
         board.clear();
     });
 
+    QUnit.test("test jChessBoard zorbistHash", function (assert) {
+        var board = new JChessBoard(settings);
+
+        assert.equal(board.zorbistHash, 0);
+
+        board.fenToPosition('8/8/8/8/8/8/P7/8 w -');
+
+        var initialHash = board.zorbistHash;
+
+        board.move('a2a4');
+
+        assert.notEqual(initialHash, board.zorbistHash);
+
+        board.back();
+
+        assert.equal(initialHash, board.zorbistHash);
+    });
+
     QUnit.test("test jChessBoard: fenToPosition & positionToFen", function (assert) {
         var board = new JChessBoard(settings);
         var fenString = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w -';

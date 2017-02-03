@@ -480,6 +480,8 @@ var JChessPiece = (function ($) {
 var JChessBoard = (function (JChessPiece, $) {
 
     function JChessBoard(options, eventDispatcher) {
+        var me = this;
+
         if (eventDispatcher === undefined) {
             eventDispatcher = new JChessEventDispatcher();
         }
@@ -507,6 +509,19 @@ var JChessBoard = (function (JChessPiece, $) {
         }
 
         this.eventDispatcher.dispatchEvent('board_post_init', new JChessEvent(this));
+
+        this.zorbistIndex = {
+            'P': 0, 'N': 1, 'B': 2, 'R': 3, 'Q': 4, 'K': 5,
+            'p': 6, 'n': 7, 'b': 8, 'r': 9, 'q': 10, 'k': 11
+        };
+        this.zorbistHash = 0;
+        this.zobristBoard = Array.apply(null, new Array(64))
+            .map(function () {
+                return Array.apply(null, new Array(14))
+                    .map(function () {
+                        return Math.floor(Math.random() * Math.pow(2, 30))
+                    });
+            });
 
         this.clear();
     }
@@ -1013,6 +1028,10 @@ var JChessBoard = (function (JChessPiece, $) {
     JChessBoard.prototype.delete = function (num, isMove) {
         var piece = this.cells[num];
 
+        if (piece instanceof JChessPiece) {
+            this.zorbistHash ^= this.zobristBoard[num][this.zorbistIndex[piece.fen]];
+        }
+
         if (isMove === false) {
             if (piece instanceof JChessPiece) {
                 this.eventDispatcher.dispatchEvent('board_piece_delete', new JChessEvent(piece));
@@ -1038,6 +1057,7 @@ var JChessBoard = (function (JChessPiece, $) {
     JChessBoard.prototype.set = function (num, piece) {
         var type;
         this.cells[num] = piece;
+        this.zorbistHash ^= this.zobristBoard[num][this.zorbistIndex[piece.fen]];
 
         type = piece.type;
         if (type === 'k') {
