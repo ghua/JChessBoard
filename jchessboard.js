@@ -468,7 +468,7 @@ var JChessPiece = (function ($) {
 
         return this.possiblePositions.all().filter(
             function (position) {
-                var boardClone = new JChessBoard({}, new JChessEventDispatcher);
+                var boardClone = new JChessBoard(this.settings, new JChessEventDispatcher);
                 boardClone.fenToPosition(me.board.positionToFen());
                 return me.isPossiblePosition(position) && boardClone.move(me.currentPosition, position);
             });
@@ -581,7 +581,6 @@ var JChessBoard = (function (JChessPiece, $) {
     };
 
     JChessBoard.prototype._initPieces = function () {
-        this.kings = {};
         this.each(function (piece) {
             piece._genPossiblePositions();
         });
@@ -1093,7 +1092,7 @@ var JChessBoard = (function (JChessPiece, $) {
             return false;
         }
 
-        if (!this.isCheck(color)) {
+        if (false === this.isCheck(color)) {
             return false;
         }
 
