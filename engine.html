@@ -6,12 +6,22 @@
     <style>
         canvas {
             border: 1px solid #000000;
+            cursor: default;
         }
 
         input {
-            width: 512px;
-            margin-bottom: 1em;
+            width: 515px;
         }
+
+        .left {
+            float: left;
+            width: 515px;
+        }
+
+        .right {
+            margin-left: 515px;
+        }
+
     </style>
 
 
@@ -23,13 +33,13 @@
 </head>
 <body>
 <div>
-    <input type="text" id="fen">
+<div class="left">
+    <canvas width="512" height="512">
+    </canvas>
 </div>
-<canvas width="512" height="512" style="cursor: default;">
-</canvas>
-<textarea id="console">
-
-</textarea>
+<div class="right">
+    <div id="fen"></div>
+</div>
 <script>
 
     var problems = [
@@ -38,10 +48,11 @@
 //        '1P6/8/n7/2Q5/8/8/8/8 b -'
 //        '1B6/8/n7/2N5/8/8/8/8 b -'
 //        'k7/R7/n7/K7/8/8/8/8 b -'
-        'k7/1R6/nK6/8/8/8/8/8 w -',
+//        'k7/1R6/nK6/8/8/8/8/8 w -',
 //        'k7/1R6/n7/8/8/8/8/7K w -',
-        '7k/7b/5Kp1/8/8/8/8/5Q2 w -'
-//        'k1b5/ppK5/5Q2/8/8/8/8/1R6 w -'
+//        '7k/7b/5Kp1/8/8/8/8/5Q2 w -'
+//        'k1b5/ppK5/5Q2/8/8/8/8/1R6 w -',
+        'rnbqkbnr/ppppp1pp/8/5p2/4P3/8/PPPP1PPP/RNBQKBNR w KQkq'
     ];
 
     var canvas = $('canvas').jschessboard({numbers: true});
@@ -81,14 +92,14 @@
             if (engine.side !== event.subject.board.nextStepSide) {
                 return;
             }
-            var san = engine.think();
-
-            if (san !== undefined) {
-                board.move(san);
-            } else {
-                alert('Game over');
-            }
-            $('#thinking').hide();
+//            var san = engine.think();
+//
+//            if (san !== undefined) {
+////                board.move(san);
+//            } else {
+//                alert('Game over');
+//            }
+//            $('#thinking').hide();
         }, 500);
 
     });

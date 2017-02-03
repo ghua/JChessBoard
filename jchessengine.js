@@ -33,32 +33,58 @@ var JChessEngine = (function ($) {
         this.currentMoveChoice = null;
         this.maxDepth = 3;
         this.eventDispatcher = new JChessEventDispatcher();
+
+        this.transpositionTable = {};
+        this.searchQueue = [];
+
+        this.value = null;
     }
 
     JChessEngine.prototype.think = function () {
-        this._bestPossibleMove();
+        this._findBestPossibleMove();
 
         return this.currentMoveChoice;
     };
 
-    JChessEngine.prototype._bestPossibleMove = function () {
+    JChessEngine.prototype._findBestPossibleMove = function () {
+        var me = this;
+
         var clone = new JChessBoard(this.board.settings, new JChessEventDispatcher());
         var fen = this.board.positionToFen();
         clone.fenToPosition(fen);
 
-        var scores = this._getScoresFromFen(fen, this.side);
-        var min = Math.min.apply(null, scores.filter(function (value) {
-            return value < 0;
-        }));
-        var max = Math.max.apply(null, scores.filter(function (value) {
-            return value > 0;
-        }));
+        clone.eventDispatcher.addEventListener('board_piece_captured', function (event) {
+            me.value = me.piecePrice[event.piece.type];
+        });
 
-        this._minimax(clone, 0, min, max);
+        this._fillQueue(clone);
+
+        this._evaluateNext(clone, 2, -Infinity, +Infinity);
     };
 
-    JChessEngine.prototype._minimax = function (board, depth, lowerBound, upperBound) {
+    JChessEngine.prototype._fillQueue = function (board) {
         var n, p, piece, possiblePositions, possiblePosition;
+        var fen = this.board.positionToFen();
+
+        var pieces = board.allPieces().filter(function (value) {
+            return value.color === board.nextStepSide;
+        });
+
+        for (p = 0; p < pieces.length; p++) {
+            this.value = 0;
+
+            piece = pieces[p];
+            possiblePositions = piece.getPossiblePositions();
+            for (n = 0; n < possiblePositions.length; n++) {
+                possiblePosition = possiblePositions[n];
+                this.searchQueue.push({'fen': fen, 'piece': piece, 'possiblePosition': possiblePosition});
+            }
+        }
+    };
+
+    JChessEngine.prototype._evaluateNext = function (board, depth, lowerBound, upperBound) {
+        var p, piece, fen, possiblePosition;
+        var zorbistHash;
 
         this.eventDispatcher.dispatchEvent('iteration', new JChessEvent(this, {
             'board': board,
@@ -67,121 +93,53 @@ var JChessEngine = (function ($) {
             'upperBound': upperBound
         }));
 
-        if (depth > this.maxDepth || board.countPossiblePositions() === 0) {
-            // @todo: would be better to fix this ↓↓↓↓↓
-            if (board.isCheckmate()) {
-                return 100;
-            }
-
-            return this._evaluateState(board, depth);
-        }
-
         var pieces = board.allPieces().filter(function (value) {
             return value.color === board.nextStepSide;
         });
 
-        var candidateMoveNodes = [];
-        for (p = 0; p < pieces.length; p++) {
-            piece = pieces[p];
-            possiblePositions = piece.getPossiblePositions();
-            for (n = 0; n < possiblePositions.length; n++) {
-                possiblePosition = possiblePositions[n];
+        while (this.searchQueue.length > 0) {
+            p = this.searchQueue.pop();
 
-                var clone = new JChessBoard(board.settings, new JChessEventDispatcher());
-                clone.fenToPosition(board.positionToFen());
-                var move = clone.move(piece, possiblePosition);
-                var score = this._minimax(clone, depth + 1, lowerBound, upperBound);
-
-                var node = {'score': score, 'move': move};
-
-                var log = [depth, board.nextStepSide, move, score];
-
-                console.log(log.join(' - '));
-
-                if (board.nextStepSide === this.side) {
-                    candidateMoveNodes.push(node);
-                    if (node.score > lowerBound) {
-                        lowerBound = node.score;
-                    }
-                } else {
-                    if (node.score < upperBound) {
-                        upperBound = node.score;
-                    }
-                }
-                if (upperBound < lowerBound) {
-                    break;
+            if (piece instanceof JChessPiece) {
+                if (piece !== p['piece']) {
+                    board.fenToPosition(p['fen']);
                 }
             }
-        }
 
-        if (board.nextStepSide === this.side) {
-            var candidateScores = [];
-            var candidateMoves = [];
-            for (n = 0; n < candidateMoveNodes.length; n++) {
-                node = candidateMoveNodes[n];
-                candidateMoves.push(node.move);
-                candidateScores.push(node.score);
+            this.value = 0;
+
+            possiblePosition = p['possiblePosition'];
+            piece = p['piece'];
+
+
+            zorbistHash = board.zorbistHash;
+            zorbistHash ^= board.zobristBoard[piece.currentPosition][board.zorbistIndex[piece.fen]];
+            if (board.has(possiblePosition)) {
+                zorbistHash ^= board.zobristBoard[possiblePosition][board.zorbistIndex[board.get(possiblePosition).fen]];
             }
+            zorbistHash ^= board.zobristBoard[possiblePosition][board.zorbistIndex[piece.fen]];
 
-            this.currentMoveChoice = candidateMoves[candidateScores.indexOf(Math.max.apply(null, candidateScores))];
 
-            return lowerBound;
-        } else {
-            return upperBound;
-        }
-    };
+            if (this.transpositionTable[zorbistHash]) {
+                // return this.transpositionTable[zorbistHash];
+            } else {
+                fen = board.positionToFen();
 
-    /**
-     * @param board {JChessBoard}
-     * @param depth {number}
-     * @returns {number}
-     * @private
-     */
-    JChessEngine.prototype._evaluateState = function (board, depth) {
-        return this._evaluateFen(board.positionToFen(), this.side);
-    };
+                board.move(piece, possiblePosition);
 
-    /**
-     * @param {string} fen
-     * @param {string} mySide
-     * @returns {Array}
-     * @private
-     */
-    JChessEngine.prototype._getScoresFromFen = function (fen, mySide) {
-        var me = this;
-        return fen.match(/^([a-zA-Z0-9\/]+)/)[0].replace(/[0-9\/]/gi, '').replace(/./g, function (value) {
-                var score;
-                score = parseInt(me.piecePrice[value.toLowerCase()]);
+                this.transpositionTable[board.zorbistHash] = this.value;
 
-                var isBlackPiece = /[a-z]/.test(value);
-                if (( (isBlackPiece === true && mySide === 'w' ) || (isBlackPiece === false && mySide === 'b'))) {
-                    score = score * -1;
+                if (depth > 0) {
+                    this._fillQueue(board);
                 }
 
-                return score + ':';
-            })
-            .replace(/:$/, '')
-            .split(':')
-            .map(function (value) {
-                return parseInt(value);
-            }, me);
-    };
+                depth--;
+            }
 
-    /**
-     * @param fen {string}
-     * @param mySide {string}
-     * @returns {number}
-     * @private
-     */
-    JChessEngine.prototype._evaluateFen = function (fen, mySide) {
-        var scores = this._getScoresFromFen(fen, mySide);
 
-        var sum = 0, n;
-        for (n = 0; n < scores.length; n++) {
-            sum += scores[n];
         }
 
-        return sum;
+        return;
     };
 
     return JChessEngine;
