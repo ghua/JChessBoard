@@ -465,12 +465,18 @@ var JChessPiece = (function ($) {
         this._genPossiblePositions();
 
         var me = this;
+        var boardClone;
 
         return this.possiblePositions.all().filter(
             function (position) {
-                var boardClone = new JChessBoard(this.settings, new JChessEventDispatcher);
-                boardClone.fenToPosition(me.board.positionToFen());
-                return me.isPossiblePosition(position) && boardClone.move(me.currentPosition, position);
+                if (true === me.isPossiblePosition(position)) {
+                    boardClone = new JChessBoard(this.settings, new JChessEventDispatcher);
+                    boardClone.fenToPosition(me.board.positionToFen());
+
+                    return false !== boardClone.move(me.currentPosition, position);
+                }
+
+                return false;
             });
     };
 
@@ -514,17 +520,22 @@ var JChessBoard = (function (JChessPiece, $) {
             'P': 0, 'N': 1, 'B': 2, 'R': 3, 'Q': 4, 'K': 5,
             'p': 6, 'n': 7, 'b': 8, 'r': 9, 'q': 10, 'k': 11
         };
+        this.zorbistSide = me._zorbistRandom();
         this.zorbistHash = 0;
         this.zobristBoard = Array.apply(null, new Array(64))
             .map(function () {
                 return Array.apply(null, new Array(14))
                     .map(function () {
-                        return Math.floor(Math.random() * Math.pow(2, 30))
+                        return me._zorbistRandom();
                     });
             });
 
         this.clear();
     }
+
+    JChessBoard.prototype._zorbistRandom = function () {
+        return Math.floor(Math.random() * Math.pow(2, 30));
+    };
 
     JChessBoard.prototype.start = function () {
         return this.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq');
@@ -586,13 +597,24 @@ var JChessBoard = (function (JChessPiece, $) {
             }
         }
 
-        if (8 in rows && /(w|b)/.test(rows[8])) {
-            this.nextStepSide = rows[8];
+        if (8 in rows && rows[8] !== this.nextStepSide) {
+            this.switchSide();
         }
 
         this._initPieces();
 
         return this;
+    };
+
+    /**
+     * @return {string|*|string}
+     */
+    JChessBoard.prototype.switchSide = function () {
+        this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
+
+        this.zorbistHash ^= this.zorbistSide;
+
+        return this.nextStepSide;
     };
 
     JChessBoard.prototype._initPieces = function () {
@@ -892,7 +914,7 @@ var JChessBoard = (function (JChessPiece, $) {
 
         piece.setCurrentPosition(newPosition);
 
-        this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
+        this.switchSide();
 
         if (castlingRook !== false) {
             side = this._getSideByRook(castlingRook);
@@ -901,7 +923,7 @@ var JChessBoard = (function (JChessPiece, $) {
                 'piece': piece,
                 'castlingRook': castlingRook
             }));
-            this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
+            this.switchSide();
         }
 
         if (piece.type === 'p' && [0, 7].indexOf(XY[1]) > -1) {

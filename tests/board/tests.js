@@ -905,6 +905,53 @@
         }
     });
 
+    QUnit.test("Test pawn long first step from wrong line", function (assert) {
+        var board = new JChessBoard(settings);
+
+        board.fenToPosition('8/8/8/4p3/3P4/8/8/8 w -');
+
+        var whitePawn = board.get(35);
+        var possiblePositions = whitePawn.getPossiblePositions();
+
+        assert.equal(possiblePositions.length, 2);
+        assert.ok(possiblePositions.indexOf(27) > -1);
+        assert.ok(possiblePositions.indexOf(28) > -1);
+    });
+
+    QUnit.test("Test pawn long steps with normal board", function (assert) {
+        settings['side'] = 'w';
+        var board = new JChessBoard(settings);
+
+        board.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq');
+
+        assert.equal('e2e4', board.move(52, 36));
+
+        var blackPawn = board.get(12);
+        var possiblePositions = blackPawn.getPossiblePositions();
+
+        assert.equal(possiblePositions.length, 2);
+        assert.equal('b', blackPawn.color);
+        assert.ok(possiblePositions.indexOf(20) > -1);
+        assert.ok(possiblePositions.indexOf(28) > -1);
+    });
+
+    QUnit.test("Test pawn long steps with inverse board", function (assert) {
+        settings['side'] = 'b';
+        var board = new JChessBoard(settings);
+
+        board.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq');
+
+        assert.equal('e2e4', board.move(52, 36));
+
+        var blackPawn = board.get(12);
+        var possiblePositions = blackPawn.getPossiblePositions();
+
+        assert.equal(possiblePositions.length, 2);
+        assert.equal('b', blackPawn.color);
+        assert.ok(possiblePositions.find(20) > -1);
+        assert.ok(possiblePositions.find(28) > -1);
+    });
+
 }(QUnit, JChessPiece, JChessBoard));
 
 
