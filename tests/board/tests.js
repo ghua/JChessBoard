@@ -19,7 +19,7 @@
 
         var initialHash = board.zorbistHash;
 
-        board.move('a2a4');
+        assert.equal('a2a4', board.move('a2a4'));
 
         assert.notEqual(initialHash, board.zorbistHash);
 
@@ -654,10 +654,12 @@
     });
 
     QUnit.test("Test _anToPosition - black side", function (assert) {
-        var board = new JChessBoard($.extend({'side': 'b'}, settings));
+        settings['side'] = 'b';
+        var board = new JChessBoard(settings);
         assert.equal(board._anToPosition('a1'), 56);
         assert.equal(board._anToPosition('e4'), 36);
         assert.equal(board._anToPosition('a8'), 0);
+        settings['side'] = 'w';
     });
 
     QUnit.test("Test get pawn by algebraic notation - _pieceByNextSan", function (assert) {
@@ -924,7 +926,7 @@
 
         board.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq');
 
-        assert.equal('e2e4', board.move(52, 36));
+        assert.equal(board.move(52, 36), 'e2e4');
 
         var blackPawn = board.get(12);
         var possiblePositions = blackPawn.getPossiblePositions();
@@ -941,15 +943,16 @@
 
         board.fenToPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq');
 
-        assert.equal('e2e4', board.move(52, 36));
+        assert.equal(board.move(52, 36), 'e2e4');
 
         var blackPawn = board.get(12);
         var possiblePositions = blackPawn.getPossiblePositions();
 
         assert.equal(possiblePositions.length, 2);
         assert.equal('b', blackPawn.color);
-        assert.ok(possiblePositions.find(20) > -1);
-        assert.ok(possiblePositions.find(28) > -1);
+        assert.ok(possiblePositions.indexOf(20) > -1);
+        assert.ok(possiblePositions.indexOf(28) > -1);
+        settings['side'] = 'w';
     });
 
 }(QUnit, JChessPiece, JChessBoard));

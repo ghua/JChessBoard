@@ -262,7 +262,7 @@ var JChessPiece = (function ($) {
             return false;
         }
 
-        if (this.type === 'p' && this._additionalPiecePositionCheck(oldPosition, newPosition) === false) {
+        if (this.type === 'p' && this._additionalPawnPositionCheck(oldPosition, newPosition) === false) {
             return false;
         }
 
@@ -273,7 +273,7 @@ var JChessPiece = (function ($) {
         return true;
     };
 
-    JChessPiece.prototype._additionalPiecePositionCheck = function (oldPosition, newPosition) {
+    JChessPiece.prototype._additionalPawnPositionCheck = function (oldPosition, newPosition) {
         var offsets;
         offsets = this.board.offsetsByPositions(oldPosition, newPosition);
         if (offsets[0] !== 0 && (!this.board.has(newPosition) || this.board.get(newPosition).color === this.color)) {
@@ -289,8 +289,13 @@ var JChessPiece = (function ($) {
                 return false;
             }
 
+            if ((this.color === 'w' && this.Y !== (this.board.side === 'w' ? 6 : 1)) ||
+                (this.color === 'b' && this.Y !== (this.board.side === 'w' ? 1 : 6))) {
+                return false;
+            }
+
             // TODO: it's hot fix
-            if (this.board.has(this.board.newPositionByPositionAndOffset(oldPosition, 0, offsets[1] + (this.color === 'w' ? 1 : -1))) === true) {
+            if (this.board.has(this.board.newPositionByPositionAndOffset(oldPosition, 0, offsets[1] + (this.color === this.board.side ? 1 : -1))) === true) {
                 return false
             }
         }
@@ -470,10 +475,14 @@ var JChessPiece = (function ($) {
         return this.possiblePositions.all().filter(
             function (position) {
                 if (true === me.isPossiblePosition(position)) {
-                    boardClone = new JChessBoard(this.settings, new JChessEventDispatcher);
-                    boardClone.fenToPosition(me.board.positionToFen());
+                    if (true === me.board.isCheck(me.color)) {
+                        boardClone = new JChessBoard(this.settings, new JChessEventDispatcher);
+                        boardClone.fenToPosition(me.board.positionToFen());
 
-                    return false !== boardClone.move(me.currentPosition, position);
+                        return false !== boardClone.move(me.currentPosition, position);
+                    }
+
+                    return true;
                 }
 
                 return false;
@@ -807,6 +816,7 @@ var JChessBoard = (function (JChessPiece, $) {
             newPosition = this._anToPosition(san);
             piece = this._pieceByNextSan(san);
             if (!piece) {
+
                 return false;
             }
             promotionType = san.match(/([N|Q|R|B])$/);
@@ -836,6 +846,7 @@ var JChessBoard = (function (JChessPiece, $) {
 
                 if (this.isCheck(piece.color) === false) {
                     this.eventDispatcher.dispatchEvent('board_post_piece_move', event);
+
                     return sanResult;
                 } else {
                     if (isBack === false) {
@@ -1177,7 +1188,7 @@ var JChessBoard = (function (JChessPiece, $) {
     JChessBoard.prototype._positionToAn = function (position) {
         var XY = this.positionToCoordinate(position);
         var file = this.files[XY[0]];
-        var rank = this.ranks[XY[1]];
+        var rank = this.ranks[this.side === 'w' ? XY[1] : 7 - XY[1]];
 
         return file + '' + rank;
     };
@@ -1271,6 +1282,7 @@ var JChessCanvas = (function ($) {
         this.settings = $.extend({
             cellSize: 64,
             numbers: false,
+            numbersType: 'algebraic',
             imagesPath: 'images',
             helpStyle: {},
             help: true,
@@ -1310,7 +1322,7 @@ var JChessCanvas = (function ($) {
         var board = event.subject;
         var size = this.settings.cellSize;
         var x = 0, y = 0, c = 0;
-        var row, col, color;
+        var row, col, color, text;
 
         for (row = 0; row < 8; row++) {
             for (col = 0; col < 8; col++) {
@@ -1333,13 +1345,26 @@ var JChessCanvas = (function ($) {
                 });
 
                 if (this.settings.numbers === true) {
+                    switch (this.settings.numbersType) {
+                        case 'number':
+                            text = c;
+                            break;
+                        case 'xy':
+                            text = col + '|' + (this.settings.side === 'w' ? row : 7 - row);
+                            break;
+                        case 'algebraic':
+                        default:
+                            text = board.files[col] + '' + board.ranks[row];
+                            break;
+                    }
+
                     this.canvas.drawText({
                         layer: true,
                         fillStyle: '#9cf',
                         x: x, y: y,
                         fontSize: 24,
                         fontFamily: 'Verdana, sans-serif',
-                        text: board.files[col] + '' + board.ranks[row]
+                        text: text
                     });
                 }
 
