@@ -1129,23 +1129,21 @@ var JChessBoard = (function (JChessPiece, $) {
     JChessBoard.prototype.isStalemate = function (color) {
         var n, p, positions, position, piece;
 
-        var pieces = this.allPieces().filter(function (piece) {
-            return piece.color === color;
-        });
+        if (this.kings[color] === undefined) {
+            return false;
+        }
 
-        for (n = 0; n < pieces.length; n++) {
-            piece = pieces[n];
-            positions = piece.getPossiblePositions();
-            for (p = 0; p < positions.length; p++) {
-                position = positions[p];
+        piece = this.kings[color];
+        positions = piece.getPossiblePositions();
+        for (p = 0; p < positions.length; p++) {
+            position = positions[p];
 
-                if (true === piece.isPossiblePosition(position)) {
-                    return false;
-                }
+            if (true === piece.isPossiblePosition(position)) {
+                return false;
             }
         }
 
-        return true;
+        return false === this.isCheckmate(color);
     };
 
     JChessBoard.prototype.isCheckmate = function (color) {

@@ -43,27 +43,20 @@
 <script>
 
     var problems = [
-//            '1P6/2R5/n7/8/8/8/8/8 b -'
-//        'n7/2P5/1Q6/8/8/8/8/8 w -'
-//        '1P6/8/n7/2Q5/8/8/8/8 b -'
-//        '1P6/8/n7/2N5/8/8/8/8 w -'
-//        'k7/R7/n7/K7/8/8/8/8 b -'
+        // two steps
         'k7/1R6/nK6/8/8/8/8/8 w -',
-//        'k7/1R6/n7/8/8/8/8/7K w -',
-//        '7k/7b/5Kp1/8/8/8/8/5Q2 w -'
-//        'k1b5/ppK5/5Q2/8/8/8/8/1R6 w -',
-//        'rnbqkbnr/ppppp1pp/8/5p2/4P3/8/PPPP1PPP/RNBQKBNR w KQkq'
-//        '8/8/8/4p3/3P4/8/8/8 w -'
+        '7k/7b/5Kp1/8/8/8/8/5Q2 w -',
+
+        // three steps
+        'k2N4/7R/8/4K3/8/8/8/8 w -',
+        '8/8/8/8/8/8/8/8 w -'
+
+//        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq'
     ];
 
     var canvas = $('canvas').jschessboard({numbers: true, numbersType: 'number'});
     var board = canvas.board;
     var eventDispatcher = board.eventDispatcher;
-
-    eventDispatcher.addEventListener('board_post_piece_move', function (event) {
-        console.log(event.subject.identificator, event.environment);
-        $('#fen').val(board.positionToFen());
-    });
 
     eventDispatcher.addEventListener('board_checkmate_detected', function (event) {
         alert('Checkmate');
@@ -83,37 +76,24 @@
 
     board.fenToPosition(problems[problem]);
 
-    var engine = new JChessEngine(board, 'w');
-    //    board.move(engine.think());
-
-    eventDispatcher.addEventListener('board_post_piece_move', function (event) {
-        $('#thinking').show();
-        setTimeout(function () {
-
-            if (engine.side !== event.subject.board.nextStepSide) {
-                return;
-            }
-//            var san = engine.think();
+    var engine = new JChessEngine(board, 'w', 3);
 //
-//            if (san !== undefined) {
-////                board.move(san);
+//    eventDispatcher.addEventListener('board_post_piece_move', function (event) {
+//        $('#thinking').show();
+//        setTimeout(function () {
+//            if (engine.side !== event.subject.board.nextStepSide) {
+//                return;
+//            }
+//            var nextStep = engine.think();
+//
+//            if (nextStep !== null) {
+//                board.move(nextStep['currentPosition'], nextStep['possiblePosition']);
 //            } else {
 //                alert('Game over');
 //            }
 //            $('#thinking').hide();
-        }, 500);
-
-    });
-
-    function getRandomInt(min, max) {
-        return Math.floor(Math.random() * (max - min)) + min;
-    }
-
-    $('#fen').val(board.positionToFen());
-
-    $('#fen').keyup(function () {
-        board.fenToPosition($('#fen').val());
-    });
+//        }, 500);
+//    });
 
 </script>
 

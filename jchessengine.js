@@ -24,23 +24,113 @@
 
 var JChessEngine = (function ($) {
 
-    function JChessEngine(board, side) {
+    function JChessEngine(board, side, depth) {
         this.board = board;
         this.piecePrice = {
             p: 1, n: 3, b: 3, r: 5, q: 10, k: 11
         };
         this.side = side;
-        this.nextBestMove = null;
-        this.depth = 3;
+        this.bestPossibleMove = null;
+        this.depth = (depth * 2) + 1;
         this.eventDispatcher = new JChessEventDispatcher();
-
         this.transpositionTable = {};
+
+        var me = this;
+        this._evaluateNext = function myself (board, depth, alpha, beta) {
+            var n, p, piece, possiblePositions, score;
+
+            score = me.getFromCache(board.zorbistHash);
+            if (score !== undefined) {
+
+                return score;
+            }
+
+            if (true === board.isStalemate(board.nextStepSide)) {
+
+                return score;
+            }
+
+            if (depth === 0 || board.isCheck(board.nextStepSide)) {
+                score = me._evaluateState(board);
+
+                me.setToCache(board.zorbistHash, score);
+
+                return score;
+            }
+
+            var pieces = board.allPieces().filter(function (value) {
+                return value.color === board.nextStepSide;
+            });
+
+            for (n = 0; n < pieces.length; n++) {
+                piece = pieces[n];
+
+                var currentPosition = piece.currentPosition;
+                possiblePositions = piece.getPossiblePositions();
+
+                for(p = 0; p < possiblePositions.length; p++) {
+                    var possiblePosition = possiblePositions[p];
+
+                    if (alpha >= beta) {
+
+                        break;
+                    }
+
+                    var step = board.move(currentPosition, possiblePosition);
+
+                    if (false !== step) {
+                        score = myself(board, depth - 1, alpha, beta);
+
+                        if (depth % 2 !== 0) { // max node
+                            if (score > alpha) {
+                                if (depth === me.depth) {
+                                    me.bestPossibleMove = {
+                                        'depth': depth,
+                                        'score': score,
+                                        'alpha': alpha,
+                                        'beta': beta,
+                                        'currentPosition': currentPosition,
+                                        'possiblePosition': possiblePosition
+                                    };
+                                }
+
+                                alpha = score;
+                            }
+                        } else { // min node
+                            if (score < beta) {
+
+                                beta = score;
+                            }
+                        }
+
+                        board.back();
+
+                    }
+
+                }
+            }
+
+            if (depth % 2 === 0) {
+
+                return beta;
+            }
+
+            return alpha;
+        };
     }
+
+    JChessEngine.prototype.getFromCache = function (key) {
+        return this.transpositionTable[key];
+    };
+
+    JChessEngine.prototype.setToCache = function (key, value) {
+        return this.transpositionTable[key] = value;
+    };
 
     JChessEngine.prototype.think = function () {
         this._findBestPossibleMove();
 
-        return this.nextBestMove;
+        return this.bestPossibleMove;
     };
 
     JChessEngine.prototype._findBestPossibleMove = function () {
@@ -49,76 +139,6 @@ var JChessEngine = (function ($) {
         clone.fenToPosition(fen);
 
         this._evaluateNext(clone, this.depth, -Infinity, +Infinity);
-    };
-
-    JChessEngine.prototype._evaluateNext = function (board, depth, alpha, beta) {
-        var n, p, piece, currentPosition, possiblePositions, possiblePosition, score;
-
-        var pieces = board.allPieces().filter(function (value) {
-            return value.color === board.nextStepSide;
-        });
-
-        if (true === board.isStalemate(board.nextStepSide)) {
-
-            return 0;
-        }
-
-        if (depth === 0) {
-            score = this._evaluateState(board);
-
-            if (this.transpositionTable[board.zorbistHash] === undefined) {
-
-                this.transpositionTable[board.zorbistHash] = score;
-            }
-
-            return score;
-        }
-
-        for (n = 0; n < pieces.length; n++) {
-            piece = pieces[n];
-
-            currentPosition = piece.currentPosition;
-            possiblePositions = piece.getPossiblePositions();
-
-            for(p = 0; p < possiblePositions.length; p++) {
-                possiblePosition = possiblePositions[p];
-
-                if (false === board.move(currentPosition, possiblePosition)) {
-
-                    throw "Move filed!";
-                }
-
-                score = this._evaluateNext(board, depth - 1, alpha, beta);
-
-                board.back();
-
-                if (depth % 2 !== 0) { // max node
-                    if (score >= alpha) {
-                        this.nextBestMove = { 'currentPosition': currentPosition, 'possiblePosition': possiblePosition };
-
-                        alpha = score;
-                    }
-                } else { // min node
-                    if (score <= beta) {
-
-                        beta = score;
-                    }
-                }
-
-                if (alpha >= beta) {
-
-                    break;
-                }
-
-            }
-        }
-
-        if (depth % 2 === 0) {
-
-            return beta;
-        }
-
-        return alpha;
     };
 
     /**
