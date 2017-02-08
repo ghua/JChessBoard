@@ -44,18 +44,19 @@
 
     var problems = [
 //            '1P6/2R5/n7/8/8/8/8/8 b -'
-//        'n7/2P5/1Q6/8/8/8/8/8 b -'
+//        'n7/2P5/1Q6/8/8/8/8/8 w -'
 //        '1P6/8/n7/2Q5/8/8/8/8 b -'
-//        '1B6/8/n7/2N5/8/8/8/8 b -'
+//        '1P6/8/n7/2N5/8/8/8/8 w -'
 //        'k7/R7/n7/K7/8/8/8/8 b -'
-//        'k7/1R6/nK6/8/8/8/8/8 w -',
+        'k7/1R6/nK6/8/8/8/8/8 w -',
 //        'k7/1R6/n7/8/8/8/8/7K w -',
 //        '7k/7b/5Kp1/8/8/8/8/5Q2 w -'
 //        'k1b5/ppK5/5Q2/8/8/8/8/1R6 w -',
-        'rnbqkbnr/ppppp1pp/8/5p2/4P3/8/PPPP1PPP/RNBQKBNR w KQkq'
+//        'rnbqkbnr/ppppp1pp/8/5p2/4P3/8/PPPP1PPP/RNBQKBNR w KQkq'
+//        '8/8/8/4p3/3P4/8/8/8 w -'
     ];
 
-    var canvas = $('canvas').jschessboard({numbers: true});
+    var canvas = $('canvas').jschessboard({numbers: true, numbersType: 'number'});
     var board = canvas.board;
     var eventDispatcher = board.eventDispatcher;
 
@@ -82,7 +83,7 @@
 
     board.fenToPosition(problems[problem]);
 
-    var engine = new JChessEngine(board, 'b');
+    var engine = new JChessEngine(board, 'w');
     //    board.move(engine.think());
 
     eventDispatcher.addEventListener('board_post_piece_move', function (event) {
