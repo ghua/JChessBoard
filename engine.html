@@ -49,9 +49,9 @@
 
         // three steps
         'k2N4/7R/8/4K3/8/8/8/8 w -',
-        '8/8/8/8/8/8/8/8 w -'
+//        '8/8/8/8/8/8/8/8 w -'
 
-//        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq'
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq'
     ];
 
     var canvas = $('canvas').jschessboard({numbers: true, numbersType: 'number'});
@@ -76,7 +76,7 @@
 
     board.fenToPosition(problems[problem]);
 
-    var engine = new JChessEngine(board, 'w', 3);
+    var engine = new JChessEngine(board, 'w', 2);
 //
 //    eventDispatcher.addEventListener('board_post_piece_move', function (event) {
 //        $('#thinking').show();

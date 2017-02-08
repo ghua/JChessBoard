@@ -1143,7 +1143,7 @@ var JChessBoard = (function (JChessPiece, $) {
             }
         }
 
-        return false === this.isCheckmate(color);
+        return false === this.isCheck(color);
     };
 
     JChessBoard.prototype.isCheckmate = function (color) {

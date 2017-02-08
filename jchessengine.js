@@ -47,7 +47,7 @@ var JChessEngine = (function ($) {
 
             if (true === board.isStalemate(board.nextStepSide)) {
 
-                return score;
+                return 0;
             }
 
             if (depth === 0 || board.isCheck(board.nextStepSide)) {
@@ -147,7 +147,7 @@ var JChessEngine = (function ($) {
      * @private
      */
     JChessEngine.prototype._evaluateState = function (board) {
-        if (true === board.isCheckmate(board.nextStepSide)) {
+        if (true === board.isCheck(board.nextStepSide) && true === board.isCheckmate(board.nextStepSide)) {
 
             return 100 - board.moveLog.length;
         }
