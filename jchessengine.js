@@ -31,7 +31,7 @@ var JChessEngine = (function ($) {
         };
         this.side = side;
         this.bestPossibleMove = null;
-        this.depth = (depth * 2) + 1;
+        this.depth = (depth * 2) - 1;
         this.eventDispatcher = new JChessEventDispatcher();
         this.transpositionTable = {};
 
