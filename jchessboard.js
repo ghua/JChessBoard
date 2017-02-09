@@ -882,12 +882,6 @@ var JChessBoard = (function (JChessPiece, $) {
             return false;
         }
 
-        this.eventDispatcher.dispatchEvent('board_piece_move', new JChessEvent(piece, {
-            'newPosition': newPosition,
-            'XY': XY,
-            'isBack': isBack
-        }));
-
         castlingRook = this._isCastlingSideAvailable(oldPosition, newPosition);
 
         if (piece.type === 'k') {
@@ -913,6 +907,12 @@ var JChessBoard = (function (JChessPiece, $) {
         }
 
         this.set(newPosition, piece);
+
+        this.eventDispatcher.dispatchEvent('board_piece_move', new JChessEvent(piece, {
+            'newPosition': newPosition,
+            'XY': XY,
+            'isBack': isBack
+        }));
 
         if (isBack !== true) {
             this.moveLog.push({
@@ -1061,14 +1061,14 @@ var JChessBoard = (function (JChessPiece, $) {
     JChessBoard.prototype.delete = function (num, isMove) {
         var piece = this.cells[num];
 
-        if (isMove === false) {
+        if (isMove === true) {
             if (piece instanceof JChessPiece) {
-                this.eventDispatcher.dispatchEvent('board_piece_delete', new JChessEvent(piece));
+                this.eventDispatcher.dispatchEvent('board_piece_delete', new JChessEvent(piece, {'isMove': isMove}));
             }
-        } else {
-            if (piece instanceof JChessPiece) {
-                this.zorbistHash ^= this.zorbistBoard[num][this.zorbistIndex[piece.fen]];
-            }
+        }
+
+        if (piece instanceof JChessPiece) {
+            this.zorbistHash ^= this.zorbistBoard[num][this.zorbistIndex[piece.fen]];
         }
 
         this.cells[num] = undefined;
@@ -1337,7 +1337,9 @@ var JChessCanvas = (function ($) {
      */
     JChessCanvas.prototype.onBoardPieceDelete = function (event) {
         var piece = event.subject;
-        this.canvas.removeLayer(piece.identificator);
+        if (event.environment.isMove === false)  {
+            this.canvas.removeLayer(piece.identificator);
+        }
     };
 
     /**

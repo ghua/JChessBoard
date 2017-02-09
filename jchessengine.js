@@ -32,6 +32,9 @@ var JChessEngine = (function ($) {
         this.board.eventDispatcher.addEventListener('board_piece_move', function (event) {
             this.clone.move(event.subject.currentPosition, event.environment.newPosition);
         }, me);
+        this.board.eventDispatcher.addEventListener('board_step_back', function () {
+            this.clone.back();
+        }, me);
 
         this.piecePrice = {
             p: 1, n: 3, b: 4, r: 5, q: 10, k: 11
@@ -100,24 +103,12 @@ var JChessEngine = (function ($) {
                             }
                         } else { // max node
                             if (score >= beta) {
-                                if (depth === me.depth) {
-                                    me.bestPossibleMove = {
-                                        'score': score,
-                                        'currentPosition': currentPosition,
-                                        'possiblePosition': possiblePosition
-                                    };
-                                }
+                                me.bestPossibleMove = step;
 
                                 return beta;
                             }
                             if (score > alpha) {
-                                if (depth === me.depth) {
-                                    me.bestPossibleMove = {
-                                        'score': score,
-                                        'currentPosition': currentPosition,
-                                        'possiblePosition': possiblePosition
-                                    };
-                                }
+                                me.bestPossibleMove = step;
 
                                 alpha = score;
                             }
@@ -157,6 +148,8 @@ var JChessEngine = (function ($) {
     };
 
     JChessEngine.prototype._findBestPossibleMove = function () {
+        this.bestPossibleMove = null;
+
         this._evaluateNext(this.clone, this.depth, -Infinity, +Infinity);
     };
 
