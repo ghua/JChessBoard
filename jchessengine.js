@@ -63,6 +63,11 @@ var JChessEngine = (function ($) {
             });
 
             for (n = 0; n < pieces.length; n++) {
+                if (alpha >= beta) {
+
+                    break;
+                }
+
                 piece = pieces[n];
 
                 var currentPosition = piece.currentPosition;
@@ -147,7 +152,7 @@ var JChessEngine = (function ($) {
      * @private
      */
     JChessEngine.prototype._evaluateState = function (board) {
-        if (true === board.isCheck(board.nextStepSide) && true === board.isCheckmate(board.nextStepSide)) {
+        if (true === board.isCheckmate(board.nextStepSide)) {
 
             return 100 - board.moveLog.length;
         }
