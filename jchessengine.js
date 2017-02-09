@@ -45,27 +45,17 @@ var JChessEngine = (function ($) {
         this.eventDispatcher = new JChessEventDispatcher();
         this.transpositionTable = [];
 
-        this._evaluateNext = function myself (board, depth, alpha, beta) {
+        this._evaluateNext = function myself(board, depth, alpha, beta) {
             var n, p, piece, possiblePositions, score;
 
+            if (board.isStalemate(board.nextStepSide)) {
+                me.setToCache(board.zorbistHash, 0);
+
+                return 0;
+            }
+
             if (depth === 0) {
-                score = me.getFromCache(board.zorbistHash);
-                if (score !== undefined) {
-
-                    return score;
-                }
-
-                if (true === board.isCheck(board.nextStepSide) && true === board.isCheckmate(board.nextStepSide)) {
-                    score = 100 - board.moveLog.length;
-
-                    me.setToCache(board.zorbistHash, score);
-
-                    return score;
-                }
-
                 score = me._evaluateState(board);
-
-                me.setToCache(board.zorbistHash, score);
 
                 return score;
             }
@@ -74,7 +64,6 @@ var JChessEngine = (function ($) {
                 return value.color === board.nextStepSide;
             });
 
-            var i = 0;
             for (n = 0; n < pieces.length; n++) {
 
                 piece = pieces[n];
@@ -82,46 +71,49 @@ var JChessEngine = (function ($) {
                 var currentPosition = piece.currentPosition;
                 possiblePositions = piece.getPossiblePositions();
 
-                for(p = 0; p < possiblePositions.length; p++) {
+                for (p = 0; p < possiblePositions.length; p++) {
                     var possiblePosition = possiblePositions[p];
 
-                    var step = board.move(currentPosition, possiblePosition);
+                    var predictedHash = me.predictZorbistHash(board, currentPosition, possiblePosition);
+                    score = me.transpositionTable[predictedHash];
+                    if (score === undefined) {
 
-                    if (false !== step) {
-                        i++;
+                        var step = board.move(currentPosition, possiblePosition);
+                        if (step === false) {
+
+                            continue;
+                        }
+
                         score = myself(board, depth - 1, alpha, beta);
 
+                        me.setToCache(board.zorbistHash, score);
+
                         board.back();
-
-                        if (depth % 2 === 0) { // min node
-                            if (score <= alpha) {
-
-                                return alpha;
-                            }
-                            if (score < beta) {
-                                beta = score;
-                            }
-                        } else { // max node
-                            if (score >= beta) {
-                                me.bestPossibleMove = step;
-
-                                return beta;
-                            }
-                            if (score > alpha) {
-                                me.bestPossibleMove = step;
-
-                                alpha = score;
-                            }
-
-                        }
                     }
 
+                    if (depth % 2 === 0) { // min node
+                        if (score <= alpha) {
+
+                            return alpha;
+                        }
+                        if (score < beta) {
+                            beta = score;
+                        }
+                    } else { // max node
+                        if (score >= beta) {
+                            me.bestPossibleMove = me.prepareResponse(currentPosition, possiblePosition);
+
+                            return beta;
+                        }
+                        if (score > alpha) {
+                            me.bestPossibleMove = me.prepareResponse(currentPosition, possiblePosition);
+
+                            alpha = score;
+                        }
+
+                    }
                 }
-            }
 
-            if (i === 0 && board.isStalemate(board.nextStepSide)) {
-
-                return 0;
             }
 
             if (depth % 2 === 0) { // min node
@@ -133,12 +125,40 @@ var JChessEngine = (function ($) {
         };
     }
 
-    JChessEngine.prototype.getFromCache = function (key) {
-        return this.transpositionTable[key];
+    JChessEngine.prototype.prepareResponse = function (currentPosition, possiblePosition) {
+        return [currentPosition, possiblePosition];
+    };
+
+    JChessEngine.prototype.predictZorbistHash = function (board, currentPosition, newPosition) {
+        var currentHash = board.zorbistHash;
+
+        // remove from old place
+        var piece = board.cells[currentPosition];
+        if (piece !== undefined) {
+            currentHash ^= board.zorbistBoard[currentPosition][board.zorbistIndex[piece.fen]];
+        } else {
+            return false;
+        }
+
+        // remove if it is capture
+        var capturePiece = board.cells[newPosition];
+        if (capturePiece !== undefined) {
+            currentHash ^= board.zorbistBoard[newPosition][board.zorbistIndex[capturePiece.fen]];
+        }
+
+        // place piece to new place
+        currentHash ^= board.zorbistBoard[newPosition][board.zorbistIndex[piece.fen]];
+
+        // change side
+        currentHash ^= board.zorbistSide;
+
+        return currentHash;
     };
 
     JChessEngine.prototype.setToCache = function (key, value) {
-        return this.transpositionTable[key] = value;
+        if (this.transpositionTable[key] === undefined) {
+            return this.transpositionTable[key] = value;
+        }
     };
 
     JChessEngine.prototype.think = function () {
@@ -159,6 +179,12 @@ var JChessEngine = (function ($) {
      * @private
      */
     JChessEngine.prototype._evaluateState = function (board) {
+        if (true === board.isCheck(board.nextStepSide) && true === board.isCheckmate(board.nextStepSide)) {
+            score = 100 - board.moveLog.length;
+
+            return score;
+        }
+
         var score = 0;
         for (var n = 0; n < board.cells.length; n++) {
             var piece = board.cells[n];

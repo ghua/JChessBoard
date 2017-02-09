@@ -1,57 +1,73 @@
 (function (QUnit, JChessPiece, JChessBoard) {
-    var settings = {imagesPath: '../../images/'};
+    var settings = {imagesPath: '../../images/', 'side': 'w'};
 
-    QUnit.test("Test JChessEngine._evaluateFen", function (assert) {
-        var board = new JChessBoard(settings);
-        board.start();
-        var engine = new JChessEngine(board, 'w');
-
-        assert.equal(engine._evaluateFen(board.positionToFen(), 'w'), 0);
-
-        board.fenToPosition('8/8/8/8/4k2K/8/8/7r b -')
-        assert.equal(engine._evaluateFen(board.positionToFen(), 'w'), -5);
-
-        assert.equal(engine._evaluateFen(board.positionToFen(), 'b'), 5);
-    });
-
-    QUnit.test("Test simple choice between pawn and queen", function (assert) {
-        var fens = ['1Q6/8/n7/2P5/8/8/8/8 b -', '1P6/8/n7/2Q5/8/8/8/8 b -'];
-        var results = ['Na6xb8', 'Na6xc5'];
-
-        var board = new JChessBoard(settings);
-        var engine = new JChessEngine(board, 'b');
-
-        for (var n = 0; n < fens.length; n++) {
-            board.fenToPosition(fens[n]);
-            assert.equal(board.move(engine.think()), results[n]);
-        }
-    });
-
-    QUnit.test("Test with chessfield.ru task #1 (Dehler, Otto Georg Edgar) - black side", function (assert) {
+    QUnit.test("Test by Dehler, Otto Georg Edgar 2-ply puzzle (depth = 2)", function (assert) {
         var fen = 'k7/1R6/nK6/8/8/8/8/8 w -';
-
-        var board = new JChessBoard(settings);
+        var board = new JChessBoard(settings, new JChessEventDispatcher);
         board.fenToPosition(fen);
-        var engine = new JChessEngine(board, 'b');
-
-        board.move('Rb7d7');
-        assert.equal(board.move(engine.think()), 'Na6b4');
-        board.move('Rd7d8');
-
-        assert.ok(board.isGameOver());
+        var engine = new JChessEngine(board, settings.side, 2);
+        assert.equal(board.move.apply(board, engine.think()), 'Rb7d7');
+        assert.equal('Ka8b8', board.move('Ka8b8'));
+        assert.equal(board.move.apply(board, engine.think()), 'Rd7d8');
+        assert.ok(board.isCheckmate(board.nextStepSide));
     });
 
-    QUnit.test("Test with chessfield.ru task #1 (Dehler, Otto Georg Edgar) - white side", function (assert) {
+    QUnit.test("Test by Dehler, Otto Georg Edgar 2-ply puzzle (depth = 3)", function (assert) {
         var fen = 'k7/1R6/nK6/8/8/8/8/8 w -';
-
-        var board = new JChessBoard(settings);
+        var board = new JChessBoard(settings, new JChessEventDispatcher);
         board.fenToPosition(fen);
-        var engine = new JChessEngine(board, 'w');
+        var engine = new JChessEngine(board, settings.side, 3);
+        assert.equal(board.move.apply(board, engine.think()), 'Rb7d7');
+        assert.equal('Ka8b8', board.move('Ka8b8'));
+        assert.equal(board.move.apply(board, engine.think()), 'Rd7d8');
+        assert.ok(board.isCheckmate(board.nextStepSide));
+    });
 
-        assert.equal(board.move(engine.think()), 'Rb7d7');
-        board.move('Na6b4');
-        assert.equal(board.move(engine.think()), 'Rd7d8');
-        assert.ok(board.isGameOver());
+    QUnit.test("Test by Loyd, Samuel 2-ply puzzle (depth = 2)", function (assert) {
+        var fen = '7k/7b/5Kp1/8/8/8/8/5Q2 w -';
+        var board = new JChessBoard(settings, new JChessEventDispatcher);
+        board.fenToPosition(fen);
+        var engine = new JChessEngine(board, settings.side, 2);
+        assert.equal(board.move.apply(board, engine.think()), 'Qf1a1');
+        assert.equal('g6g5', board.move('g6g5'));
+        assert.equal(board.move.apply(board, engine.think()), 'Kf6f7');
+        assert.ok(board.isCheckmate(board.nextStepSide));
+    });
+
+    QUnit.test("Test by Loyd, Samuel 2-ply puzzle (depth = 3)", function (assert) {
+        var fen = '7k/7b/5Kp1/8/8/8/8/5Q2 w -';
+        var board = new JChessBoard(settings, new JChessEventDispatcher);
+        board.fenToPosition(fen);
+        var engine = new JChessEngine(board, settings.side, 3);
+        assert.equal(board.move.apply(board, engine.think()), 'Qf1a1');
+        assert.equal('g6g5', board.move('g6g5'));
+        assert.equal(board.move.apply(board, engine.think()), 'Kf6f7');
+        assert.ok(board.isCheckmate(board.nextStepSide));
+    });
+
+    QUnit.test("Test by Speckmann, Werner 3-ply puzzle (depth = 3)", function (assert) {
+        var board = new JChessBoard(settings, new JChessEventDispatcher);
+        board.fenToPosition('k2N4/7R/8/4K3/8/8/8/8 w -');
+        var engine = new JChessEngine(board, settings.side, 3);
+        assert.equal(board.move.apply(board, engine.think()), 'Ke5d6');
+        assert.equal('Ka8b8', board.move('Ka8b8'));
+        assert.equal(board.move.apply(board, engine.think()), 'Nd8c6');
+        assert.equal('Kb8c8', board.move('Kb8c8'));
+        assert.equal(board.move.apply(board, engine.think()), 'Rh7c7');
+        assert.ok(board.isCheckmate(board.nextStepSide));
+    });
+
+    QUnit.test("test predictZorbistHash", function (assert) {
+        var board = new JChessBoard(settings, new JChessEventDispatcher);
+        board.fenToPosition('k7/1R6/nK6/8/8/8/8/8 w -');
+
+        var engine = new JChessEngine(board, settings.side, 3);
+
+        var predictedHash = engine.predictZorbistHash(board, 17, 16);
+
+        board.move(17, 16);
+
+        assert.equal(board.zorbistHash, predictedHash);
     });
 
 

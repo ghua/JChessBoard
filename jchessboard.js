@@ -607,7 +607,7 @@ var JChessBoard = (function (JChessPiece, $) {
         }
 
         if (8 in rows && rows[8] !== this.nextStepSide) {
-            this.switchSide();
+            this.flipSide();
         }
 
         this._initPieces();
@@ -618,7 +618,7 @@ var JChessBoard = (function (JChessPiece, $) {
     /**
      * @return {string|*|string}
      */
-    JChessBoard.prototype.switchSide = function () {
+    JChessBoard.prototype.flipSide = function () {
         this.nextStepSide = (this.nextStepSide === 'w' ? 'b' : 'w');
 
         this.zorbistHash ^= this.zorbistSide;
@@ -925,7 +925,7 @@ var JChessBoard = (function (JChessPiece, $) {
 
         piece.setCurrentPosition(newPosition);
 
-        this.switchSide();
+        this.flipSide();
 
         if (castlingRook !== false) {
             side = this._getSideByRook(castlingRook);
@@ -934,7 +934,7 @@ var JChessBoard = (function (JChessPiece, $) {
                 'piece': piece,
                 'castlingRook': castlingRook
             }));
-            this.switchSide();
+            this.flipSide();
         }
 
         if (piece.type === 'p' && [0, 7].indexOf(XY[1]) > -1) {
