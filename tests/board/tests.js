@@ -10,7 +10,7 @@
         board.clear();
     });
 
-    QUnit.test("test jChessBoard zorbistHash", function (assert) {
+    QUnit.test("test move & reverse zorbistHash", function (assert) {
         var board = new JChessBoard(settings);
 
         assert.equal(board.zorbistHash, 0);
@@ -20,6 +20,24 @@
         var initialHash = board.zorbistHash;
 
         assert.equal('a2a4', board.move('a2a4'));
+
+        assert.notEqual(initialHash, board.zorbistHash);
+
+        board.back();
+
+        assert.equal(initialHash, board.zorbistHash);
+    });
+
+    QUnit.test("test take & reverse zorbistHash", function (assert) {
+        var board = new JChessBoard(settings);
+
+        assert.equal(board.zorbistHash, 0);
+
+        board.fenToPosition('8/8/8/3p4/4P3/8/8/8 w -');
+
+        var initialHash = board.zorbistHash;
+
+        assert.equal('e4xd5', board.move('e4xd5'));
 
         assert.notEqual(initialHash, board.zorbistHash);
 

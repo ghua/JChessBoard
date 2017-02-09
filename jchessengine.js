@@ -25,32 +25,41 @@
 var JChessEngine = (function ($) {
 
     function JChessEngine(board, side, depth) {
+        var me = this;
         this.board = board;
+        this.clone = new JChessBoard(this.board.settings, new JChessEventDispatcher());
+        this.clone.fenToPosition(this.board.positionToFen());
+        this.board.eventDispatcher.addEventListener('board_piece_move', function (event) {
+            this.clone.move(event.subject.currentPosition, event.environment.newPosition);
+        }, me);
+
         this.piecePrice = {
-            p: 1, n: 3, b: 3, r: 5, q: 10, k: 11
+            p: 1, n: 3, b: 4, r: 5, q: 10, k: 11
         };
         this.side = side;
         this.bestPossibleMove = null;
         this.depth = (depth * 2) - 1;
         this.eventDispatcher = new JChessEventDispatcher();
-        this.transpositionTable = {};
+        this.transpositionTable = [];
 
-        var me = this;
         this._evaluateNext = function myself (board, depth, alpha, beta) {
             var n, p, piece, possiblePositions, score;
 
-            score = me.getFromCache(board.zorbistHash);
-            if (score !== undefined) {
+            if (depth === 0) {
+                score = me.getFromCache(board.zorbistHash);
+                if (score !== undefined) {
 
-                return score;
-            }
+                    return score;
+                }
 
-            if (true === board.isStalemate(board.nextStepSide)) {
+                if (true === board.isCheck(board.nextStepSide) && true === board.isCheckmate(board.nextStepSide)) {
+                    score = 100 - board.moveLog.length;
 
-                return 0;
-            }
+                    me.setToCache(board.zorbistHash, score);
 
-            if (depth === 0 || board.isCheck(board.nextStepSide)) {
+                    return score;
+                }
+
                 score = me._evaluateState(board);
 
                 me.setToCache(board.zorbistHash, score);
@@ -62,11 +71,8 @@ var JChessEngine = (function ($) {
                 return value.color === board.nextStepSide;
             });
 
+            var i = 0;
             for (n = 0; n < pieces.length; n++) {
-                if (alpha >= beta) {
-
-                    break;
-                }
 
                 piece = pieces[n];
 
@@ -76,24 +82,38 @@ var JChessEngine = (function ($) {
                 for(p = 0; p < possiblePositions.length; p++) {
                     var possiblePosition = possiblePositions[p];
 
-                    if (alpha >= beta) {
-
-                        break;
-                    }
-
                     var step = board.move(currentPosition, possiblePosition);
 
                     if (false !== step) {
+                        i++;
                         score = myself(board, depth - 1, alpha, beta);
 
-                        if (depth % 2 !== 0) { // max node
+                        board.back();
+
+                        if (depth % 2 === 0) { // min node
+                            if (score <= alpha) {
+
+                                return alpha;
+                            }
+                            if (score < beta) {
+                                beta = score;
+                            }
+                        } else { // max node
+                            if (score >= beta) {
+                                if (depth === me.depth) {
+                                    me.bestPossibleMove = {
+                                        'score': score,
+                                        'currentPosition': currentPosition,
+                                        'possiblePosition': possiblePosition
+                                    };
+                                }
+
+                                return beta;
+                            }
                             if (score > alpha) {
                                 if (depth === me.depth) {
                                     me.bestPossibleMove = {
-                                        'depth': depth,
                                         'score': score,
-                                        'alpha': alpha,
-                                        'beta': beta,
                                         'currentPosition': currentPosition,
                                         'possiblePosition': possiblePosition
                                     };
@@ -101,21 +121,19 @@ var JChessEngine = (function ($) {
 
                                 alpha = score;
                             }
-                        } else { // min node
-                            if (score < beta) {
 
-                                beta = score;
-                            }
                         }
-
-                        board.back();
-
                     }
 
                 }
             }
 
-            if (depth % 2 === 0) {
+            if (i === 0 && board.isStalemate(board.nextStepSide)) {
+
+                return 0;
+            }
+
+            if (depth % 2 === 0) { // min node
 
                 return beta;
             }
@@ -139,11 +157,7 @@ var JChessEngine = (function ($) {
     };
 
     JChessEngine.prototype._findBestPossibleMove = function () {
-        var clone = new JChessBoard(this.board.settings, new JChessEventDispatcher());
-        var fen = this.board.positionToFen();
-        clone.fenToPosition(fen);
-
-        this._evaluateNext(clone, this.depth, -Infinity, +Infinity);
+        this._evaluateNext(this.clone, this.depth, -Infinity, +Infinity);
     };
 
     /**
@@ -152,55 +166,20 @@ var JChessEngine = (function ($) {
      * @private
      */
     JChessEngine.prototype._evaluateState = function (board) {
-        if (true === board.isCheckmate(board.nextStepSide)) {
+        var score = 0;
+        for (var n = 0; n < board.cells.length; n++) {
+            var piece = board.cells[n];
+            if (piece !== undefined) {
+                if (piece.color === this.side) {
+                    score += this.piecePrice[piece.type];
+                } else {
+                    score -= this.piecePrice[piece.type];
+                }
 
-            return 100 - board.moveLog.length;
-        }
-
-        return this._evaluateFen(board.positionToFen(), this.side);
-    };
-
-    /**
-     * @param {string} fen
-     * @param {string} mySide
-     * @returns {Array}
-     * @private
-     */
-    JChessEngine.prototype._getScoresFromFen = function (fen, mySide) {
-        var me = this;
-        return fen.match(/^([a-zA-Z0-9\/]+)/)[0].replace(/[0-9\/]/gi, '').replace(/./g, function (value) {
-            var score;
-            score = parseInt(me.piecePrice[value.toLowerCase()]);
-
-            var isBlackPiece = /[a-z]/.test(value);
-            if (( (isBlackPiece === true && mySide === 'w' ) || (isBlackPiece === false && mySide === 'b'))) {
-                score = score * -1;
             }
-
-            return score + ':';
-        })
-            .replace(/:$/, '')
-            .split(':')
-            .map(function (value) {
-                return parseInt(value);
-            }, me);
-    };
-
-    /**
-     * @param fen {string}
-     * @param mySide {string}
-     * @returns {number}
-     * @private
-     */
-    JChessEngine.prototype._evaluateFen = function (fen, mySide) {
-        var scores = this._getScoresFromFen(fen, mySide);
-
-        var sum = 0, n;
-        for (n = 0; n < scores.length; n++) {
-            sum += scores[n];
         }
 
-        return sum;
+        return score;
     };
 
 

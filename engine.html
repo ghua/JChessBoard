@@ -36,6 +36,7 @@
 <div class="left">
     <canvas width="512" height="512">
     </canvas>
+    <button id="think_n_move">think & move</button>
 </div>
 <div class="right">
     <div id="fen"></div>
@@ -51,7 +52,7 @@
         'k2N4/7R/8/4K3/8/8/8/8 w -',
 //        '8/8/8/8/8/8/8/8 w -'
 
-        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq'
+//        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq'
     ];
 
     var canvas = $('canvas').jschessboard({numbers: true, numbersType: 'number'});
@@ -77,6 +78,14 @@
     board.fenToPosition(problems[problem]);
 
     var engine = new JChessEngine(board, 'w', 3);
+
+    $('#think_n_move').click(function () {
+
+        var choice = engine.think();
+
+        board.move(choice['currentPosition'], choice['possiblePosition']);
+
+    });
 //
 //    eventDispatcher.addEventListener('board_post_piece_move', function (event) {
 //        $('#thinking').show();
