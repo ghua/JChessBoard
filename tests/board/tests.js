@@ -604,7 +604,7 @@
         board.clear();
     });
 
-    QUnit.test("Test basic queen side castling fail - king way is in attack", function (assert) {
+    QUnit.test("Test basic queen side castling fail - king way on attack", function (assert) {
         var fen = 'rnbqk2r/ppp5/5n2/8/8/b7/7R/R3KBN1 w KQkq';
         var board = new JChessBoard(settings);
         board.fenToPosition(fen);
@@ -614,7 +614,7 @@
         board.clear();
     });
 
-    QUnit.test("Test basic queen side castling fail - king is in check", function (assert) {
+    QUnit.test("Test basic queen side castling fail - king in check", function (assert) {
         var fen = 'rnbqk2r/ppp5/5n2/8/1b6/8/7R/R3KBN1 w KQkq';
         var board = new JChessBoard(settings);
         board.fenToPosition(fen);
@@ -799,7 +799,7 @@
         assert.equal(board.countPossiblePositions(), 2);
     });
 
-    QUnit.skip("Test isPossiblePosition with kingcheck #1", function (assert) {
+    QUnit.test("Test isPossiblePosition with kingcheck #1", function (assert) {
         var board = new JChessBoard(settings);
         board.fenToPosition('kn2R3/8/1K6/8/8/8/8/8 b -');
 
@@ -810,7 +810,7 @@
         board.clear();
     });
 
-    QUnit.skip("Test isPossiblePosition with kingcheck #2", function (assert) {
+    QUnit.test("Test isPossiblePosition with kingcheck #2", function (assert) {
         var board = new JChessBoard(settings);
         board.fenToPosition('k3R3/8/8/1K6/8/3n4/8/8 b -');
 
@@ -819,6 +819,15 @@
         assert.notOk(board.get(43).isPossiblePosition(26));
 
         board.clear();
+    });
+
+    QUnit.test("Test getPossiblePositions with kingcheck", function (assert) {
+        var board = new JChessBoard(settings);
+        board.fenToPosition('k3n2R/8/8/1K6/8/3p4/8/8 b -');
+
+        var possiblePostions = board.get(4).getPossiblePositions();
+
+        assert.equal(0, possiblePostions.length);
     });
 
     QUnit.test("Test JChessEventDispatcher.addEventListener", function (assert) {

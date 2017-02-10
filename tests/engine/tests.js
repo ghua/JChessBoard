@@ -57,6 +57,19 @@
         assert.ok(board.isCheckmate(board.nextStepSide));
     });
 
+    QUnit.test("Test by Chéron, André 3-ply puzzle (depth = 3)", function (assert) {
+        var board = new JChessBoard(settings, new JChessEventDispatcher);
+        board.fenToPosition('5B1R/8/7N/8/8/2b5/p1K5/k7 w -');
+        var engine = new JChessEngine(board, settings.side, 3);
+
+        assert.equal(board.move.apply(board, engine.think()), 'Nh6f5');
+        assert.equal('Bc3xh8', board.move('Bc3xh8'));
+        assert.equal(board.move.apply(board, engine.think()), 'Nf5g7');
+        assert.equal('Bh8xg7', board.move('Bh8xg7'));
+        assert.equal(board.move.apply(board, engine.think()), 'Bf8xg7');
+        assert.ok(board.isCheckmate(board.nextStepSide));
+    });
+
     QUnit.test("test predictZorbistHash", function (assert) {
         var board = new JChessBoard(settings, new JChessEventDispatcher);
         board.fenToPosition('k7/1R6/nK6/8/8/8/8/8 w -');

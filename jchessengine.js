@@ -26,6 +26,7 @@ var JChessEngine = (function ($) {
 
     function JChessEngine(board, side, depth) {
         var me = this;
+        this.setDepth(depth);
         this.board = board;
         this.clone = new JChessBoard(this.board.settings, new JChessEventDispatcher());
         this.clone.fenToPosition(this.board.positionToFen());
@@ -41,7 +42,7 @@ var JChessEngine = (function ($) {
         };
         this.side = side;
         this.bestPossibleMove = null;
-        this.depth = (depth * 2) - 1;
+
         this.eventDispatcher = new JChessEventDispatcher();
         this.transpositionTable = [];
 
@@ -55,7 +56,14 @@ var JChessEngine = (function ($) {
             }
 
             if (depth === 0) {
+                score = me.transpositionTable[board.zorbistHash];
+                if (score !== undefined) {
+
+                    return score;
+                }
+
                 score = me._evaluateState(board);
+                me.setToCache(board.zorbistHash, score);
 
                 return score;
             }
@@ -65,7 +73,6 @@ var JChessEngine = (function ($) {
             });
 
             for (n = 0; n < pieces.length; n++) {
-
                 piece = pieces[n];
 
                 var currentPosition = piece.currentPosition;
@@ -74,22 +81,15 @@ var JChessEngine = (function ($) {
                 for (p = 0; p < possiblePositions.length; p++) {
                     var possiblePosition = possiblePositions[p];
 
-                    var predictedHash = me.predictZorbistHash(board, currentPosition, possiblePosition);
-                    score = me.transpositionTable[predictedHash];
-                    if (score === undefined) {
+                    var step = board.move(currentPosition, possiblePosition);
+                    if (step === false) {
 
-                        var step = board.move(currentPosition, possiblePosition);
-                        if (step === false) {
-
-                            continue;
-                        }
-
-                        score = myself(board, depth - 1, alpha, beta);
-
-                        me.setToCache(board.zorbistHash, score);
-
-                        board.back();
+                        continue;
                     }
+
+                    score = myself(board, depth - 1, alpha, beta);
+
+                    board.back();
 
                     if (depth % 2 === 0) { // min node
                         if (score <= alpha) {
@@ -124,6 +124,10 @@ var JChessEngine = (function ($) {
             return alpha;
         };
     }
+
+    JChessEngine.prototype.setDepth = function(depth) {
+        this.depth = (depth * 2) - 1;
+    };
 
     JChessEngine.prototype.prepareResponse = function (currentPosition, possiblePosition) {
         return [currentPosition, possiblePosition];
@@ -161,7 +165,10 @@ var JChessEngine = (function ($) {
         }
     };
 
-    JChessEngine.prototype.think = function () {
+    JChessEngine.prototype.think = function (depth) {
+        if (depth) {
+            this.setDepth(depth);
+        }
         this._findBestPossibleMove();
 
         return this.bestPossibleMove;

@@ -479,7 +479,7 @@ var JChessPiece = (function ($) {
                         boardClone = new JChessBoard(this.settings, new JChessEventDispatcher);
                         boardClone.fenToPosition(me.board.positionToFen());
 
-                        return false !== boardClone.move(me.currentPosition, position);
+                        return false !== boardClone.move(me.currentPosition, position) && false === boardClone.isCheck(me.color);
                     }
 
                     return true;
@@ -1061,10 +1061,8 @@ var JChessBoard = (function (JChessPiece, $) {
     JChessBoard.prototype.delete = function (num, isMove) {
         var piece = this.cells[num];
 
-        if (isMove === true) {
-            if (piece instanceof JChessPiece) {
-                this.eventDispatcher.dispatchEvent('board_piece_delete', new JChessEvent(piece, {'isMove': isMove}));
-            }
+        if (piece instanceof JChessPiece) {
+            this.eventDispatcher.dispatchEvent('board_piece_delete', new JChessEvent(piece, {'isMove': isMove}));
         }
 
         if (piece instanceof JChessPiece) {
