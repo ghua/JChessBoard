@@ -49,10 +49,8 @@
         '7k/7b/5Kp1/8/8/8/8/5Q2 w -',
 
         // three steps
-        'k2N4/7R/8/4K3/8/8/8/8 w -',
-        '5B1R/8/7N/8/8/2b5/p1K5/k7 w -',
-
-        '2bqkb2/1ppp1pp1/8/8/8/8/1PP1PPP1/2BQKB2 w KQkq'
+        'k2N4/7R/8/4K3/8/8/8/8 w -'
+//        '5B1R/8/7N/8/8/2b5/p1K5/k7 w -' // broken
     ];
 
     var canvas = $('canvas').jschessboard({numbers: true, numbersType: 'number'});
@@ -75,34 +73,24 @@
     }
     localStorage.setItem('problem', problem);
 
+    var redButton = $('#think_n_move');
+    var originalText = redButton.html();
+
     board.fenToPosition(problems[problem]);
+    board.eventDispatcher.addEventListener('board_piece_move', function () {
+        setTimeout(function () {
+            redButton.html(originalText);
+        }, 100);
+    });
 
     var engine = new JChessEngine(board, 'w', 2);
 
-    $('#think_n_move').click(function () {
+    redButton.click(function () {
+        $(this).html('Thinking...');
 
         var choice = engine.think();
-
-        board.move(choice);
-
+        board.move.apply(board, choice);
     });
-//
-//    eventDispatcher.addEventListener('board_post_piece_move', function (event) {
-//        $('#thinking').show();
-//        setTimeout(function () {
-//            if (engine.side !== event.subject.board.nextStepSide) {
-//                return;
-//            }
-//            var nextStep = engine.think();
-//
-//            if (nextStep !== null) {
-//                board.move(nextStep['currentPosition'], nextStep['possiblePosition']);
-//            } else {
-//                alert('Game over');
-//            }
-//            $('#thinking').hide();
-//        }, 500);
-//    });
 
 </script>
 
