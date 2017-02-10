@@ -80,7 +80,7 @@
     board.eventDispatcher.addEventListener('board_piece_move', function () {
         setTimeout(function () {
             if (board.nextStepSide === 'b') {
-                redButton.prop('disabled', true).html('Your turn, move black piece');
+                redButton.html('Your turn, move black piece');
             } else {
                 redButton.html(originalText).prop('disabled', false);
             }
@@ -90,7 +90,7 @@
     var engine = new JChessEngine(board, 'w', 3);
 
     redButton.click(function () {
-        $(this).html('Thinking...');
+        $(this).html('Thinking...').prop('disabled', true);
 
         setTimeout(function () {
             var choice = engine.think();
