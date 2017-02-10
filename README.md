@@ -4,7 +4,8 @@ The JChessBoard is a js+canvas chessboard implementation.
 
 I have been creating this project just for fun and for academic purposes.
 
-[Demo](http://velichko.net/projects/jchessboard/demo.html) 
+[Board demo](http://velichko.net/projects/jchessboard/demo.html)
+[Engine demo](http://velichko.net/projects/jchessboard/engine.html)
 
 ## Features
 
