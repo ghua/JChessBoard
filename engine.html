@@ -35,6 +35,7 @@
 <div class="left">
     <canvas width="512" height="512">
     </canvas>
+    <p>Press the button for playing</p>
     <button id="think_n_move">think & move</button>
 </div>
 <div class="right">
@@ -78,7 +79,11 @@
     board.fenToPosition(problems[problem]);
     board.eventDispatcher.addEventListener('board_piece_move', function () {
         setTimeout(function () {
-            redButton.html(originalText);
+            if (board.nextStepSide === 'b') {
+                redButton.prop('disabled', true).html('Your turn, move black piece');
+            } else {
+                redButton.html(originalText).prop('disabled', false);
+            }
         }, 100);
     });
 
@@ -87,8 +92,10 @@
     redButton.click(function () {
         $(this).html('Thinking...');
 
-        var choice = engine.think();
-        board.move.apply(board, choice);
+        setTimeout(function () {
+            var choice = engine.think();
+            board.move.apply(board, choice);
+        }, 100);
     });
 
 </script>
