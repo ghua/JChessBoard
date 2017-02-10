@@ -1,23 +1,16 @@
 # JChessBoard
 
-The JChessBoard is a javascript & canvas chessboard implementation.
-I created this project just for fun. You can use this code in your project without any fee or limitations.
+The JChessBoard is a js+canvas chessboard implementation.
 
-[Demo](http://velichko.net/projects/jchessboard/demo.html)
+I have been creating this project just for fun and for academic purposes.
 
-Last changes:
-
-* 7f4dce8 - added prototype of chess engine - [DEMO](http://velichko.net/projects/jchessboard/engine.html), first step is your
-* c9b338c - second version of chessboard:
-    - canvas was separated from board representation; 
-    - more unit-tests;
-    - in chess engine used minimax algorithm
+[Demo](http://velichko.net/projects/jchessboard/demo.html) 
 
 ## Features
 
-  - Canvas as graphical backend
+  - JCanvas as graphical backend
   - Step validation
-  - Step help
+  - Step help (showing possible steps)
   - FEN - is a standard notation for describing a particular board position
   - Algebraic notation - is a method for recording and describing the moves in a game
 
@@ -50,10 +43,10 @@ Last changes:
  - .start() - start game from standard position
  - .fenToPosition() - convert fen string to board position
  - .positionToFen() - vice versa previous fenToPosition
- - .clear() - clear board
- - .move() - this method is main tool for you,
+ - .clear() - clear the board
+ - .move() - this method is the main tool for you,
      by this action you can move some piece to another cell.
-     a set of parameters can be: algebraic notation or number of cell (bitboard representation).
+     a set of parameters can be: algebraic notation or a cell number (bitboard representation).
      Example: .move(52, 36) it is same as .move('e2e4') or .move('e4')
         
 You can consult the source code for definition of additional actions and events.
@@ -62,14 +55,17 @@ You can consult the source code for definition of additional actions and events.
 
 Want to contribute? Great!
 
-Run in browser tests/demo.html
+Run in browser: 
+tests/board/qunit.html
+tests/engine/qunit.html
 
 ### Todo's
 
+- Fix broken tests
+- Add en passant support
 - Fix drag-n-drop freezes in firefox
 
 License
 ----
 
-MIT
-
+This project is licensed under the terms of the MIT license.
