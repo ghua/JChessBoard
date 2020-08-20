@@ -9,11 +9,11 @@ I have been creating this project just for fun and for academic purposes.
 
 ## Features
 
-  - JCanvas as graphical backend
+  - JCanvas as a graphical backend
   - Step validation
   - Step help (showing possible steps)
   - FEN - is a standard notation for describing a particular board position
-  - Algebraic notation - is a method for recording and describing the moves in a game
+  - The algebraic notation - is a method for recording and describing the moves in a game
 
 ## Dependencies
 
@@ -41,13 +41,12 @@ I have been creating this project just for fun and for academic purposes.
 
 ## Public methods
 
- - .start() - start game from standard position
- - .fenToPosition() - convert fen string to board position
- - .positionToFen() - vice versa previous fenToPosition
+ - .start() - start a new game from standard position
+ - .fenToPosition() - convert a fen string to board position
+ - .positionToFen() - opposite action to the previous fenToPosition
  - .clear() - clear the board
- - .move() - this method is the main tool for you,
-     by this action you can move some piece to another cell.
-     a set of parameters can be: algebraic notation or a cell number (bitboard representation).
+ - .move() - the main tool it moves a piece to a cell.
+     a set of parameters can be: the algebraic notation or the cell number (a bitboard representation).
      Example: .move(52, 36) it is same as .move('e2e4') or .move('e4')
         
 You can consult the source code for definition of additional actions and events.
