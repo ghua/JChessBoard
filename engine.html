@@ -35,8 +35,7 @@
 <div class="left">
     <canvas width="512" height="512">
     </canvas>
-    <p>Press the button for playing</p>
-    <button id="think_n_move">think & move</button>
+    <button id="think_n_move">Press the button to play</button>
 </div>
 <div class="right">
     <div id="fen"></div>
@@ -80,7 +79,7 @@
     board.eventDispatcher.addEventListener('board_piece_move', function () {
         setTimeout(function () {
             if (board.nextStepSide === 'b') {
-                redButton.html('Your turn, move black piece');
+                redButton.html('Your turn, move the black piece');
             } else {
                 redButton.html(originalText).prop('disabled', false);
             }
@@ -90,7 +89,7 @@
     var engine = new JChessEngine(board, 'w', 3);
 
     redButton.click(function () {
-        $(this).html('Thinking...').prop('disabled', true);
+        $(this).html('Wait! I\'m thinking...').prop('disabled', true);
 
         setTimeout(function () {
             var choice = engine.think();
