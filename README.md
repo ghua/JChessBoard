@@ -41,9 +41,9 @@ I have been creating this project just for fun and for academic purposes.
 
 ## Public methods
 
- - .start() - start a new game from standard position
- - .fenToPosition() - convert a fen string to board position
- - .positionToFen() - opposite action to the previous fenToPosition
+ - .start() - start a new game from the standard position
+ - .fenToPosition() - convert a fen string to the board position
+ - .positionToFen() - an opposite action to the previous fenToPosition
  - .clear() - clear the board
  - .move() - the main tool it moves a piece to a cell.
      a set of parameters can be: the algebraic notation or the cell number (a bitboard representation).
