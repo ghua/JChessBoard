@@ -86,12 +86,13 @@ var JChessBigInt = (function () {
      * @constructor
      */
     function JChessBigInt(places) {
-        this.mask = 131071 // Math.pow(2, 17)-1
+        this.mask = 65535 // Math.pow(2, 16)-1
 
         this.places = []; // Big-endian, MSB comes first
 
         var length = places.length
         for (let i = 3; i >= 0; i--) {
+            this._validateWord(places[i]);
             this.places[i] = (i < length) ? places[i] : 0
         }
     }
@@ -111,13 +112,54 @@ var JChessBigInt = (function () {
 
         [this.places[0], this.places[1], c] = this._shiftRight(this.places[0], this.places[1], n);
         [this.places[2], this.places[3]] = this._shiftRight(this.places[2], this.places[3], n);
-        this.places[2] = this.places[2] | (c << (16 - n + 1));
+        this.places[2] = this.places[2] | (c << (15 - n + 1));
 
         return this;
     };
 
+    JChessBigInt.prototype.rotateLeft = function (n) {
+        var p = Math.ceil(n / 16), reversed = [];
+
+        for (var i = 0; i < p; i++) {
+            reversed.push(this.places[i] > 0 ? this._reverse(this.places[i]) : 0);
+        }
+
+
+    };
+
+    JChessBigInt.prototype.rotateRight = function (n) {
+
+    };
+
+    /**
+     * @param v
+     * @private
+     */
+    JChessBigInt.prototype._validateWord = function (v) {
+        if (v == null || (0 <= v && v < 65536)) {
+            return;
+        }
+
+        throw 'Word should be between greater or equal 0 and less or equal 65535 (Math.pow(2, 16)-1)';
+    };
+
+    /**
+     * @link https://graphics.stanford.edu/~seander/bithacks.html#ReverseParallel
+     *
+     * @param v
+     * @returns {number}
+     */
+    JChessBigInt.prototype._reverse = function (v) {
+        v = ((v >> 1) & 0x5555) | (((v & 0x5555) << 1));
+        v = ((v >> 2) & 0x3333) | (((v & 0x3333) << 2));
+        v = ((v >> 4) & 0x0F0F) | (((v & 0x0F0F) << 4));
+        v = ((v >> 8) & 0x00FF) | (((v & 0x00FF) << 8));
+
+        return v
+    };
+
     JChessBigInt.prototype._shiftLeft = function (high, low, n) {
-        var z = 16 - n + 1
+        var z = 15 - n + 1
         var x = low >> z
         var c = high >> z
 
@@ -128,7 +170,7 @@ var JChessBigInt = (function () {
     };
 
     JChessBigInt.prototype._shiftRight = function (high, low, n) {
-        var z = 16 - n + 1
+        var z = 15 - n + 1
         var x = (high << z) & this.mask
         var c = (((low << z) & this.mask) >> z)
 
