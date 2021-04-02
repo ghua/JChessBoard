@@ -1,5 +1,75 @@
 (function (QUnit, JChessPiece, JChessBoard) {
     var settings = {imagesPath: '../../images/'};
+    QUnit.test("test JChessBigInt basic shift left", function (assert) {
+        var bigInt = new JChessBigInt([]), high, low, c;
+
+        //                 0, 10000000000000000 << 1 =                 1, 0
+        [high, low, c] = bigInt._shiftLeft(0, 65536, 1);
+        assert.equal(high, 1);
+        assert.equal(low, 0);
+        assert.equal(c, 0);
+
+        // 10000000000000000, 10000000000000000 << 1 =                 1, 0
+        [high, low, c] = bigInt._shiftLeft(65536, 65536, 1);
+        assert.equal(high, 1);
+        assert.equal(low, 0);
+        assert.equal(c, 1);
+
+        //   100000000000000, 10000000000000000 << 2 = 10000000000000010, 0
+        [high, low, c] = bigInt._shiftLeft(16384, 65536, 2);
+        assert.equal(high, 65538);
+        assert.equal(low, 0);
+        assert.equal(c, 0);
+
+        // 11000000000000000, 10000000000000000 << 2 = 10000000000000010, 0
+        [high, low, c] = bigInt._shiftLeft(98304, 0, 2);
+        assert.equal(high, 0);
+        assert.equal(low, 0);
+        assert.equal(c, 3);
+    });
+
+    QUnit.test("test JChessBigInt basic shift right", function (assert) {
+        var bigInt = new JChessBigInt([]), high, low, c;
+
+        //                 1,                 0 >> 1 =                 0, 10000000000000000, 0
+        [high, low, c] = bigInt._shiftRight(1, 0, 1);
+        assert.equal(high, 0);
+        assert.equal(low, 65536);
+        assert.equal(c, 0);
+
+        // 10000000000000001,                 1 >> 1 =  1000000000000000, 10000000000000000, 1
+        [high, low, c] = bigInt._shiftRight(65537, 1, 1);
+        assert.equal(high, 32768);
+        assert.equal(low, 65536);
+        assert.equal(c, 1);
+
+        // 10000000000000010,                11 >> 2 =   100000000000000, 10000000000000000,11
+        [high, low, c] = bigInt._shiftRight(65538, 3, 2);
+        assert.equal(high, 16384);
+        assert.equal(low, 65536);
+        assert.equal(c, 3);
+    });
+
+    QUnit.test("test JChessBigInt shift left", function (assert) {
+        var bigInt = new JChessBigInt([65536, 65536, 65536, 65536]);
+
+        bigInt.shiftLeft(1)
+        assert.deepEqual(bigInt.places, [1, 1, 1, 0])
+
+
+        bigInt = new JChessBigInt([65536, 65536, 65536, 65536]);
+
+        bigInt.shiftLeft(1)
+        assert.deepEqual(bigInt.places, [1, 1, 1, 0])
+    });
+
+    QUnit.test("test JChessBigInt shift right", function (assert) {
+        var bigInt = new JChessBigInt([1, 1, 1, 1]);
+
+        bigInt.shiftRight(1)
+        assert.deepEqual(bigInt.places, [0, 65536, 65536, 65536])
+    });
+
     QUnit.test("test jChessBoard cells", function (assert) {
         var board = new JChessBoard(settings);
         assert.equal(board.cells.length, 64);

@@ -79,6 +79,68 @@ var JChessEvent = (function () {
     return JChessEvent;
 }());
 
+var JChessBigInt = (function () {
+    /**
+     *
+     * @param places {array}
+     * @constructor
+     */
+    function JChessBigInt(places) {
+        this.mask = 131071 // Math.pow(2, 17)-1
+
+        this.places = []; // Big-endian, MSB comes first
+
+        var length = places.length
+        for (let i = 3; i >= 0; i--) {
+            this.places[i] = (i < length) ? places[i] : 0
+        }
+    }
+
+    JChessBigInt.prototype.shiftLeft = function (n) {
+        var c = 0;
+
+        [this.places[2], this.places[3], c] = this._shiftLeft(this.places[2], this.places[3], n);
+        [this.places[0], this.places[1]] = this._shiftLeft(this.places[0], this.places[1], n);
+        this.places[1] = this.places[1] | c
+
+        return this;
+    };
+
+    JChessBigInt.prototype.shiftRight = function (n) {
+        var c = 0;
+
+        [this.places[0], this.places[1], c] = this._shiftRight(this.places[0], this.places[1], n);
+        [this.places[2], this.places[3]] = this._shiftRight(this.places[2], this.places[3], n);
+        this.places[2] = this.places[2] | (c << (16 - n + 1));
+
+        return this;
+    };
+
+    JChessBigInt.prototype._shiftLeft = function (high, low, n) {
+        var z = 16 - n + 1
+        var x = low >> z
+        var c = high >> z
+
+        high = ((high << n) | x) & this.mask
+        low = (low << n) & this.mask
+
+        return [high, low, c];
+    };
+
+    JChessBigInt.prototype._shiftRight = function (high, low, n) {
+        var z = 16 - n + 1
+        var x = (high << z) & this.mask
+        var c = (((low << z) & this.mask) >> z)
+
+        low = ((low >> n) | x) & this.mask
+        high = (high >> n) & this.mask
+
+        return [high, low, c]
+    };
+
+    return JChessBigInt;
+}());
+
 var JChessVector = (function () {
 
     function JChessVector() {
