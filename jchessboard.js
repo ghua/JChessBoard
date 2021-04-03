@@ -102,7 +102,7 @@ var JChessBigInt = (function () {
 
         [this.places[2], this.places[3], c] = this._shiftLeft(this.places[2], this.places[3], n);
         [this.places[0], this.places[1]] = this._shiftLeft(this.places[0], this.places[1], n);
-        this.places[1] = this.places[1] | c
+        this.places[1] = this.places[1] | c;
 
         return this;
     };
@@ -131,6 +131,17 @@ var JChessBigInt = (function () {
 
     };
 
+    JChessBigInt.prototype.reverse = function () {
+        this.places = [
+            this._reverse(this.places[3]),
+            this._reverse(this.places[2]),
+            this._reverse(this.places[1]),
+            this._reverse(this.places[0])
+        ]
+
+        return this;
+    };
+
     /**
      * @param v
      * @private
@@ -140,7 +151,7 @@ var JChessBigInt = (function () {
             return;
         }
 
-        throw 'Word should be between greater or equal 0 and less or equal 65535 (Math.pow(2, 16)-1)';
+        throw 'Word should be greater or equal 0 and less or equal 65535 (Math.pow(2, 16)-1)';
     };
 
     /**
@@ -155,7 +166,7 @@ var JChessBigInt = (function () {
         v = ((v >> 4) & 0x0F0F) | (((v & 0x0F0F) << 4));
         v = ((v >> 8) & 0x00FF) | (((v & 0x00FF) << 8));
 
-        return v
+        return v;
     };
 
     JChessBigInt.prototype._shiftLeft = function (high, low, n) {
