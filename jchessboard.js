@@ -86,7 +86,7 @@ var JChessBigInt = (function () {
      * @constructor
      */
     function JChessBigInt(places) {
-        this.mask = 65535 // Math.pow(2, 16)-1
+        this.mask = 0xFFFF // Math.pow(2, 16)-1
 
         this.places = []; // Big-endian, MSB comes first
 
@@ -168,7 +168,7 @@ var JChessBigInt = (function () {
      * @private
      */
     JChessBigInt.prototype._validateWord = function (v) {
-        if (v == null || (0 <= v && v < 65536)) {
+        if (v == null || (0 <= v && v < 0x10000)) {
             return;
         }
 
