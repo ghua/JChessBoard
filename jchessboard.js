@@ -95,13 +95,15 @@ var JChessBigInt = (function () {
             this._validateWord(places[i]);
             this.places[i] = (i < length) ? places[i] : 0
         }
+
+        this.lastCarrier = 0;
     }
 
     JChessBigInt.prototype.shiftLeft = function (n) {
         var c = 0;
 
         [this.places[2], this.places[3], c] = this._shiftLeft(this.places[2], this.places[3], n);
-        [this.places[0], this.places[1]] = this._shiftLeft(this.places[0], this.places[1], n);
+        [this.places[0], this.places[1], this.lastCarrier] = this._shiftLeft(this.places[0], this.places[1], n);
         this.places[1] = this.places[1] | c;
 
         return this;
@@ -111,20 +113,21 @@ var JChessBigInt = (function () {
         var c = 0;
 
         [this.places[0], this.places[1], c] = this._shiftRight(this.places[0], this.places[1], n);
-        [this.places[2], this.places[3]] = this._shiftRight(this.places[2], this.places[3], n);
+        [this.places[2], this.places[3], this.lastCarrier] = this._shiftRight(this.places[2], this.places[3], n);
         this.places[2] = this.places[2] | (c << (15 - n + 1));
 
         return this;
     };
 
     JChessBigInt.prototype.rotateLeft = function (n) {
-        var p = Math.ceil(n / 16), reversed = [];
-
-        for (var i = 0; i < p; i++) {
-            reversed.push(this.places[i] > 0 ? this._reverse(this.places[i]) : 0);
+        var x = Math.ceil(n / 16)
+        for (var i = 0; i < x; i++) {
+            this.shiftLeft(n < 16 ? n : 16);
+            n = n - 16;
+            this.places[3] = this.places[3] | this.lastCarrier;
         }
 
-
+        return this;
     };
 
     JChessBigInt.prototype.rotateRight = function (n) {

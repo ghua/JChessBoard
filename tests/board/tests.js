@@ -1,6 +1,32 @@
 (function (QUnit, JChessPiece, JChessBoard) {
     var settings = {imagesPath: '../../images/'};
 
+    QUnit.test("test JChessBigInt rotateLeft", function (assert) {
+        // 1011011101111011 1110111111011111 1101111111101111 1111101111111111
+        var initialValue = [46971, 61407, 57327, 64511]
+        var bigInt = new JChessBigInt(initialValue);
+        var input = [
+            [2,  ["1101110111101111", "1011111101111111", "0111111110111111", "1110111111111110"]],
+            [3,  ["1011101111011111", "0111111011111110", "1111111101111111", "1101111111111101"]],
+            [16, ["1110111111011111", "1101111111101111", "1111101111111111", "1011011101111011"]],
+            [32, ["1101111111101111", "1111101111111111", "1011011101111011", "1110111111011111"]],
+            [33, ["1011111111011111", "1111011111111111", "0110111011110111", "1101111110111111"]],
+            [64, ["1011011101111011", "1110111111011111", "1101111111101111", "1111101111111111"]],
+        ];
+
+        for (var i = 0; i < input.length; i++) {
+            bigInt = new JChessBigInt(initialValue);
+            bigInt.rotateLeft(input[i][0])
+
+            var expected = [];
+            for (var j = 0; j < 4; j++) {
+                expected.push(parseInt(input[i][1][j], 2));
+            }
+
+            assert.deepEqual(bigInt.places, expected);
+        }
+    });
+
     QUnit.test("test JChessBigInt reverse", function (assert) {
 
         // 1011011101111011 1110111111011111 1101111111101111 1111101111111111
