@@ -102,9 +102,14 @@ var JChessBigInt = (function () {
     JChessBigInt.prototype.shiftLeft = function (n) {
         var c = 0;
 
-        [this.places[2], this.places[3], c] = this._shiftLeft(this.places[2], this.places[3], n);
-        [this.places[0], this.places[1], this.lastCarrier] = this._shiftLeft(this.places[0], this.places[1], n);
-        this.places[1] = this.places[1] | c;
+        var x = Math.ceil(n / 16);
+        for (var i = 0; i < x; i++) {
+            var s = n < 16 ? n : 16;
+            [this.places[2], this.places[3], c] = this._shiftLeft(this.places[2], this.places[3], s);
+            [this.places[0], this.places[1], this.lastCarrier] = this._shiftLeft(this.places[0], this.places[1], s);
+            this.places[1] = this.places[1] | c;
+            n = n - 16;
+        }
 
         return this;
     };
@@ -112,9 +117,14 @@ var JChessBigInt = (function () {
     JChessBigInt.prototype.shiftRight = function (n) {
         var c = 0;
 
-        [this.places[0], this.places[1], c] = this._shiftRight(this.places[0], this.places[1], n);
-        [this.places[2], this.places[3], this.lastCarrier] = this._shiftRight(this.places[2], this.places[3], n);
-        this.places[2] = this.places[2] | (c << (15 - n + 1));
+        var x = Math.ceil(n / 16);
+        for (var i = 0; i < x; i++) {
+            var s = n < 16 ? n : 16;
+            [this.places[0], this.places[1], c] = this._shiftRight(this.places[0], this.places[1], s);
+            [this.places[2], this.places[3], this.lastCarrier] = this._shiftRight(this.places[2], this.places[3], s);
+            this.places[2] = this.places[2] | (c << (15 - s + 1));
+            n = n - 16;
+        }
 
         return this;
     };
@@ -131,7 +141,15 @@ var JChessBigInt = (function () {
     };
 
     JChessBigInt.prototype.rotateRight = function (n) {
+        var x = Math.ceil(n / 16)
+        for (var i = 0; i < x; i++) {
+            var s = n < 16 ? n : 16
+            this.shiftRight(s);
+            n = n - 16;
+            this.places[0] = this.places[0] | (this.lastCarrier << (16 - s));
+        }
 
+        return this;
     };
 
     JChessBigInt.prototype.reverse = function () {

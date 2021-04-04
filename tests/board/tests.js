@@ -1,6 +1,32 @@
 (function (QUnit, JChessPiece, JChessBoard) {
     var settings = {imagesPath: '../../images/'};
 
+    QUnit.test("test JChessBigInt rotateRight", function (assert) {
+        // 1011011101111011 1110111111011111 1101111111101111 1111101111111111
+        var initialValue = [46971, 61407, 57327, 64511]
+        var bigInt = new JChessBigInt(initialValue);
+        var input = [
+            [2,  ["1110110111011110", "1111101111110111", "1111011111111011", "1111111011111111"]],
+            [3,  ["1111011011101111", "0111110111111011", "1111101111111101", "1111111101111111"]],
+            [16, ["1111101111111111", "1011011101111011", "1110111111011111", "1101111111101111"]],
+            [32, ["1101111111101111", "1111101111111111", "1011011101111011", "1110111111011111"]],
+            [33, ["1110111111110111", "1111110111111111", "1101101110111101", "1111011111101111"]],
+            [64, ["1011011101111011", "1110111111011111", "1101111111101111", "1111101111111111"]],
+        ];
+
+        for (var i = 0; i < input.length; i++) {
+            bigInt = new JChessBigInt(initialValue);
+            bigInt.rotateRight(input[i][0])
+
+            var expected = [];
+            for (var j = 0; j < 4; j++) {
+                expected.push(parseInt(input[i][1][j], 2));
+            }
+
+            assert.deepEqual(bigInt.places, expected);
+        }
+    });
+
     QUnit.test("test JChessBigInt rotateLeft", function (assert) {
         // 1011011101111011 1110111111011111 1101111111101111 1111101111111111
         var initialValue = [46971, 61407, 57327, 64511]
@@ -115,7 +141,7 @@
         bigInt.shiftLeft(1)
         assert.deepEqual(bigInt.places, [1, 1, 1, 0])
 
-        bigInt = new JChessBigInt([0, 0, 0, 0]);
+        bigInt = new JChessBigInt([0, 0, 0, 1]);
         bigInt.shiftLeft(63)
 
         assert.deepEqual(bigInt.places, [32768, 0, 0, 0])
@@ -126,6 +152,11 @@
 
         bigInt.shiftRight(1)
         assert.deepEqual(bigInt.places, [0, 32768, 32768, 32768])
+
+        bigInt = new JChessBigInt([32768, 0, 0, 0]);
+
+        bigInt.shiftRight(63)
+        assert.deepEqual(bigInt.places, [0, 0, 0, 1])
     });
 
     QUnit.test("test jChessBoard cells", function (assert) {
