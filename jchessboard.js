@@ -99,6 +99,13 @@ var JChessBigInt = (function () {
         this.lastCarrier = 0;
     }
 
+    /**
+     * @returns {JChessBigInt}
+     */
+    JChessBigInt.prototype.copy = function () {
+        return new JChessBigInt(this.places);
+    };
+
     JChessBigInt.prototype.shiftLeft = function (n) {
         var c = 0;
 

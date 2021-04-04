@@ -159,6 +159,15 @@
         assert.deepEqual(bigInt.places, [0, 0, 0, 1])
     });
 
+    QUnit.test("test JchessBigInt copy", function (assert) {
+        var original = new JChessBigInt([1, 1, 1, 1]);
+        var copy = original.copy();
+
+        copy.shiftRight(64);
+
+        assert.notDeepEqual(original.places, copy.places);
+    });
+
     QUnit.test("test jChessBoard cells", function (assert) {
         var board = new JChessBoard(settings);
         assert.equal(board.cells.length, 64);
