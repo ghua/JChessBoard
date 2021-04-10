@@ -97,7 +97,21 @@ var JChessBigInt = (function () {
         }
 
         this.lastCarrier = 0;
+        this.overflow = false;
     }
+
+    JChessBigInt.prototype.add = function (v) {
+        var i, s, c = 0
+        for (i = 3; i > -1; i--) {
+            s = this.places[i] + (i < v.length ? v[i] : 0) + c;
+            this.places[i] = s & this.mask
+            c = s >> 16
+
+            this.overflow = (i === 0 && c > 0);
+        }
+
+        return this;
+    };
 
     /**
      * @returns {JChessBigInt}
@@ -217,6 +231,14 @@ var JChessBigInt = (function () {
         high = (high >> n) & this.mask
 
         return [high, low, c]
+    };
+
+    JChessBigInt.prototype._checkOverflow = function (a, b) {
+        if (a > this.mask || b > this.mask) {
+            return true;
+        }
+
+
     };
 
     return JChessBigInt;

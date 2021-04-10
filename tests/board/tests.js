@@ -1,6 +1,22 @@
 (function (QUnit, JChessPiece, JChessBoard) {
     var settings = {imagesPath: '../../images/'};
 
+    QUnit.test("test JChessBigInt add", function (assert) {
+        var cases = [
+            // a, b, expected, overflow
+            [[0, 0, 0, 0xFFFF], [0, 0, 0, 1], [0, 0, 1, 0], false],
+            [[0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF], [0, 0, 0, 1], [0, 0, 0, 0], true]
+        ]
+
+        for (var i = 0; i < cases.length; i++) {
+            var bigInt = new JChessBigInt(cases[i][0]);
+            bigInt.add(cases[i][1]);
+
+            assert.deepEqual(bigInt.places, cases[i][2]);
+            assert.equal(bigInt.overflow, cases[i][3]);
+        }
+    });
+
     QUnit.test("test JChessBigInt rotateRight", function (assert) {
         // 1011011101111011 1110111111011111 1101111111101111 1111101111111111
         var initialValue = [46971, 61407, 57327, 64511]
