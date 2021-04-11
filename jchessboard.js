@@ -100,6 +100,29 @@ var JChessBigInt = (function () {
         this.overflow = false;
     }
 
+    JChessBigInt.prototype.mul = function (v) {
+        var i, j, x, ri = 7, ry = 0, r = [0, 0, 0, 0, 0, 0, 0, 0], c = 0;
+
+        for (j = 3; j > -1; j--) {
+            for (i = 3; i > -1; i--) {
+                var a = (i < this.places.length ? this.places[i] : 0);
+                var b = (j < v.length ? v[j] : 0);
+
+                x = (a * b) + c;
+
+                r[ri - ry] += (x & 0xFFFF);
+                c = (x >> 16) & this.mask;
+
+                ry++;
+            }
+            ri--;
+        }
+
+        this.places = [r[4], r[5], r[6], r[7]];
+
+        return this;
+    };
+
     JChessBigInt.prototype.sub = function (v) {
         var i, vv, c = 0;
 
@@ -109,7 +132,6 @@ var JChessBigInt = (function () {
                 this.places[i] = this.places[i] - vv;
                 c = 0;
             } else {
-                // 1, 1, 1, 1 - 0, 0, 0, 2 =
                 this.places[i] = 0xFFFF - vv - this.places[i];
                 c = 1;
             }
