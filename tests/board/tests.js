@@ -1,6 +1,22 @@
 (function (QUnit, JChessPiece, JChessBoard) {
     var settings = {imagesPath: '../../images/'};
 
+    QUnit.test("tedt JChessBigInt sub", function (assert) {
+            var cases = [
+                // a, b, expected
+                [[0, 0, 0, 0xFFFF], [0, 0, 0, 1], [0, 0, 0, 0xFFFF-1]],
+                [[0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF], [1, 1, 1, 1], [0xFFFF-1, 0xFFFF-1, 0xFFFF-1, 0xFFFF-1]],
+                [[0xFFFF, 0, 0, 0], [0, 0, 0, 1], [0xFFFF-1, 0xFFFF-1, 0xFFFF-1, 0xFFFF-1]],
+            ]
+
+            for (var i = 0; i < cases.length; i++) {
+                var bigInt = new JChessBigInt(cases[i][0]);
+                bigInt.sub(cases[i][1]);
+
+                assert.deepEqual(bigInt.places, cases[i][2]);
+            }
+    });
+
     QUnit.test("test JChessBigInt add", function (assert) {
         var cases = [
             // a, b, expected, overflow

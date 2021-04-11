@@ -100,6 +100,24 @@ var JChessBigInt = (function () {
         this.overflow = false;
     }
 
+    JChessBigInt.prototype.sub = function (v) {
+        var i, vv, c = 0;
+
+        for (i = 3; i > -1; i--) {
+            vv = (i < v.length ? v[i] : 0) + c;
+            if (this.places[i] >= vv) {
+                this.places[i] = this.places[i] - vv;
+                c = 0;
+            } else {
+                // 1, 1, 1, 1 - 0, 0, 0, 2 =
+                this.places[i] = 0xFFFF - vv - this.places[i];
+                c = 1;
+            }
+        }
+
+        return this;
+    };
+
     JChessBigInt.prototype.add = function (v) {
         var i, s, c = 0
         for (i = 3; i > -1; i--) {
