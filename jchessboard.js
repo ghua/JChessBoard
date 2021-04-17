@@ -89,6 +89,7 @@ var JChessBigInt = (function () {
         this.mask = 0xFFFF // Math.pow(2, 16)-1
 
         this.places = []; // Big-endian, MSB comes first
+        this.extended = [];
 
         var length = places.length
         for (let i = 3; i >= 0; i--) {
@@ -100,25 +101,47 @@ var JChessBigInt = (function () {
         this.overflow = false;
     }
 
+    JChessBigInt.prototype.div = function (v) {
+        var d, u, q, r, j, n = 4;
+
+        d = v[3] > 0 ? Math.floor(0xFFFF / v[3]) : 1;
+        // @todo: on a binary computer it may be preferable to choose d to be a power of 2..., any value of d that in Vn-1 >= floor(b/2) will suffice (Knuth)
+        u = this.copy().mul([0, 0, 0, d]).extended;
+
+        for (j = 4; j >= 0; j--) {
+            var x = ((u[j+n]*0xFFFF) + (u[j+n-1]));
+            q = Math.floor(x / v[n-1]);
+            r = x % v[n-1];
+
+            console.log(q, r);
+        }
+    };
+
     JChessBigInt.prototype.mul = function (v) {
-        var i, j, x, ri = 7, ry = 0, r = [0, 0, 0, 0, 0, 0, 0, 0], c = 0;
+        var i, j, x, u, ri = 7, rj, r = [0, 0, 0, 0, 0, 0, 0, 0], c = 0;
+        v = [0, 0, 0, 0, v[0], v[1], v[2], v[3]]
+        u = [0, 0, 0, 0, this.places[0], this.places[1], this.places[2], this.places[3]]
 
-        for (j = 3; j > -1; j--) {
-            for (i = 3; i > -1; i--) {
-                var a = (i < this.places.length ? this.places[i] : 0);
-                var b = (j < v.length ? v[j] : 0);
+        for (j = 7; j > -1; j--) {
+            rj = 0;
+            for (i = ri; i > -1; i--) {
+                var vi = ri - rj;
+                if (vi < 0) {
+                    break;
+                }
 
-                x = (a * b) + c;
+                x = (u[i] * v[j]) + c;
 
-                r[ri - ry] += (x & 0xFFFF);
+                r[vi] += (x & 0xFFFF);
                 c = (x >> 16) & this.mask;
 
-                ry++;
+                rj++;
             }
             ri--;
         }
 
         this.places = [r[4], r[5], r[6], r[7]];
+        this.extended = r;
 
         return this;
     };

@@ -1,11 +1,23 @@
 (function (QUnit, JChessPiece, JChessBoard) {
     var settings = {imagesPath: '../../images/'};
 
+    QUnit.test("test JChessBigInt div", function (assert) {
+
+        var u = [12, 0, 0, 0], v = [4, 0, 0, 0];
+
+        var bigInt = new JChessBigInt(u);
+
+        bigInt.div(v);
+
+        assert.deepEqual(bigInt.places, [3, 0, 0, 0]);
+    });
+
     QUnit.test("test JChessBigInt mul", function (assert) {
         var cases = [
             [[0, 0, 0, 2], [0, 0, 0, 2], [0, 0, 0, 4]],
             [[0, 0, 1, 2], [0, 0, 0, 2], [0, 0, 2, 4]],
             [[0, 0, 0, 0xFFFF], [0, 0, 0, 0xFFFF], [0, 0, 0xFFFE, 1]],
+            [[0xFFFF, 0, 0, 0], [0, 0, 0, 2], [0xFFFE, 0, 0, 0]],
         ];
 
         for (var i = 0; i < cases.length; i++) {
@@ -13,6 +25,22 @@
             bigInt.mul(cases[i][1]);
 
             assert.deepEqual(bigInt.places, cases[i][2]);
+        }
+    });
+
+    QUnit.test("test JChessBoardInt copy + mul", function (assert) {
+        var cases = [
+            [[12, 0, 0, 0],     [0, 0, 0, 1], [0, 0, 0, 0, 12, 0, 0, 0]],
+            [[12, 0, 0, 0],     [0, 0, 0, 2], [0, 0, 0, 0, 24, 0, 0, 0]],
+            [[0xFFFF, 0, 0, 0], [0, 0, 0, 2], [0, 0, 0, 1, 0xFFFE, 0, 0, 0]],
+        ];
+
+        for (var i = 0; i < cases.length; i++) {
+            var bigInt = new JChessBigInt(cases[i][0]);
+            var copy = bigInt.copy();
+            copy.mul(cases[i][1]);
+
+            assert.deepEqual(copy.extended, cases[i][2]);
         }
     });
 
